@@ -114,11 +114,11 @@ export default function QuizQuestion({
     meaning: string,
     synonyms: string[]
   ): string => {
-    let explanation = `**Tamang Sagot:** ${correct}\n\n`;
-    explanation += `**Kahulugan:** ${meaning}\n\n`;
+    let explanation = `**Correct Answer:** ${correct}\n\n`;
+    explanation += `**Meaning:** ${meaning}\n\n`;
 
     if (synonyms && synonyms.length > 0) {
-      explanation += `**Mga Kasingkahulugan:** ${synonyms.join(", ")}`;
+      explanation += `**Synonyms:** ${synonyms.join(", ")}`;
     }
 
     return explanation;
@@ -130,7 +130,7 @@ export default function QuizQuestion({
     return (
       <div className="prose prose-sm max-w-none">
         <div
-          className="text-gray-700 space-y-2"
+          className="text-gray-700 text-sm space-y-2"
           dangerouslySetInnerHTML={{
             __html: explanation
               .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")

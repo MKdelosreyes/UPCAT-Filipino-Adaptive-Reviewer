@@ -51,10 +51,10 @@ export async function getVocabularyExercisesAdaptive(params: {
   return response.data.exercises || [];
 }
 
-export async function getGrammarExercises(): Promise<GrammarExerciseItem[]> {
-  const response = await aiServiceClient.get('/exercises/grammar');
-  return response.data.exercises || [];
-}
+// export async function getGrammarExercises(): Promise<GrammarExerciseItem[]> {
+//   const response = await aiServiceClient.get('/exercises/grammar');
+//   return response.data.exercises || [];
+// }
 
 export async function getGrammarExercisesAdaptive(params: {
   userId?: number;

@@ -114,11 +114,11 @@ export default function AntonymQuestion({
     antonym: string,
     allAntonyms: string[]
   ): string => {
-    let explanation = `**Salitang May Salungguhit:** ${word}\n\n`;
-    explanation += `**Tamang Kasalungat:** ${antonym}\n\n`;
+    let explanation = `**Underlined Word:** ${word}\n\n`;
+    explanation += `**Correct Antonym:** ${antonym}\n\n`;
 
     if (allAntonyms && allAntonyms.length > 0) {
-      explanation += `**Iba Pang Kasalungat:** ${allAntonyms.join(", ")}`;
+      explanation += `**Other Antonyms:** ${allAntonyms.join(", ")}`;
     }
 
     return explanation;
@@ -130,7 +130,7 @@ export default function AntonymQuestion({
     return (
       <div className="prose prose-sm max-w-none">
         <div
-          className="text-gray-700 space-y-2"
+          className="text-gray-700 text-sm space-y-2"
           dangerouslySetInnerHTML={{
             __html: explanation
               .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
