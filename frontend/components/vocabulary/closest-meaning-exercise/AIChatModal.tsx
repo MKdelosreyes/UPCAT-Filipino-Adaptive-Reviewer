@@ -139,7 +139,7 @@ export default function AIChatModal({
                 />
                 <button
                   onClick={handleSendMessage}
-                  className="px-4 py-2 text-purple-950 border-2 border-purple-950/50 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
+                  className="px-4 py-2 text-purple-950 border-2 border-purple-950/50 rounded-lg hover:border-purple-700 transition-all"
                 >
                   <Send className="w-5 h-5" />
                 </button>

@@ -55,6 +55,9 @@ export default function FlashcardsPage() {
   >("easy");
   const { isLoading: authLoading } = useAuthGuard();
 
+  // ✅ Add loading state for button actions
+  const [isProcessing, setIsProcessing] = useState(false);
+
   // ✅ Initialize session words with adaptive difficulty
   useEffect(() => {
     async function loadExercises() {
@@ -256,6 +259,8 @@ export default function FlashcardsPage() {
   const isLastCard = currentIndex === sessionWords.length - 1;
 
   const handleFlip = () => {
+    if (isProcessing) return; // Prevent flipping while processing
+
     const newStates = [...cardStates];
     newStates[currentIndex].flips++;
     setCardStates(newStates);
@@ -263,41 +268,73 @@ export default function FlashcardsPage() {
   };
 
   const handleKnowIt = async () => {
-    // ✅ Report lexical performance when user knows the word
-    await reportLexicalItemPerformance({
-      module: "vocabulary",
-      exerciseType: "flashcards",
-      lemmaId: currentWord.lemma_id,
-      correctAnswer: currentWord.word,
-      userAnswer: currentWord.word, // User indicated they know it
-      difficultyShown: currentDifficulty,
-      score: 100, // Perfect score for "I Know This"
-    });
+    if (isProcessing) return; // Prevent double-clicks
 
-    const newStates = [...cardStates];
-    newStates[currentIndex].status = "mastered";
-    setCardStates(newStates);
-    nextCard();
+    setIsProcessing(true);
+
+    try {
+      // ✅ Report lexical performance when user knows the word
+      await reportLexicalItemPerformance({
+        module: "vocabulary",
+        exerciseType: "flashcards",
+        lemmaId: currentWord.lemma_id,
+        correctAnswer: currentWord.word,
+        userAnswer: currentWord.word, // User indicated they know it
+        difficultyShown: currentDifficulty,
+        score: 100, // Perfect score for "I Know This"
+      });
+
+      const newStates = [...cardStates];
+      newStates[currentIndex].status = "mastered";
+      setCardStates(newStates);
+      nextCard();
+    } catch (error) {
+      console.error("Failed to report performance:", error);
+      // Still proceed to next card even if reporting fails
+      const newStates = [...cardStates];
+      newStates[currentIndex].status = "mastered";
+      setCardStates(newStates);
+      nextCard();
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleStillLearning = async () => {
-    // ✅ Report lexical performance when user is still learning
-    await reportLexicalItemPerformance({
-      module: "vocabulary",
-      exerciseType: "flashcards",
-      lemmaId: currentWord.lemma_id,
-      correctAnswer: currentWord.word,
-      userAnswer: "", // User doesn't know it yet
-      difficultyShown: currentDifficulty,
-      score: 0, // Zero score for still learning
-    });
+    if (isProcessing) return; // Prevent double-clicks
 
-    const newStates = [...cardStates];
-    if (newStates[currentIndex].status === "unseen") {
-      newStates[currentIndex].status = "learning";
+    setIsProcessing(true);
+
+    try {
+      // ✅ Report lexical performance when user is still learning
+      await reportLexicalItemPerformance({
+        module: "vocabulary",
+        exerciseType: "flashcards",
+        lemmaId: currentWord.lemma_id,
+        correctAnswer: currentWord.word,
+        userAnswer: "", // User doesn't know it yet
+        difficultyShown: currentDifficulty,
+        score: 0, // Zero score for still learning
+      });
+
+      const newStates = [...cardStates];
+      if (newStates[currentIndex].status === "unseen") {
+        newStates[currentIndex].status = "learning";
+      }
+      setCardStates(newStates);
+      nextCard();
+    } catch (error) {
+      console.error("Failed to report performance:", error);
+      // Still proceed to next card even if reporting fails
+      const newStates = [...cardStates];
+      if (newStates[currentIndex].status === "unseen") {
+        newStates[currentIndex].status = "learning";
+      }
+      setCardStates(newStates);
+      nextCard();
+    } finally {
+      setIsProcessing(false);
     }
-    setCardStates(newStates);
-    nextCard();
   };
 
   const nextCard = () => {
@@ -382,6 +419,7 @@ export default function FlashcardsPage() {
       }))
     );
     setShowCompletion(false);
+    setIsProcessing(false); // Reset processing state
   };
 
   return (
@@ -410,7 +448,8 @@ export default function FlashcardsPage() {
 
         <button
           onClick={resetSession}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm"
+          disabled={isProcessing}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <RotateCcw className="w-4 h-4" />
           <span className="hidden md:inline">Reset</span>
@@ -453,26 +492,30 @@ export default function FlashcardsPage() {
           </AnimatePresence>
         </div>
 
-        {/* Buttons - Fixed Height */}
+        {/* Buttons - Fixed Height with Loading State */}
         <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-2xl mx-auto w-full">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={!isProcessing ? { scale: 1.05 } : {}}
+            whileTap={!isProcessing ? { scale: 0.95 } : {}}
             onClick={handleStillLearning}
-            className="flex items-center justify-center gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-orange-300 flex-1"
+            disabled={isProcessing}
+            className="flex items-center justify-center gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-orange-300 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="w-5 h-5" />
-            <span>Still Learning</span>
+            <span>{isProcessing ? "..." : "Still Learning"}</span>
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={!isProcessing ? { scale: 1.05 } : {}}
+            whileTap={!isProcessing ? { scale: 0.95 } : {}}
             onClick={handleKnowIt}
-            className="flex items-center justify-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-green-300 flex-1"
+            disabled={isProcessing}
+            className="flex items-center justify-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-green-300 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <CheckCircle className="w-5 h-5" />
-            <span>{isLastCard ? "Finish" : "I Know This"}</span>
+            <span>
+              {isProcessing ? "..." : isLastCard ? "Finish" : "I Know This"}
+            </span>
           </motion.button>
         </div>
       </div>

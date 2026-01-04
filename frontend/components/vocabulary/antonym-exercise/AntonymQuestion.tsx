@@ -65,9 +65,9 @@ export default function AntonymQuestion({
             );
 
             const aiPromise = getExplanation({
-              mode: "quiz",
+              mode: "antonym",
               word: underlinedWord,
-              correct: `Antonym: ${correctAnswer}`,
+              correct: `${correctAnswer}`,
               selected: selectedAnswer,
             });
 
@@ -90,7 +90,7 @@ export default function AntonymQuestion({
           const simpleExplanation = buildSimpleExplanation(
             underlinedWord,
             correctAnswer,
-            entry.relations?.antonyms || []
+            entry.base_definition
           );
           setExplanation(simpleExplanation);
           setIsAIExplanation(false);
@@ -112,14 +112,18 @@ export default function AntonymQuestion({
   const buildSimpleExplanation = (
     word: string,
     antonym: string,
-    allAntonyms: string[]
+    base_definition: string
   ): string => {
-    let explanation = `**Underlined Word:** ${word}\n\n`;
-    explanation += `**Correct Antonym:** ${antonym}\n\n`;
+    const sentenceCaseWord =
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    const lowercaseDefinition = base_definition.toLowerCase();
 
-    if (allAntonyms && allAntonyms.length > 0) {
-      explanation += `**Other Antonyms:** ${allAntonyms.join(", ")}`;
-    }
+    let explanation = `**Underlined Word:** ${word}\n\n`;
+    explanation += `**${sentenceCaseWord}** means ${lowercaseDefinition}\n\n`;
+    explanation += `**Correct Antonym:** ${antonym}\n\n`;
+    // if (allAntonyms && allAntonyms.length > 0) {
+    //   explanation += `**Other Antonyms:** ${allAntonyms.join(", ")}`;
+    // }
 
     return explanation;
   };

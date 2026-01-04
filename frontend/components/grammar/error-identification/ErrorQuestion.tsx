@@ -107,9 +107,9 @@ export default function ErrorQuestion({
                       <div className="flex-shrink-0">
                         {isCorrect ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-red-700 font-semibold">
+                            {/* <span className="text-xs text-red-700 font-semibold">
                               Error here!
-                            </span>
+                            </span> */}
                             <Check className="w-6 h-6 text-red-600" />
                           </div>
                         ) : (

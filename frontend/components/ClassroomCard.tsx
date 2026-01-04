@@ -47,10 +47,10 @@ const ClassroomCard = ({
       if (mastery.level === "beginner") {
         return "📌 Recommended: Start here";
       }
-      return `📌 Recommended: Continue (${mastery.level})`;
+      return `Recommended: Continue (${mastery.level})`;
     }
     if (mastery.level !== "beginner") {
-      return `📊 In Progress: ${mastery.icon} ${mastery.level}`;
+      return `In Progress: ${mastery.icon} ${mastery.level}`;
     }
     return "Available";
   };
@@ -85,7 +85,7 @@ const ClassroomCard = ({
         )}
 
         {/* Mastery Badges (Top-Right) */}
-        <div className="absolute top-3 right-3 z-20 flex flex-col items-end gap-2">
+        {/* <div className="absolute top-3 right-3 z-20 flex flex-col items-end gap-2">
           {completed ? (
             <div className="flex items-center gap-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
               <Check size={14} />
@@ -93,7 +93,6 @@ const ClassroomCard = ({
             </div>
           ) : mastery.level !== "beginner" ? (
             <>
-              {/* Mastery Level Badge */}
               <div
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border-2 shadow-lg ${mastery.color}`}
               >
@@ -101,7 +100,6 @@ const ClassroomCard = ({
                 <span className="capitalize">{mastery.level}</span>
               </div>
 
-              {/* Difficulty Badge */}
               <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-blue-700 border border-blue-200 shadow-md">
                 {mastery.difficulty}
               </div>
@@ -109,7 +107,7 @@ const ClassroomCard = ({
           ) : (
             <Circle size={16} className="text-white/70" />
           )}
-        </div>
+        </div> */}
 
         {/* Image Background */}
         <Image
@@ -120,8 +118,8 @@ const ClassroomCard = ({
         />
         <div
           className={`absolute inset-0 bg-gradient-to-t ${
-              isRecommended && !completed
-                ? "from-blue-900/60 via-blue-800/40 to-transparent"
+            isRecommended && !completed
+              ? "from-blue-900/60 via-blue-800/40 to-transparent"
               : "from-black/30 via-black/10 to-transparent"
           }`}
         />

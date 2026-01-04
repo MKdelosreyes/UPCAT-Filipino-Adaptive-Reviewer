@@ -117,15 +117,12 @@ Context:
 
         base_prompt += """
 
-Gawain:
-Ipaliwanag kung bakit tama ang tamang sagot at kung bakit mali ang napili ng estudyante. Gumamit ng simpleng Filipino.
-
 Magbigay ng 4 na punto:
-1) Bakit tama ang tamang sagot (gamitin ang kahulugan)
+1) Bakit ito ang tamang sagot (gamitin ang kahulugan)
 2) Bakit mali ang napiling sagot (ipaliwanag ang pagkakaiba)
 3) Maikling talang pangbokabularyo o gramatika (isang pangungusap)
 
-Gumamit ng mga bullet points at panatilihing maikli at malinaw."""
+Gumamit ng mga bullet points at panatilihing maikli at malinaw. Gumamit ng simpleng Filipino."""
 
         return base_prompt
 
