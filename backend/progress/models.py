@@ -67,6 +67,7 @@ class ExerciseProgress(models.Model):
     EXERCISE_TYPES = [
         ('flashcards', 'Flashcards'),
         ('quiz', 'Quiz'),
+        ('antonym', 'Antonym'),
         ('fill-blanks', 'Fill in the Blanks'),
     ]
 

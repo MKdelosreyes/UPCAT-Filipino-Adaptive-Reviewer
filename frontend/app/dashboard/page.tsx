@@ -11,6 +11,7 @@ import { ModuleType } from "@/contexts/LearningProgressContext";
 import RecommendedPathIndicator from "@/components/RecommendedPathIndicator";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import MasterySummary from "@/components/MasterSummary";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 interface Card {
   title: string;
@@ -72,6 +73,7 @@ export default function Dashboard() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const { updateProgress, resetProgress } = useLearningProgress();
+  const { user, isLoading: authLoading } = useAuthGuard();
 
   // ADD THESE TEST BUTTONS
   const simulateVocabularyProgress = () => {
@@ -111,6 +113,14 @@ export default function Dashboard() {
       transition: { when: "beforeChildren", staggerChildren: 0.1 },
     },
   };
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-red-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex m-0 w-full h-screen flex-col">

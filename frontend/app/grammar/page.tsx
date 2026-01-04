@@ -5,10 +5,12 @@ import Link from "next/link";
 import GrammarCard from "@/components/GrammarCard";
 import ProgressStepper from "./_progress/ProgressStepper";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function GrammarPage() {
   const { getGrammarMastery } = useGrammarProgress();
   const mastery = getGrammarMastery();
+  const { user, isLoading: authLoading } = useAuthGuard();
 
   const masteryColors = {
     beginner: "bg-gray-100 text-gray-700 border-gray-300",
@@ -17,6 +19,14 @@ export default function GrammarPage() {
     advanced: "bg-orange-100 text-orange-700 border-orange-300",
     master: "bg-yellow-100 text-yellow-700 border-yellow-400",
   };
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-red-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen flex items-start justify-center py-4 px-6 md:p-7 bg-gray-50">

@@ -19,6 +19,7 @@ import {
   LexiconItem,
 } from "@/lib/api/exercises";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 type CardStatus = "unseen" | "learning" | "mastered";
 
@@ -52,6 +53,7 @@ export default function FlashcardsPage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
+  const { isLoading: authLoading } = useAuthGuard();
 
   // ✅ Initialize session words with adaptive difficulty
   useEffect(() => {
@@ -174,6 +176,14 @@ export default function FlashcardsPage() {
 
     loadExercises();
   }, [user?.id, tokens?.access]);
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-red-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   // Show loading state
   if (isLoading) {

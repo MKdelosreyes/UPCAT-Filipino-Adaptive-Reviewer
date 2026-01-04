@@ -22,6 +22,7 @@ import {
 } from "@/utils/PerformanceTracker";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 interface AntonymItem {
   id: string;
@@ -189,6 +190,7 @@ export default function AntonymExercisePage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
+  const { isLoading: authLoading } = useAuthGuard();
 
   // ✅ Load questions with adaptive difficulty
   useEffect(() => {
@@ -265,6 +267,14 @@ export default function AntonymExercisePage() {
     }
     loadQuestions();
   }, [user?.id, tokens?.access]);
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-red-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   // Show loading state
   if (isLoading) {

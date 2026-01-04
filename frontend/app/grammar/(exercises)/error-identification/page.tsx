@@ -9,8 +9,14 @@ import ErrorProgress from "@/components/grammar/error-identification/ErrorProgre
 import ErrorCompletionModal from "@/components/grammar/error-identification/ErrorCompletionModal";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
-import { getGrammarExercises, GrammarExerciseItem } from "@/lib/api/exercises";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  getGrammarExercisesAdaptive,
+  GrammarExerciseItem,
+} from "@/lib/api/exercises";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
+import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 interface ErrorAnswer {
   isCorrect: boolean;
@@ -21,6 +27,7 @@ interface ErrorAnswer {
 
 interface ProcessedErrorItem {
   item_id: string;
+  lemma_id: string;
   sentence: string;
   question: string;
   choices: string[];
@@ -33,29 +40,21 @@ function extractPhrasesFromSentence(
   sentence: string,
   correctAnswer: string
 ): string[] {
-  // Remove any HTML tags
   const cleanSentence = sentence.replace(/<[^>]*>/g, "");
-
-  // Split by word boundaries (spaces, punctuation)
   const words = cleanSentence.split(/\s+/).filter((w) => w.length > 0);
-
-  // Generate all possible n-grams (1-word, 2-word, 3-word phrases)
   const phrases: string[] = [];
 
   for (let i = 0; i < words.length; i++) {
-    // 1-word phrases
     const word1 = words[i].replace(/[.,;:!?'"()]/g, "");
     if (word1.length > 2) {
       phrases.push(word1);
     }
 
-    // 2-word phrases
     if (i < words.length - 1) {
       const word2 = words[i + 1].replace(/[.,;:!?'"()]/g, "");
       phrases.push(`${word1} ${word2}`);
     }
 
-    // 3-word phrases
     if (i < words.length - 2) {
       const word2 = words[i + 1].replace(/[.,;:!?'"()]/g, "");
       const word3 = words[i + 2].replace(/[.,;:!?'"()]/g, "");
@@ -63,11 +62,6 @@ function extractPhrasesFromSentence(
     }
   }
 
-  // Filter out:
-  // 1. The correct answer itself
-  // 2. Phrases that contain the correct answer
-  // 3. Phrases that are contained in the correct answer
-  // 4. Duplicates
   const filtered = phrases.filter((phrase) => {
     const lowerPhrase = phrase.toLowerCase();
     const lowerCorrect = correctAnswer.toLowerCase();
@@ -79,11 +73,10 @@ function extractPhrasesFromSentence(
     );
   });
 
-  // Remove duplicates
   return Array.from(new Set(filtered));
 }
 
-// Convert grammar items to error identification format with generated distractors
+// Convert grammar items to error identification format
 function convertToErrorFormat(
   items: GrammarExerciseItem[]
 ): ProcessedErrorItem[] {
@@ -91,7 +84,6 @@ function convertToErrorFormat(
     const correctAnswer = item.errorCorrectAnswer;
     const isNoError = correctAnswer.toLowerCase() === "no error";
 
-    // Extract potential distractor phrases from the sentence
     const allPhrases = extractPhrasesFromSentence(
       item.error_sentence,
       correctAnswer
@@ -100,11 +92,9 @@ function convertToErrorFormat(
     let choices: string[];
 
     if (isNoError) {
-      // If correct answer is "No error", generate 3 distractors + "No error"
       const shuffledPhrases = allPhrases.sort(() => Math.random() - 0.5);
       let distractors = shuffledPhrases.slice(0, 3);
 
-      // If we don't have enough distractors, pad with generic options
       const fallbackOptions = [
         "Hindi Malinaw",
         "Kulang ang Impormasyon",
@@ -120,15 +110,12 @@ function convertToErrorFormat(
         fallbackIndex++;
       }
 
-      // Shuffle the 3 distractors, then add "Walang Mali" at the end
       distractors = distractors.sort(() => Math.random() - 0.5);
       choices = [...distractors, "Walang Mali"];
     } else {
-      // If there's an error, generate 2 distractors + correct answer + "No error" at the end
       const shuffledPhrases = allPhrases.sort(() => Math.random() - 0.5);
       let distractors = shuffledPhrases.slice(0, 2);
 
-      // If we don't have enough distractors, pad with generic options
       const fallbackOptions = ["Hindi Malinaw", "Kulang ang Impormasyon"];
       let fallbackIndex = 0;
 
@@ -140,7 +127,6 @@ function convertToErrorFormat(
         fallbackIndex++;
       }
 
-      // Shuffle correct answer with 2 distractors, then add "Walang Mali" at the end
       const firstThreeChoices = [correctAnswer, ...distractors].sort(
         () => Math.random() - 0.5
       );
@@ -149,6 +135,7 @@ function convertToErrorFormat(
 
     return {
       item_id: item.item_id,
+      lemma_id: item.lemma_id,
       sentence: item.error_sentence,
       question: "Alin sa mga sumusunod ang may mali sa pangungusap?",
       choices,
@@ -159,9 +146,10 @@ function convertToErrorFormat(
 }
 
 export default function ErrorIdentificationPage() {
-  const { updateProgress } = useGrammarProgress();
+  const { updateProgress, getExerciseProgress } = useGrammarProgress();
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
+  const { user, tokens } = useAuth();
 
   const [errorQuestions, setErrorQuestions] = useState<ProcessedErrorItem[]>(
     []
@@ -174,27 +162,68 @@ export default function ErrorIdentificationPage() {
   const [showCompletion, setShowCompletion] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentDifficulty, setCurrentDifficulty] = useState<
+    "easy" | "medium" | "hard"
+  >("easy");
+  const { isLoading: authLoading } = useAuthGuard();
 
-  // Load questions from AI service
+  // ✅ Load questions with adaptive difficulty
   useEffect(() => {
     async function loadQuestions() {
       try {
         setIsLoading(true);
-        const exercises = await getGrammarExercises();
 
-        if (exercises.length === 0) {
-          throw new Error("No grammar exercises available");
+        // ✅ 1. Get performance history and progress
+        const performanceHistory = getPerformanceHistory(
+          "grammar",
+          "error-identification"
+        );
+        const exerciseProgress = getExerciseProgress("error-identification");
+
+        console.log("📊 Error ID Performance History:", performanceHistory);
+        console.log("📈 Error ID Exercise Progress:", exerciseProgress);
+
+        // ✅ 2. Determine target difficulty
+        let targetDifficulty: "easy" | "medium" | "hard" = "easy";
+
+        if (performanceHistory.length > 0) {
+          const evaluation = evaluateUserPerformance(performanceHistory);
+          targetDifficulty = evaluation.nextDifficulty;
+          console.log(
+            "🎯 Evaluated Target Difficulty:",
+            targetDifficulty,
+            "| Tags:",
+            evaluation.tags
+          );
+        } else {
+          targetDifficulty = exerciseProgress.lastDifficulty || "easy";
+          console.log("🆕 First Session - Using difficulty:", targetDifficulty);
         }
 
-        console.log("📚 Loaded grammar exercises:", exercises.length);
+        setCurrentDifficulty(targetDifficulty);
 
-        // Convert to error identification format with generated distractors
+        // ✅ 3. Fetch adaptive grammar exercises
+        console.log(
+          "🔄 Fetching adaptive error identification exercises with difficulty:",
+          targetDifficulty
+        );
+
+        const exercises = await getGrammarExercisesAdaptive({
+          userId: user?.id,
+          targetDifficulty,
+          exerciseType: "error_identification",
+          limit: 15,
+          accessToken: tokens?.access,
+        });
+
+        console.log("📚 Adaptive Error ID Exercises:", exercises.length);
+
+        if (exercises.length === 0) {
+          throw new Error("No grammar exercises available for this difficulty");
+        }
+
+        // ✅ 4. Convert to error format
         const processedItems = convertToErrorFormat(exercises);
-
-        console.log("✅ Processed error items:", processedItems.length);
-        console.log("📝 Sample question:", processedItems[0]);
-
-        // Shuffle and select 10 questions
         const shuffled = [...processedItems].sort(() => Math.random() - 0.5);
         const selected = shuffled.slice(0, Math.min(10, shuffled.length));
 
@@ -202,7 +231,7 @@ export default function ErrorIdentificationPage() {
         setAnswers(Array(selected.length).fill(null));
         setError(null);
       } catch (err) {
-        console.error("Failed to load exercises:", err);
+        console.error("❌ Failed to load exercises:", err);
         setError(
           err instanceof Error
             ? err.message
@@ -214,7 +243,15 @@ export default function ErrorIdentificationPage() {
     }
 
     loadQuestions();
-  }, []);
+  }, [user?.id, tokens?.access]);
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-red-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   // Show loading state
   if (isLoading) {
@@ -233,6 +270,12 @@ export default function ErrorIdentificationPage() {
             <h1 className="text-xl md:text-2xl font-bold text-red-900">
               Error Identification
             </h1>
+            <p className="text-xs text-gray-500 mt-1">
+              Difficulty:{" "}
+              <span className="font-semibold capitalize">
+                {currentDifficulty}
+              </span>
+            </p>
           </div>
 
           <div className="w-20"></div>
@@ -290,7 +333,7 @@ export default function ErrorIdentificationPage() {
   const currentError = errorQuestions[currentQuestion];
   const isLastQuestion = currentQuestion === errorQuestions.length - 1;
 
-  const handleSelectAnswer = (answer: string) => {
+  const handleSelectAnswer = async (answer: string) => {
     setSelectedAnswer(answer);
     setShowResult(true);
 
@@ -308,6 +351,32 @@ export default function ErrorIdentificationPage() {
         sentence: currentError.sentence,
       },
     ]);
+
+    const score = isCorrect ? 100 : 0;
+
+    // ✅ Report lexical performance
+    try {
+      await reportLexicalItemPerformance({
+        module: "grammar",
+        exerciseType: "error-identification",
+        lemmaId: currentError.lemma_id,
+        correctAnswer: currentError.correct_answer,
+        userAnswer: answer,
+        difficultyShown: currentDifficulty,
+        score,
+      });
+    } catch (e) {
+      console.error("Failed to record grammar performance", e);
+    }
+
+    // Update metrics with CURRENT difficulty
+    addPerformanceMetrics("grammar", "error-identification", {
+      score,
+      difficulty: currentDifficulty,
+      missedLowFreq: 0,
+      similarChoiceErrors: !isCorrect ? 1 : 0,
+      timestamp: new Date().toISOString(),
+    });
   };
 
   const handleNext = () => {
@@ -322,37 +391,40 @@ export default function ErrorIdentificationPage() {
 
   const completeExercise = () => {
     const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / errorQuestions.length) * 100);
+    const sessionScore = Math.round(
+      (correctCount / errorQuestions.length) * 100
+    );
 
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
+    let similarChoiceErrors = detailedAnswers.filter(
+      (a) => !a.isCorrect
+    ).length;
 
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
-    });
-
-    const history = getPerformanceHistory("grammar", "flashcards");
-    const currentDifficulty =
-      history.length > 0 ? history[history.length - 1].difficulty : "easy";
-
-    const metrics = {
+    const finalMetrics = {
       difficulty: currentDifficulty,
-      score,
-      missedLowFreq,
+      score: sessionScore,
+      missedLowFreq: 0,
       similarChoiceErrors,
       timestamp: new Date().toISOString(),
     };
 
-    addPerformanceMetrics("grammar", "flashcards", metrics);
+    console.log("📊 Error ID Session Completed - Metrics:", finalMetrics);
 
-    const allHistory = [...history, metrics];
+    addPerformanceMetrics("grammar", "error-identification", finalMetrics);
+
+    const history = getPerformanceHistory("grammar", "error-identification");
+    const allHistory = [...history, finalMetrics];
     const evaluation = evaluateUserPerformance(allHistory);
+
+    console.log(
+      "🎯 Next Error ID Difficulty:",
+      evaluation.nextDifficulty,
+      "| Error Tags:",
+      evaluation.tags
+    );
 
     updateProgress("error-identification", {
       status: "completed",
-      score,
+      score: sessionScore,
       completedAt: new Date().toISOString(),
       attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
@@ -365,7 +437,13 @@ export default function ErrorIdentificationPage() {
   const resetExercise = async () => {
     try {
       setIsLoading(true);
-      const exercises = await getGrammarExercises();
+      const exercises = await getGrammarExercisesAdaptive({
+        userId: user?.id,
+        targetDifficulty: currentDifficulty,
+        exerciseType: "error_identification",
+        limit: 15,
+        accessToken: tokens?.access,
+      });
       const processedItems = convertToErrorFormat(exercises);
       const shuffled = [...processedItems].sort(() => Math.random() - 0.5);
       const selected = shuffled.slice(0, Math.min(10, shuffled.length));
@@ -400,6 +478,12 @@ export default function ErrorIdentificationPage() {
           <h1 className="text-xl md:text-2xl font-bold text-red-900">
             Error Identification
           </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Difficulty:{" "}
+            <span className="font-semibold capitalize">
+              {currentDifficulty}
+            </span>
+          </p>
         </div>
 
         <button

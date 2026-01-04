@@ -1,3 +1,5 @@
+import {aiServiceClient, apiClient} from '../client/aiServiceClient';
+
 /**
  * AI Service API Client
  * Connects frontend to FastAPI AI service
@@ -58,80 +60,36 @@ export interface ConfusablesResponse {
 export async function getExplanation(
   request: ExplainRequest
 ): Promise<ExplainResponse> {
-  const response = await fetch(`${AI_SERVICE_URL}/explain`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    throw new Error(`AI Service error: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await aiServiceClient.post('/explain', request);
+  return response.data;
 }
 
 export async function getTips(
   request: TipsRequest
 ): Promise<TipsResponse> {
-  const response = await fetch(`${AI_SERVICE_URL}/tips`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    throw new Error(`AI Service error: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await aiServiceClient.post('/tips', request);
+  return response.data;
 }
 
 export async function redefineWord(
   request: RedefineRequest
 ): Promise<RedefineResponse> {
-  const response = await fetch(`${AI_SERVICE_URL}/redefine`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    throw new Error(`AI Service error: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await aiServiceClient.post('/redefine', request);
+  return response.data;
 }
 
 export async function getConfusables(
   request: ConfusablesRequest
 ): Promise<ConfusablesResponse> {
-  const response = await fetch(`${AI_SERVICE_URL}/confusables`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    throw new Error(`AI Service error: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await aiServiceClient.post('/confusables', request);
+  return response.data;
 }
 
 // Health check
 export async function checkAIServiceHealth(): Promise<boolean> {
   try {
-    const response = await fetch(`${AI_SERVICE_URL}/`);
-    return response.ok;
+    const response = await aiServiceClient.get('/');
+    return response.status === 200;
   } catch {
     return false;
   }

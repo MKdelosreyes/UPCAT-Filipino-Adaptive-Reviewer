@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict
@@ -80,14 +80,21 @@ app.add_middleware(
 BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000/api")
 
 # ============================================================
-# REQUEST/RESPONSE MODELS (for remaining endpoints)
+# REQUEST/RESPONSE MODELS
 # ============================================================
 
 
 class VocabularyExercisesRequest(BaseModel):
     user_id: Optional[int] = None
-    # "easy" | "medium" | "hard" | None
     target_difficulty: Optional[str] = None
+    limit: int = 15
+
+
+class GrammarExercisesRequest(BaseModel):
+    user_id: Optional[int] = None
+    target_difficulty: Optional[str] = None
+    # "error_identification" or "fill_in_the_blanks"
+    exercise_type: Optional[str] = None
     limit: int = 15
 
 
@@ -141,9 +148,6 @@ async def fetch_user_lexical_difficulties(
     """
     Call backend /api/progress/lexical-difficulties/ for a given user.
     Returns a mapping lemma_id -> difficulty_score (float or None).
-    NOTE: You'll need some way to authenticate as that user.
-    For now, this function assumes you pass a JWT access token
-    in the Authorization header when calling ai-service from frontend.
     """
     headers = {}
     if token:
@@ -174,6 +178,58 @@ def bucket_from_score(score: Optional[float]) -> Optional[str]:
     if score < 0.6:
         return "medium"
     return "hard"
+
+
+def estimate_grammar_difficulty(item: dict) -> str:
+    """
+    Estimate difficulty of a grammar item based on its characteristics.
+    This is a heuristic fallback when we don't have user-specific data.
+
+    Factors:
+    - Sentence length (longer = harder)
+    - Explanation length (longer explanation = more complex)
+    - Error position (errors at end = easier to spot)
+    """
+    try:
+        # Get sentence for analysis
+        sentence = item.get("error_sentence", "") or item.get(
+            "fill_sentence", "")
+        explanation = item.get("error_explanation", "") or item.get(
+            "fill_explanation", "")
+
+        # Factor 1: Sentence length
+        word_count = len(sentence.split())
+        length_score = 0
+        if word_count <= 10:
+            length_score = 0  # Easy
+        elif word_count <= 20:
+            length_score = 1  # Medium
+        else:
+            length_score = 2  # Hard
+
+        # Factor 2: Explanation complexity
+        exp_word_count = len(explanation.split())
+        explanation_score = 0
+        if exp_word_count <= 15:
+            explanation_score = 0  # Easy
+        elif exp_word_count <= 30:
+            explanation_score = 1  # Medium
+        else:
+            explanation_score = 2  # Hard
+
+        # Combine scores
+        total_score = length_score + explanation_score
+
+        if total_score <= 1:
+            return "easy"
+        elif total_score <= 3:
+            return "medium"
+        else:
+            return "hard"
+
+    except Exception as e:
+        print(f"⚠️ Error estimating difficulty: {e}")
+        return "medium"  # Default fallback
 
 # ============================================================
 # ENDPOINTS
@@ -210,36 +266,28 @@ async def health_check():
 
 @app.post("/explain", response_model=ExplainResponse)
 async def explain(request: ExplainRequest):
-    """
-    Generate AI explanation for incorrect answers.
-    Delegates to handler in handlers/explain.py
-    """
+    """Generate AI explanation for incorrect answers"""
     if not handle_explain:
         raise HTTPException(
             status_code=503,
             detail="Explain handler not available"
         )
-
     return await handle_explain(request)
 
 
 @app.post("/redefine", response_model=RedefineResponse)
 async def redefine_word(request: RedefineRequest):
-    """
-    Redefine word with multiple perspectives.
-    Delegates to handler in handlers/redefine.py
-    """
+    """Redefine word with multiple perspectives"""
     if not handle_redefine:
         raise HTTPException(
             status_code=503,
             detail="Redefine handler not available"
         )
-
     return await handle_redefine(request)
 
 
 # ============================================================
-# OTHER ENDPOINTS (tips and confusables - to be refactored later)
+# OTHER ENDPOINTS
 # ============================================================
 
 def tips_prompt(data: dict) -> str:
@@ -292,11 +340,9 @@ async def find_confusables(request: ConfusablesRequest):
             nb = math.sqrt(sum(x * x for x in b))
             return dot / (na * nb + 1e-9)
 
-        # Get all candidate words from lexicon
         candidates = [v.get("lemma", "")
                       for v in lexicon_data if v.get("lemma")]
 
-        # Get embeddings
         target_emb = openai_client.embeddings.create(
             model="text-embedding-3-small",
             input=request.word
@@ -307,24 +353,20 @@ async def find_confusables(request: ConfusablesRequest):
             input=candidates
         ).data
 
-        # Calculate similarities
         scored = []
         for i, emb_data in enumerate(cand_embs):
             if candidates[i] != request.word:
                 score = cosine_similarity(target_emb, emb_data.embedding)
                 scored.append({"word": candidates[i], "score": score})
 
-        # Get top K
         ranked = sorted(scored, key=lambda x: x["score"], reverse=True)[
             :request.topK]
 
-        # Build results
         results = []
         for r in ranked:
             entry = next(
                 (v for v in lexicon_data if v.get("lemma") == r["word"]), None)
             if entry:
-                # Get example sentence from vocabulary_data
                 vocab_entry = next(
                     (v for v in vocabulary_data if v.get(
                         "lemma_id") == entry.get("lemma_id")),
@@ -349,80 +391,39 @@ async def find_confusables(request: ConfusablesRequest):
 
 
 # ============================================================
-# DATA EXERCISE ENDPOINTS
+# VOCABULARY EXERCISE ENDPOINTS
 # ============================================================
-
-# @app.get("/exercises/vocabulary")
-# async def get_vocabulary_exercises():
-#     try:
-#         if not vocabulary_data:
-#             raise HTTPException(
-#                 status_code=404, detail="No vocabulary data found")
-#         return {
-#             "success": True,
-#             "exercises": vocabulary_data,
-#             "count": len(vocabulary_data)
-#         }
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=500,
-#             detail=f"Error loading vocabulary data: {str(e)}"
-#         )
-
 
 @app.post("/exercises/vocabulary")
 async def get_vocabulary_exercises_adaptive(
     request: VocabularyExercisesRequest,
-    authorization: Optional[str] = None,
+    authorization: Optional[str] = Header(None),
 ):
-    """
-    Adaptive vocabulary exercise selection.
-
-    Request body:
-    {
-      "user_id": 123,                 # optional
-      "target_difficulty": "medium",  # optional: "easy" | "medium" | "hard"
-      "limit": 15
-    }
-
-    Behavior:
-      - If user_id & Authorization (JWT) provided:
-          - fetch per-lemma difficulty from backend
-          - favor items whose difficulty bucket matches target_difficulty
-      - Otherwise:
-          - return a random sample of vocabulary_data (non-adaptive)
-    """
-
+    """Adaptive vocabulary exercise selection"""
     user_id = request.user_id
     target_difficulty = request.target_difficulty
     limit = request.limit
 
-    # Fallback: no adaptivity if no user or no token
     if user_id is None or authorization is None:
-        # Simple random sample as before
         items = list(vocabulary_data)
         random.shuffle(items)
         return {"exercises": items[:limit]}
 
-    # Extract token from "Bearer <token>"
     token = None
-    if authorization.lower().startswith("bearer "):
+    if authorization and authorization.lower().startswith("bearer "):
         token = authorization.split(" ", 1)[1].strip()
 
-    # Fetch user's lexical difficulties from backend
     try:
         user_difficulties = await fetch_user_lexical_difficulties(
             user_id=user_id,
             token=token,
         )
     except Exception as e:
-        # If backend call fails, degrade gracefully to random
         print("⚠️ Failed to fetch lexical difficulties:", e)
         items = list(vocabulary_data)
         random.shuffle(items)
         return {"exercises": items[:limit]}
 
-    # Annotate each vocab item with user's difficulty bucket
     annotated = []
     for item in vocabulary_data:
         lemma_id = item.get("lemma_id")
@@ -430,9 +431,6 @@ async def get_vocabulary_exercises_adaptive(
         bucket = bucket_from_score(score)
         annotated.append((item, bucket))
 
-    # Selection strategy:
-    # - If target_difficulty is provided, prefer items in that bucket.
-    # - If not enough items, backfill with other buckets.
     if target_difficulty not in {"easy", "medium", "hard"}:
         target_difficulty = None
 
@@ -446,8 +444,6 @@ async def get_vocabulary_exercises_adaptive(
             others.append(item)
 
     selected = []
-
-    # Take from preferred first
     random.shuffle(preferred)
     selected.extend(preferred[:limit])
 
@@ -459,33 +455,167 @@ async def get_vocabulary_exercises_adaptive(
     return {"exercises": selected[:limit]}
 
 
+# ============================================================
+# GRAMMAR EXERCISE ENDPOINTS
+# ============================================================
+
+@app.post("/exercises/grammar")
+async def get_grammar_exercises_adaptive(
+    request: GrammarExercisesRequest,
+    authorization: Optional[str] = Header(None),
+):
+    """
+    Adaptive grammar exercise selection.
+
+    Request body:
+    {
+      "user_id": 123,                          # optional
+      "target_difficulty": "medium",            # optional: "easy" | "medium" | "hard"
+      "exercise_type": "error_identification",  # optional: filter by type
+      "limit": 15
+    }
+
+    Behavior:
+      - If user_id & Authorization provided:
+          - fetch per-lemma difficulty from backend
+          - favor items whose difficulty matches target_difficulty
+      - Otherwise:
+          - use heuristic difficulty estimation
+      - Filter by exercise_type if specified
+    """
+    user_id = request.user_id
+    target_difficulty = request.target_difficulty
+    exercise_type = request.exercise_type
+    limit = request.limit
+
+    print(
+        f"🎯 Grammar request: user_id={user_id}, difficulty={target_difficulty}, type={exercise_type}")
+
+    # Filter by exercise type if specified
+    filtered_items = grammar_data
+    if exercise_type:
+        filtered_items = [
+            item for item in grammar_data
+            if item.get("exercise_type") == exercise_type
+        ]
+        print(f"📝 Filtered to {len(filtered_items)} {exercise_type} items")
+
+    if not filtered_items:
+        print("⚠️ No grammar items match the filter")
+        return {"exercises": []}
+
+    # Case 1: No user or no auth - use heuristic difficulty
+    if user_id is None or authorization is None:
+        print("📊 Using heuristic difficulty estimation")
+        annotated = []
+        for item in filtered_items:
+            estimated_diff = estimate_grammar_difficulty(item)
+            annotated.append((item, estimated_diff))
+
+        if target_difficulty in {"easy", "medium", "hard"}:
+            preferred = [item for item,
+                         diff in annotated if diff == target_difficulty]
+            others = [item for item,
+                      diff in annotated if diff != target_difficulty]
+        else:
+            preferred = []
+            others = [item for item, _ in annotated]
+
+        random.shuffle(preferred)
+        random.shuffle(others)
+
+        selected = preferred[:limit]
+        if len(selected) < limit:
+            remaining = limit - len(selected)
+            selected.extend(others[:remaining])
+
+        print(f"✅ Selected {len(selected)} grammar items (heuristic)")
+        return {"exercises": selected}
+
+    # Case 2: User + auth - use lexical difficulty data
+    token = None
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        user_difficulties = await fetch_user_lexical_difficulties(
+            user_id=user_id,
+            token=token,
+        )
+        print(f"📊 Fetched {len(user_difficulties)} user difficulties")
+    except Exception as e:
+        print(f"⚠️ Failed to fetch difficulties: {e}")
+        # Fallback to heuristic
+        annotated = []
+        for item in filtered_items:
+            estimated_diff = estimate_grammar_difficulty(item)
+            annotated.append((item, estimated_diff))
+
+        if target_difficulty in {"easy", "medium", "hard"}:
+            preferred = [item for item,
+                         diff in annotated if diff == target_difficulty]
+            others = [item for item,
+                      diff in annotated if diff != target_difficulty]
+        else:
+            preferred = []
+            others = [item for item, _ in annotated]
+
+        random.shuffle(preferred)
+        random.shuffle(others)
+
+        selected = preferred[:limit]
+        if len(selected) < limit:
+            remaining = limit - len(selected)
+            selected.extend(others[:remaining])
+
+        return {"exercises": selected}
+
+    # Annotate grammar items with user's difficulty data
+    annotated = []
+    for item in filtered_items:
+        lemma_id = item.get("lemma_id")
+        score = user_difficulties.get(lemma_id)
+
+        if score is not None:
+            # Use user's actual difficulty
+            bucket = bucket_from_score(score)
+        else:
+            # Fallback to heuristic for unseen items
+            bucket = estimate_grammar_difficulty(item)
+
+        annotated.append((item, bucket))
+
+    # Selection strategy
+    if target_difficulty not in {"easy", "medium", "hard"}:
+        target_difficulty = None
+
+    preferred = []
+    others = []
+
+    for item, bucket in annotated:
+        if target_difficulty is not None and bucket == target_difficulty:
+            preferred.append(item)
+        else:
+            others.append(item)
+
+    selected = []
+    random.shuffle(preferred)
+    selected.extend(preferred[:limit])
+
+    if len(selected) < limit:
+        remaining = limit - len(selected)
+        random.shuffle(others)
+        selected.extend(others[:remaining])
+
+    print(f"✅ Selected {len(selected)} grammar items (adaptive)")
+    return {"exercises": selected[:limit]}
+
+
 @app.get("/exercises/lexicon")
 async def get_lexicon_exercises():
     if not lexicon_data:
         raise HTTPException(status_code=404, detail="Lexicon data not loaded")
     return {"exercises": lexicon_data, "count": len(lexicon_data)}
-
-
-@app.get("/exercises/grammar")
-async def get_grammar_exercises():
-    """Get all grammar exercises"""
-    try:
-        if not grammar_data:
-            raise HTTPException(
-                status_code=404,
-                detail="Grammar data not loaded"
-            )
-
-        return {
-            "success": True,
-            "exercises": grammar_data,
-            "count": len(grammar_data)
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error loading grammar data: {str(e)}"
-        )
 
 
 @app.get("/debug/data-status")
@@ -505,7 +635,6 @@ async def debug_data_status():
     try:
         status["grammar"] = {"loaded": True, "count": len(grammar_data)}
 
-        # Count by exercise type
         error_id_count = len([
             item for item in grammar_data
             if item.get("exercise_type") == "error_identification"

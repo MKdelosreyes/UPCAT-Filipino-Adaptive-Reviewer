@@ -1,4 +1,4 @@
-const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8001";
+import {aiServiceClient} from '../client/aiServiceClient';
 
 export interface VocabularyExerciseItem {
   item_id: string;
@@ -27,22 +27,19 @@ export interface GrammarExerciseItem {
   fillCorrectAnswer: string;
   error_explanation: string;
   fill_explanation: string;
+  exercise_type: "error_identification" | "fill_in_the_blanks";
 }
 
 export async function getVocabularyExercises(): Promise<VocabularyExerciseItem[]> {
-  const response = await fetch(`${AI_SERVICE_URL}/exercises/vocabulary`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch vocabulary exercises: ${response.statusText}`);
-  }
-  const data = await response.json();
-  return data.exercises || [];
+  const response = await aiServiceClient.get('/exercises/vocabulary');
+  return response.data.exercises || [];
 }
 
 export async function getVocabularyExercisesAdaptive(params: {
   userId?: number;
   targetDifficulty?: "easy" | "medium" | "hard";
   limit?: number;
-  accessToken?: string; // optional if you want JWT forwarded
+  accessToken?: string;
 } = {}): Promise<VocabularyExerciseItem[]> {
   const body = {
     user_id: params.userId ?? null,
@@ -50,40 +47,34 @@ export async function getVocabularyExercisesAdaptive(params: {
     limit: params.limit ?? 15,
   };
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (params.accessToken) {
-    headers["Authorization"] = `Bearer ${params.accessToken}`;
-  }
-
-  const response = await fetch(`${AI_SERVICE_URL}/exercises/vocabulary`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch vocabulary exercises: ${response.statusText}`);
-  }
-  const data = await response.json();
-  return data.exercises || [];
-}
-
-export async function getLexiconData(): Promise<LexiconItem[]> {
-  const response = await fetch(`${AI_SERVICE_URL}/exercises/lexicon`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch lexicon data: ${response.statusText}`);
-  }
-  const data = await response.json();
-  return data.exercises || [];
+  const response = await aiServiceClient.post('/exercises/vocabulary', body);
+  return response.data.exercises || [];
 }
 
 export async function getGrammarExercises(): Promise<GrammarExerciseItem[]> {
-  const response = await fetch(`${AI_SERVICE_URL}/exercises/grammar`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch grammar exercises: ${response.statusText}`);
-  }
-  const data = await response.json();
-  return data.exercises || [];
+  const response = await aiServiceClient.get('/exercises/grammar');
+  return response.data.exercises || [];
+}
+
+export async function getGrammarExercisesAdaptive(params: {
+  userId?: number;
+  targetDifficulty?: "easy" | "medium" | "hard";
+  exerciseType?: "error_identification" | "fill_in_the_blanks";
+  limit?: number;
+  accessToken?: string;
+} = {}): Promise<GrammarExerciseItem[]> {
+  const body = {
+    user_id: params.userId ?? null,
+    target_difficulty: params.targetDifficulty ?? null,
+    exercise_type: params.exerciseType ?? null,
+    limit: params.limit ?? 15,
+  };
+
+  const response = await aiServiceClient.post('/exercises/grammar', body);
+  return response.data.exercises || [];
+}
+
+export async function getLexiconData(): Promise<LexiconItem[]> {
+  const response = await aiServiceClient.get('/exercises/lexicon');
+  return response.data.exercises || [];
 }

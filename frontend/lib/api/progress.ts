@@ -1,3 +1,5 @@
+import { apiClient } from "../client/aiServiceClient";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 export interface PerformanceMetrics {
@@ -72,11 +74,13 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
 // API Functions
 export async function getAllProgress(): Promise<ModuleProgress[]> {
-  return fetchWithAuth(`${API_URL}/progress/all/`);
+  const response = await apiClient.get('/progress/all/');
+  return response.data;
 }
 
 export async function getModuleProgress(module: string): Promise<ModuleProgress> {
-  return fetchWithAuth(`${API_URL}/progress/${module}/`);
+  const response = await apiClient.get(`/progress/${module}/`);
+  return response.data;
 }
 
 export async function updateExerciseProgress(
@@ -97,25 +101,22 @@ export async function updateExerciseProgress(
     };
   }
 ): Promise<ExerciseProgress> {
-  return fetchWithAuth(`${API_URL}/progress/${module}/${exercise}/update/`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+  const response = await apiClient.post(`/progress/${module}/${exercise}/update/`, data);
+  return response.data;
 }
 
 export async function getPerformanceHistory(
   module: string,
   exercise: string
 ): Promise<PerformanceMetrics[]> {
-  return fetchWithAuth(`${API_URL}/progress/${module}/${exercise}/history/`);
+  const response = await apiClient.get(`/progress/${module}/${exercise}/history/`);
+  return response.data;
 }
 
 export async function resetProgress(module?: string): Promise<{ message: string }> {
-  const url = module 
-    ? `${API_URL}/progress/${module}/reset/`
-    : `${API_URL}/progress/reset/all/`;
-  
-  return fetchWithAuth(url, { method: 'DELETE' });
+  const url = module ? `/progress/${module}/reset/` : `/progress/reset/all/`;
+  const response = await apiClient.delete(url);
+  return response.data;
 }
 
 // ============================================================
@@ -139,30 +140,29 @@ export async function getAllSRSCards(): Promise<{
   due_count: number;
   total_count: number;
 }> {
-  return fetchWithAuth(`${API_URL}/progress/srs/all/`);
+  const response = await apiClient.get('/progress/srs/all/');
+  return response.data;
 }
 
 export async function getDueSRSCards(): Promise<{
   cards: SRSCard[];
   count: number;
 }> {
-  return fetchWithAuth(`${API_URL}/progress/srs/due/`);
+  const response = await apiClient.get('/progress/srs/due/');
+  return response.data;
 }
 
 export async function updateSRSCard(
   wordId: number,
   grade: number
 ): Promise<SRSCard> {
-  return fetchWithAuth(`${API_URL}/progress/srs/${wordId}/update/`, {
-    method: 'POST',
-    body: JSON.stringify({ grade }),
-  });
+  const response = await apiClient.post(`/progress/srs/${wordId}/update/`, { grade });
+  return response.data;
 }
 
 export async function resetSRSCard(wordId: number): Promise<{ message: string }> {
-  return fetchWithAuth(`${API_URL}/progress/srs/${wordId}/reset/`, {
-    method: 'DELETE',
-  });
+  const response = await apiClient.delete(`/progress/srs/${wordId}/reset/`);
+  return response.data;
 }
 
 // ============================================================
@@ -181,46 +181,43 @@ export async function getReviewDeck(): Promise<{
   cards: ReviewDeckCard[];
   count: number;
 }> {
-  return fetchWithAuth(`${API_URL}/progress/review-deck/`);
+  const response = await apiClient.get('/progress/review-deck/');
+  return response.data;
 }
 
 export async function addToReviewDeck(wordId: number): Promise<{
   card: ReviewDeckCard;
   created: boolean;
 }> {
-  return fetchWithAuth(`${API_URL}/progress/review-deck/${wordId}/add/`, {
-    method: 'POST',
-  });
+  const response = await apiClient.post(`/progress/review-deck/${wordId}/add/`);
+  return response.data;
 }
 
 export async function removeFromReviewDeck(wordId: number): Promise<{
   message: string;
   deleted: boolean;
 }> {
-  return fetchWithAuth(`${API_URL}/progress/review-deck/${wordId}/remove/`, {
-    method: 'DELETE',
-  });
+  const response = await apiClient.delete(`/progress/review-deck/${wordId}/remove/`);
+  return response.data;
 }
 
 export async function updateReviewDeckItem(
   wordId: number
 ): Promise<ReviewDeckCard> {
-  return fetchWithAuth(`${API_URL}/progress/review-deck/${wordId}/update/`, {
-    method: 'POST',
-  });
+  const response = await apiClient.post(`/progress/review-deck/${wordId}/update/`);
+  return response.data;
 }
 
 export async function clearReviewDeck(): Promise<{
   message: string;
   deleted_count: number;
 }> {
-  return fetchWithAuth(`${API_URL}/progress/review-deck/clear/`, {
-    method: 'DELETE',
-  });
+  const response = await apiClient.delete('/progress/review-deck/clear/');
+  return response.data;
 }
 
 export type ModuleSlug = "vocabulary" | "grammar" | "sentence-construction";
-export type ExerciseType = "flashcards" | "quiz" | "fill-blanks" | "antonym";
+export type ExerciseType = "flashcards" | "quiz" | "fill-blanks" | "antonym" | "error-identification";
 
 // This matches LexicalPerformanceEventSerializer on the backend
 export interface LexicalPerformanceEvent {
@@ -241,11 +238,6 @@ export interface LexicalPerformanceEvent {
 export async function recordLexicalPerformance(
   event: LexicalPerformanceEvent
 ): Promise<{ message: string }> {
-  return fetchWithAuth(`${API_URL}/progress/performance-event/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(event),
-  });
+  const response = await apiClient.post('/progress/performance-event/', event);
+  return response.data;
 }

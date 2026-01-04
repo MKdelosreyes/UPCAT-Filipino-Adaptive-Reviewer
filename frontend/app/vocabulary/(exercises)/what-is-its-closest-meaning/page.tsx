@@ -10,6 +10,7 @@ import QuizCompletionModal from "@/components/vocabulary/closest-meaning-exercis
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import {
   getVocabularyExercisesAdaptive,
   getLexiconData,
@@ -183,6 +184,7 @@ export default function ClosestMeaningQuizPage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
+  const { isLoading: authLoading } = useAuthGuard();
 
   // ✅ Load quiz items with adaptive difficulty
   useEffect(() => {
@@ -256,6 +258,14 @@ export default function ClosestMeaningQuizPage() {
     }
     loadQuiz();
   }, [user?.id, tokens?.access]);
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-red-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   // Show loading state
   if (isLoading) {

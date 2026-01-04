@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { User, AuthTokens, getProfile } from "@/lib/api/auth";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
@@ -25,7 +26,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load from localStorage on mount
     const storedTokens = localStorage.getItem("tokens");
     const storedUser = localStorage.getItem("user");
 
@@ -34,11 +34,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setTokens(parsedTokens);
       setUser(JSON.parse(storedUser));
 
-      // Optionally:  Verify token with backend
+      // Verify token validity
       getProfile(parsedTokens.access)
         .then(setUser)
         .catch(() => {
-          // Token invalid, clear auth
+          // Token expired or invalid - clear auth
+          console.log("Token expired, clearing auth");
           localStorage.removeItem("tokens");
           localStorage.removeItem("user");
           setTokens(null);
