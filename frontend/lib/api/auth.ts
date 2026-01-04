@@ -64,18 +64,25 @@ export async function login(data: {
 
 // Google OAuth
 export async function googleAuth(idToken: string): Promise<AuthResponse> {
-  const res = await fetch(`${API_URL}/users/auth/google/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id_token: idToken }),
-  });
-  
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error. error || 'Google authentication failed');
+  try {
+    const res = await fetch(`${API_URL}/users/auth/google/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_token: idToken }),
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      console.error('Google Auth Error Response:', data);
+      throw new Error(data.error || data.detail || 'Google authentication failed');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Google Auth Request Failed:', error);
+    throw error;
   }
-  
-  return res.json();
 }
 
 // Get user profile

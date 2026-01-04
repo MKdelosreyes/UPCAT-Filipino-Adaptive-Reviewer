@@ -10,8 +10,16 @@ class LexicalPerformanceEventSerializer(serializers.Serializer):
     module = serializers.ChoiceField(
         choices=["vocabulary", "grammar", "sentence-construction"]
     )
+
     exercise_type = serializers.ChoiceField(
-        choices=["flashcards", "quiz", "fill-blanks"]
+        choices=[
+            "flashcards",
+            "quiz",
+            "fill-blanks",
+            "antonym",
+            "error-identification",
+            "complete-sentence",
+        ]
     )
 
     lemma_id = serializers.CharField(max_length=50)
@@ -25,7 +33,8 @@ class LexicalPerformanceEventSerializer(serializers.Serializer):
 
     # Optional: numeric score on this interaction (0–100)
     score = serializers.IntegerField(
-        min_value=0, max_value=100, required=False)
+        min_value=0, max_value=100, required=False, allow_null=True
+    )
 
     # Optional: item-level difficulty shown ("easy"/"medium"/"hard")
     difficulty_shown = serializers.ChoiceField(

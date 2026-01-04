@@ -30,7 +30,7 @@ export function useDashboardInsights() {
     const allHistory = [
       ...moduleData.flashcards.performanceHistory,
       ...moduleData.quiz.performanceHistory,
-      ...moduleData["fill-blanks"].performanceHistory,
+      ...moduleData["antonym"].performanceHistory,
     ];
 
     if (allHistory.length === 0) {
@@ -46,7 +46,7 @@ export function useDashboardInsights() {
     const difficulties = [
       moduleData.flashcards.lastDifficulty,
       moduleData.quiz.lastDifficulty,
-      moduleData["fill-blanks"].lastDifficulty,
+      moduleData["antonym"].lastDifficulty,
     ];
 
     const currentDiff = difficulties.reduce((max, diff) => {

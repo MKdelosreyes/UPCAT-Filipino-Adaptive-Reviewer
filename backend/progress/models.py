@@ -68,7 +68,9 @@ class ExerciseProgress(models.Model):
         ('flashcards', 'Flashcards'),
         ('quiz', 'Quiz'),
         ('antonym', 'Antonym'),
-        ('fill-blanks', 'Fill in the Blanks'),
+        ('lesson-cards', 'Lesson Cards'),
+        ('error-identification', 'Error Identification'),
+        ('complete-sentence', 'Complete the Sentence'),
     ]
 
     STATUS_CHOICES = [

@@ -47,9 +47,9 @@ export function useGrammarProgress() {
     const grammar = progress.grammar;
 
     const allHistory = [
-      ...grammar["sentence-correction"].performanceHistory,
+      ...grammar["lesson-cards"].performanceHistory,
       ...grammar["error-identification"].performanceHistory,
-      ...grammar["fill-blanks"].performanceHistory,
+      ...grammar["complete-sentence"].performanceHistory,
     ];
 
     if (allHistory.length === 0) {
@@ -62,9 +62,9 @@ export function useGrammarProgress() {
     }
 
     const difficulties = [
-      grammar["sentence-correction"].lastDifficulty,
+      grammar["lesson-cards"].lastDifficulty,
       grammar["error-identification"].lastDifficulty,
-      grammar["fill-blanks"].lastDifficulty,
+      grammar["complete-sentence"].lastDifficulty,
     ];
 
     const currentDiff = difficulties.reduce((max, diff) => {

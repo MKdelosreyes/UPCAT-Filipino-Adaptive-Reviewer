@@ -15,9 +15,9 @@ export type ExerciseType =
   | "flashcards"
   | "quiz"
   | "antonym"
-  | "fill-blanks"
-  | "sentence-correction"
-  | "error-identification";
+  | "lesson-cards"
+  | "error-identification"
+  | "complete-sentence";
 
 export type ExerciseStatus =
   | "locked"
@@ -46,10 +46,10 @@ export interface ExerciseProgress {
 export interface ModuleProgress {
   flashcards: ExerciseProgress;
   quiz: ExerciseProgress;
-  "fill-blanks": ExerciseProgress;
   antonym: ExerciseProgress;
-  "sentence-correction": ExerciseProgress;
+  "lesson-cards": ExerciseProgress;
   "error-identification": ExerciseProgress;
+  "complete-sentence": ExerciseProgress;
   lastAccessedAt: string | null;
 }
 
@@ -109,9 +109,9 @@ const createDefaultModuleProgress = (module: ModuleType): ModuleProgress => {
     return {
       flashcards: { ...defaultExerciseProgress, status: "available" },
       quiz: { ...defaultExerciseProgress },
-      "fill-blanks": { ...defaultExerciseProgress },
+      "complete-sentence": { ...defaultExerciseProgress },
       antonym: { ...defaultExerciseProgress },
-      "sentence-correction": { ...defaultExerciseProgress },
+      "lesson-cards": { ...defaultExerciseProgress },
       "error-identification": { ...defaultExerciseProgress },
       lastAccessedAt: null,
     };
@@ -120,13 +120,13 @@ const createDefaultModuleProgress = (module: ModuleType): ModuleProgress => {
     return {
       flashcards: { ...defaultExerciseProgress },
       quiz: { ...defaultExerciseProgress },
-      "fill-blanks": { ...defaultExerciseProgress },
       antonym: { ...defaultExerciseProgress },
-      "sentence-correction": {
+      "lesson-cards": {
         ...defaultExerciseProgress,
         status: "available",
       },
       "error-identification": { ...defaultExerciseProgress },
+      "complete-sentence": { ...defaultExerciseProgress },
       lastAccessedAt: null,
     };
   } else {
@@ -134,10 +134,10 @@ const createDefaultModuleProgress = (module: ModuleType): ModuleProgress => {
     return {
       flashcards: { ...defaultExerciseProgress, status: "available" },
       quiz: { ...defaultExerciseProgress },
-      "fill-blanks": { ...defaultExerciseProgress },
       antonym: { ...defaultExerciseProgress },
-      "sentence-correction": { ...defaultExerciseProgress },
+      "lesson-cards": { ...defaultExerciseProgress },
       "error-identification": { ...defaultExerciseProgress },
+      "complete-sentence": { ...defaultExerciseProgress },
       lastAccessedAt: null,
     };
   }
@@ -169,10 +169,10 @@ export function LearningProgressProvider({
   const exerciseTypeMap: Record<ExerciseType, string> = {
     flashcards: "flashcards",
     quiz: "quiz",
-    "fill-blanks": "fill-blanks",
     antonym: "antonym",
-    "sentence-correction": "sentence-correction",
+    "lesson-cards": "lesson-cards",
     "error-identification": "error-identification",
+    "complete-sentence": "complete-sentence",
   };
 
   const convertBackendToFrontend = (
@@ -275,15 +275,15 @@ export function LearningProgressProvider({
           moduleProgress.antonym.status = "available";
         }
       } else if (module === "grammar") {
-        // Grammar: sentence-correction → error-identification → fill-blanks
-        if (exercise === "sentence-correction" && data.status === "completed") {
+        // Grammar: lesson-cards → error-identification → complete-sentence
+        if (exercise === "lesson-cards" && data.status === "completed") {
           moduleProgress["error-identification"].status = "available";
         }
         if (
           exercise === "error-identification" &&
           data.status === "completed"
         ) {
-          moduleProgress["fill-blanks"].status = "available";
+          moduleProgress["complete-sentence"].status = "available";
         }
       } else {
         // Other modules: flashcards → quiz → fill-blanks
@@ -291,7 +291,7 @@ export function LearningProgressProvider({
           moduleProgress.quiz.status = "available";
         }
         if (exercise === "quiz" && data.status === "completed") {
-          moduleProgress["fill-blanks"].status = "available";
+          moduleProgress["complete-sentence"].status = "available";
         }
       }
 
@@ -345,9 +345,9 @@ export function LearningProgressProvider({
     if (module === "vocabulary") {
       return ["flashcards", "quiz", "antonym"];
     } else if (module === "grammar") {
-      return ["sentence-correction", "error-identification", "fill-blanks"];
+      return ["lesson-cards", "error-identification", "complete-sentence"];
     } else {
-      return ["flashcards", "quiz", "fill-blanks"];
+      return ["flashcards", "quiz", "complete-sentence"];
     }
   };
 
@@ -460,17 +460,17 @@ export function LearningProgressProvider({
       if (moduleData.quiz.status !== "completed") return "quiz";
       if (moduleData.antonym.status !== "completed") return "antonym";
     } else if (module === "grammar") {
-      if (moduleData["sentence-correction"].status !== "completed")
-        return "sentence-correction";
+      if (moduleData["lesson-cards"].status !== "completed")
+        return "lesson-cards";
       if (moduleData["error-identification"].status !== "completed")
         return "error-identification";
-      if (moduleData["fill-blanks"].status !== "completed")
-        return "fill-blanks";
+      if (moduleData["complete-sentence"].status !== "completed")
+        return "complete-sentence";
     } else {
       if (moduleData.flashcards.status !== "completed") return "flashcards";
       if (moduleData.quiz.status !== "completed") return "quiz";
-      if (moduleData["fill-blanks"].status !== "completed")
-        return "fill-blanks";
+      if (moduleData["complete-sentence"].status !== "completed")
+        return "complete-sentence";
     }
 
     return null;

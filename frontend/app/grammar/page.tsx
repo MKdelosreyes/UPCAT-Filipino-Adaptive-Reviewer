@@ -84,12 +84,12 @@ export default function GrammarPage() {
         {/* Cards - ✅ REORDERED: Sentence Correction first */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <GrammarCard
-            name="Sentence Correction"
+            name="Lesson Cards"
             description="Learn proper sentence structure through lessons"
             imagePath="/art/grammar-icon1.png"
             color="bg-purple-50"
-            url="/grammar/sentence-correction"
-            exerciseType="sentence-correction"
+            url="/grammar/lesson-cards"
+            exerciseType="lesson-cards"
           />
           <GrammarCard
             name="Error Identification"
@@ -100,12 +100,12 @@ export default function GrammarPage() {
             exerciseType="error-identification"
           />
           <GrammarCard
-            name="Fill-in-the-Blanks"
+            name="Complete the Sentence"
             description="Complete sentences with proper grammar"
             imagePath="/art/grammar-icon1.png"
             color="bg-green-50"
-            url="/grammar/fill-the-blanks"
-            exerciseType="fill-blanks"
+            url="/grammar/complete-sentence"
+            exerciseType="complete-sentence"
           />
         </div>
       </div>

@@ -5,9 +5,9 @@ import { Check } from "lucide-react";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 
 const steps = [
-  { id: 1, name: "Correction", key: "sentence-correction" as const },
+  { id: 1, name: "Lesson", key: "lesson-cards" as const },
   { id: 2, name: "Error ID", key: "error-identification" as const },
-  { id: 3, name: "Fill Blanks", key: "fill-blanks" as const },
+  { id: 3, name: "Complete Sentence", key: "complete-sentence" as const },
 ];
 
 export default function GrammarProgressStepper() {

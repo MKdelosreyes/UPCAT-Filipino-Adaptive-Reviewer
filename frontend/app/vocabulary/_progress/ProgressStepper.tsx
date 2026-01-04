@@ -7,7 +7,7 @@ import { ExerciseType } from "@/contexts/LearningProgressContext";
 const steps = [
   { id: "flashcards" as ExerciseType, label: "Flashcards", number: 1 },
   { id: "quiz" as ExerciseType, label: "Quiz", number: 2 },
-  { id: "fill-blanks" as ExerciseType, label: "Fill-in-the-Blanks", number: 3 },
+  { id: "antonym" as ExerciseType, label: "Antonym", number: 3 },
 ];
 
 export default function ProgressStepper() {
@@ -25,7 +25,7 @@ export default function ProgressStepper() {
                 ([
                   progress.flashcards,
                   progress.quiz,
-                  progress["fill-blanks"],
+                  progress["antonym"],
                 ].filter((p) => p.performanceHistory.length > 0).length /
                   3) *
                 100
@@ -71,9 +71,7 @@ export default function ProgressStepper() {
               {/* Label */}
               <span
                 className={`mt-2 text-xs md:text-sm font-medium text-center max-w-[80px] ${
-                  hasStarted || isAvailable
-                    ? "text-blue-900"
-                    : "text-gray-400"
+                  hasStarted || isAvailable ? "text-blue-900" : "text-gray-400"
                 }`}
               >
                 {step.label}

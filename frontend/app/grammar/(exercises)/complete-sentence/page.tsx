@@ -334,7 +334,7 @@ export default function GrammarFillBlanksPage() {
       }
     });
 
-    const history = getPerformanceHistory("grammar", "fill-blanks");
+    const history = getPerformanceHistory("grammar", "complete-sentence");
     const currentDifficulty =
       history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
@@ -346,12 +346,12 @@ export default function GrammarFillBlanksPage() {
       timestamp: new Date().toISOString(),
     };
 
-    addPerformanceMetrics("grammar", "fill-blanks", metrics);
+    addPerformanceMetrics("grammar", "complete-sentence", metrics);
 
     const allHistory = [...history, metrics];
     const evaluation = evaluateUserPerformance(allHistory);
 
-    updateProgress("fill-blanks", {
+    updateProgress("complete-sentence", {
       status: "completed",
       score,
       completedAt: new Date().toISOString(),
@@ -410,7 +410,7 @@ export default function GrammarFillBlanksPage() {
 
         <div className="text-center flex-1 px-4">
           <h1 className="text-xl md:text-2xl font-bold text-green-900">
-            Fill-in-the-Blanks
+            Complete the Sentence
           </h1>
         </div>
 

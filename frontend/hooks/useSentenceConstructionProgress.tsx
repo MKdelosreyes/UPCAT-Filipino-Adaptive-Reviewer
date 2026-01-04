@@ -51,7 +51,7 @@ export function useSentenceConstructionProgress() {
     const allHistory = [
       ...sentenceConstruction.flashcards.performanceHistory, // maps to sentence-ordering
       ...sentenceConstruction.quiz.performanceHistory, // maps to fill-missing
-      ...sentenceConstruction["fill-blanks"].performanceHistory, // maps to create-sentence
+      ...sentenceConstruction["complete-sentence"].performanceHistory, // maps to create-sentence
     ];
 
     if (allHistory.length === 0) {
@@ -67,7 +67,7 @@ export function useSentenceConstructionProgress() {
     const difficulties = [
       sentenceConstruction.flashcards.lastDifficulty,
       sentenceConstruction.quiz.lastDifficulty,
-      sentenceConstruction["fill-blanks"].lastDifficulty,
+      sentenceConstruction["complete-sentence"].lastDifficulty,
     ];
 
     const currentDiff = difficulties.reduce((max, diff) => {
@@ -179,13 +179,13 @@ export function useSentenceConstructionProgress() {
   };
 
   const getExerciseProgress = (
-    exercise: "sentence-ordering" | "fill-missing" | "create-sentence"
+    exercise: "sentence-ordering" | "fill-missing" | "complete-the-sentence"
   ): ExerciseProgress => {
     // Map custom exercise names to standard ExerciseType
     const mapping: Record<string, ExerciseType> = {
       "sentence-ordering": "flashcards",
       "fill-missing": "quiz",
-      "create-sentence": "fill-blanks",
+      "complete-the-sentence": "complete-sentence",
     };
     return progress["sentence-construction"][mapping[exercise]];
   };

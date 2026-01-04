@@ -13,7 +13,7 @@ interface GrammarCardProps {
   imagePath: string;
   color: string;
   url: string;
-  exerciseType: "error-identification" | "sentence-correction" | "fill-blanks";
+  exerciseType: "error-identification" | "lesson-cards" | "complete-sentence";
 }
 
 export default function GrammarCard({

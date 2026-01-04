@@ -471,42 +471,32 @@ async def get_grammar_exercises_adaptive(
     {
       "user_id": 123,                          # optional
       "target_difficulty": "medium",            # optional: "easy" | "medium" | "hard"
-      "exercise_type": "error_identification",  # optional: filter by type
+      "exercise_type": "error_identification",  # optional (ignored - kept for API compatibility)
       "limit": 15
     }
 
-    Behavior:
-      - If user_id & Authorization provided:
-          - fetch per-lemma difficulty from backend
-          - favor items whose difficulty matches target_difficulty
-      - Otherwise:
-          - use heuristic difficulty estimation
-      - Filter by exercise_type if specified
+    Note: exercise_type is kept in the request for API compatibility but is not used for filtering.
+    Each grammar item contains data for both error_identification and fill_in_the_blanks exercises.
+    The frontend extracts the relevant fields based on the exercise page.
     """
     user_id = request.user_id
     target_difficulty = request.target_difficulty
-    exercise_type = request.exercise_type
+    exercise_type = request.exercise_type  # Keep for logging but don't filter
     limit = request.limit
 
     print(
         f"🎯 Grammar request: user_id={user_id}, difficulty={target_difficulty}, type={exercise_type}")
 
-    # Filter by exercise type if specified
+    # ✅ Don't filter by exercise_type - all items support both exercise types
     filtered_items = grammar_data
-    if exercise_type:
-        filtered_items = [
-            item for item in grammar_data
-            if item.get("exercise_type") == exercise_type
-        ]
-        print(f"📝 Filtered to {len(filtered_items)} {exercise_type} items")
 
     if not filtered_items:
-        print("⚠️ No grammar items match the filter")
+        print("⚠️ No grammar items available")
+        # Return empty but valid response
         return {"exercises": []}
 
-    # Case 1: No user or no auth - use heuristic difficulty
-    if user_id is None or authorization is None:
-        print("📊 Using heuristic difficulty estimation")
+    # Define helper function for selection with heuristic
+    def select_exercises_with_heuristic():
         annotated = []
         for item in filtered_items:
             estimated_diff = estimate_grammar_difficulty(item)
@@ -529,6 +519,17 @@ async def get_grammar_exercises_adaptive(
             remaining = limit - len(selected)
             selected.extend(others[:remaining])
 
+        # Safety fallback - if still empty, return random items
+        if not selected and filtered_items:
+            random.shuffle(filtered_items)
+            selected = filtered_items[:limit]
+
+        return selected
+
+    # Case 1: No user or no auth - use heuristic difficulty
+    if user_id is None or authorization is None:
+        print("📊 Using heuristic difficulty estimation (no auth)")
+        selected = select_exercises_with_heuristic()
         print(f"✅ Selected {len(selected)} grammar items (heuristic)")
         return {"exercises": selected}
 
@@ -544,30 +545,9 @@ async def get_grammar_exercises_adaptive(
         )
         print(f"📊 Fetched {len(user_difficulties)} user difficulties")
     except Exception as e:
-        print(f"⚠️ Failed to fetch difficulties: {e}")
-        # Fallback to heuristic
-        annotated = []
-        for item in filtered_items:
-            estimated_diff = estimate_grammar_difficulty(item)
-            annotated.append((item, estimated_diff))
-
-        if target_difficulty in {"easy", "medium", "hard"}:
-            preferred = [item for item,
-                         diff in annotated if diff == target_difficulty]
-            others = [item for item,
-                      diff in annotated if diff != target_difficulty]
-        else:
-            preferred = []
-            others = [item for item, _ in annotated]
-
-        random.shuffle(preferred)
-        random.shuffle(others)
-
-        selected = preferred[:limit]
-        if len(selected) < limit:
-            remaining = limit - len(selected)
-            selected.extend(others[:remaining])
-
+        print(
+            f"⚠️ Failed to fetch difficulties: {e}, using heuristic fallback")
+        selected = select_exercises_with_heuristic()
         return {"exercises": selected}
 
     # Annotate grammar items with user's difficulty data
@@ -577,10 +557,8 @@ async def get_grammar_exercises_adaptive(
         score = user_difficulties.get(lemma_id)
 
         if score is not None:
-            # Use user's actual difficulty
             bucket = bucket_from_score(score)
         else:
-            # Fallback to heuristic for unseen items
             bucket = estimate_grammar_difficulty(item)
 
         annotated.append((item, bucket))
@@ -606,6 +584,12 @@ async def get_grammar_exercises_adaptive(
         remaining = limit - len(selected)
         random.shuffle(others)
         selected.extend(others[:remaining])
+
+    # Final safety check
+    if not selected and filtered_items:
+        print("⚠️ No exercises matched criteria, returning random selection")
+        random.shuffle(filtered_items)
+        selected = filtered_items[:limit]
 
     print(f"✅ Selected {len(selected)} grammar items (adaptive)")
     return {"exercises": selected[:limit]}

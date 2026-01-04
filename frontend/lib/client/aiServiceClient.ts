@@ -9,6 +9,7 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000,
 });
 
 export const aiServiceClient = axios.create({
@@ -16,6 +17,7 @@ export const aiServiceClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000,
 });
 
 // Request interceptor to add auth token
@@ -25,7 +27,9 @@ const addAuthToken = (config: any) => {
     if (tokens) {
       try {
         const parsed = JSON.parse(tokens);
-        config.headers.Authorization = `Bearer ${parsed.access}`;
+        if (parsed.access) {
+          config.headers.Authorization = `Bearer ${parsed.access}`;
+        }
       } catch (error) {
         console.error('Failed to parse tokens:', error);
       }
@@ -34,8 +38,45 @@ const addAuthToken = (config: any) => {
   return config;
 };
 
-apiClient.interceptors.request.use(addAuthToken);
-aiServiceClient.interceptors.request.use(addAuthToken);
+apiClient.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const tokens = localStorage.getItem('tokens');
+      if (tokens) {
+        try {
+          const parsed = JSON.parse(tokens);
+          if (parsed.access) {
+            config.headers.Authorization = `Bearer ${parsed.access}`;
+          }
+        } catch (e) {
+          console.error('Failed to parse tokens:', e);
+        }
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+aiServiceClient.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const tokens = localStorage.getItem('tokens');
+      if (tokens) {
+        try {
+          const parsed = JSON.parse(tokens);
+          if (parsed.access) {
+            config.headers.Authorization = `Bearer ${parsed.access}`;
+          }
+        } catch (e) {
+          console.error('Failed to parse tokens:', e);
+        }
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Response interceptor to handle 401 errors
 const handle401Error = (error: any) => {

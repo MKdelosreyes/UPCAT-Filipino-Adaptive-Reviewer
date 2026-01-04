@@ -27,7 +27,7 @@ export interface GrammarExerciseItem {
   fillCorrectAnswer: string;
   error_explanation: string;
   fill_explanation: string;
-  exercise_type: "error_identification" | "fill_in_the_blanks";
+  exercise_type: "error_identification" | "complete-sentence";
 }
 
 export async function getVocabularyExercises(): Promise<VocabularyExerciseItem[]> {
@@ -59,7 +59,7 @@ export async function getGrammarExercises(): Promise<GrammarExerciseItem[]> {
 export async function getGrammarExercisesAdaptive(params: {
   userId?: number;
   targetDifficulty?: "easy" | "medium" | "hard";
-  exerciseType?: "error_identification" | "fill_in_the_blanks";
+  exerciseType?: "error_identification" | "complete-sentence";
   limit?: number;
   accessToken?: string;
 } = {}): Promise<GrammarExerciseItem[]> {

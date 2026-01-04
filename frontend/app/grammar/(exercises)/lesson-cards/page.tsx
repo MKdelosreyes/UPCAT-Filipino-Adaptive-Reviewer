@@ -154,7 +154,7 @@ export default function SentenceCorrectionPage() {
     const evaluation = evaluateUserPerformance(allHistory);
 
     // Update progress with evaluation results
-    updateProgress("sentence-correction", {
+    updateProgress("lesson-cards", {
       status: "completed",
       score,
       completedAt: new Date().toISOString(),
