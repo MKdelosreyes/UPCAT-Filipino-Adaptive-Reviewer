@@ -92,8 +92,8 @@ export default function VocabularyPage() {
             exerciseType="flashcards"
           />
           <VocabularyCard
-            name="Multiple Choice Quiz"
-            description="Test your knowledge with quizzes"
+            name="What is its Closest Meaning"
+            description="Test your knowledge with word definitions"
             imagePath="/art/card2.png"
             color="bg-blue-50"
             url="/vocabulary/what-is-its-closest-meaning"

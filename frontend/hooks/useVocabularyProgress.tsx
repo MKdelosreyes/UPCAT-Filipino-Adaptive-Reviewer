@@ -2,14 +2,10 @@
 
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type {
-  ExerciseProgress,
-  ExerciseType,
-} from "@/contexts/LearningProgressContext";
-
-export type {
-  ExerciseType,
-  ExerciseStatus,
-  ExerciseProgress,
+  LessonProgress,
+  QuizProgress,
+  VocabularyExercise,
+  VocabularyProgress,
 } from "@/contexts/LearningProgressContext";
 
 export type MasteryLevel =
@@ -37,17 +33,19 @@ export interface ExerciseMastery {
 export function useVocabularyProgress() {
   const {
     progress,
-    updateProgress: updateLearningProgress,
+    updateLessonProgress,
+    updateQuizProgress,
     getModuleProgress,
-    getNextRecommended: getNextRecommendedContext,
-    canAccessExercise: canAccessExerciseContext,
+    getNextRecommended,
+    canAccessExercise,
+    isLessonExercise,
   } = useLearningProgress();
 
   const getVocabularyMastery = (): VocabularyMastery => {
-    const vocab = progress.vocabulary;
+    const vocab = progress.vocabulary as VocabularyProgress;
 
+    // ✅ Only use quiz exercises for mastery calculation
     const allHistory = [
-      ...vocab.flashcards.performanceHistory,
       ...vocab.quiz.performanceHistory,
       ...vocab.antonym.performanceHistory,
     ];
@@ -62,7 +60,6 @@ export function useVocabularyProgress() {
     }
 
     const difficulties = [
-      vocab.flashcards.lastDifficulty,
       vocab.quiz.lastDifficulty,
       vocab.antonym.lastDifficulty,
     ];
@@ -130,7 +127,23 @@ export function useVocabularyProgress() {
     };
   };
 
-  const getExerciseMastery = (exercise: ExerciseProgress): ExerciseMastery => {
+  const getExerciseMastery = (
+    exercise: QuizProgress // ✅ Only accepts QuizProgress
+  ): ExerciseMastery => {
+    // ✅ ADD: Safety check for performanceHistory
+    if (
+      !exercise.performanceHistory ||
+      exercise.performanceHistory.length === 0
+    ) {
+      return {
+        level: "beginner",
+        icon: "🐣",
+        difficulty: exercise.lastDifficulty || "easy",
+        sessionsAtDifficulty: 0,
+        avgScore: 0,
+      };
+    }
+
     const currentDiff = exercise.lastDifficulty;
     const history = exercise.performanceHistory.filter(
       (h) => h.difficulty === currentDiff
@@ -172,20 +185,41 @@ export function useVocabularyProgress() {
     };
   };
 
-  const getExerciseProgress = (exercise: ExerciseType): ExerciseProgress => {
+  const getExerciseProgress = (
+    exercise: VocabularyExercise
+  ): LessonProgress | QuizProgress => {
     return progress.vocabulary[exercise];
   };
 
   return {
     progress: progress.vocabulary,
-    updateProgress: (exercise: ExerciseType, data: Partial<ExerciseProgress>) =>
-      updateLearningProgress("vocabulary", exercise, data),
+    updateProgress: (
+      exercise: VocabularyExercise,
+      data: Partial<LessonProgress> | Partial<QuizProgress>
+    ) => {
+      if (exercise === "flashcards") {
+        return updateLessonProgress(
+          "vocabulary",
+          exercise,
+          data as Partial<LessonProgress>
+        );
+      } else {
+        return updateQuizProgress(
+          "vocabulary",
+          exercise,
+          data as Partial<QuizProgress>
+        );
+      }
+    },
+
     getOverallProgress: () => getModuleProgress("vocabulary"),
-    getNextRecommended: () => getNextRecommendedContext("vocabulary"),
-    canAccessExercise: (exercise: ExerciseType) =>
-      canAccessExerciseContext("vocabulary", exercise),
+    getNextRecommended: () => getNextRecommended("vocabulary"),
+    canAccessExercise: (exercise: VocabularyExercise) =>
+      canAccessExercise("vocabulary", exercise),
     getVocabularyMastery,
-    getExerciseMastery,
+    getExerciseMastery, // ✅ Now properly typed for QuizProgress only
     getExerciseProgress,
+    isLessonExercise: (exercise: VocabularyExercise) =>
+      isLessonExercise("vocabulary", exercise),
   };
 }

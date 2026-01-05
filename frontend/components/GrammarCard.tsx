@@ -3,8 +3,12 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Lock, CheckCircle, Play, Sparkles } from "lucide-react";
+import { Lock, CheckCircle, Play, Sparkles, BookOpen } from "lucide-react";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
+import type {
+  GrammarExercise,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
 import { useState } from "react";
 
 interface GrammarCardProps {
@@ -13,7 +17,7 @@ interface GrammarCardProps {
   imagePath: string;
   color: string;
   url: string;
-  exerciseType: "error-identification" | "lesson-cards" | "fill-blanks";
+  exerciseType: GrammarExercise;
 }
 
 export default function GrammarCard({
@@ -29,14 +33,20 @@ export default function GrammarCard({
     canAccessExercise,
     getNextRecommended,
     getExerciseMastery,
+    isLessonExercise,
   } = useGrammarProgress();
   const [showWarning, setShowWarning] = useState(false);
 
-  const progress = getExerciseProgress(exerciseType);
+  const exerciseProgress = getExerciseProgress(exerciseType);
   const isLocked = !canAccessExercise(exerciseType);
-  const isCompleted = progress.status === "completed";
+  const isCompleted = exerciseProgress.status === "completed";
   const isRecommended = getNextRecommended() === exerciseType;
-  const exerciseMastery = getExerciseMastery(progress);
+
+  // ✅ FIX: Only get mastery for quiz exercises
+  const isLesson = isLessonExercise(exerciseType);
+  const exerciseMastery = !isLesson
+    ? getExerciseMastery(exerciseProgress as QuizProgress)
+    : null;
 
   const handleClick = (e: React.MouseEvent) => {
     if (isLocked) {
@@ -93,6 +103,16 @@ export default function GrammarCard({
               )}
             </div>
 
+            {/* ✅ NEW: Lesson Badge */}
+            {isLesson && (
+              <div className="absolute top-3 left-3 z-10">
+                <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold border border-green-300">
+                  <BookOpen className="w-3 h-3" />
+                  Lesson
+                </div>
+              </div>
+            )}
+
             {/* Image */}
             <div className="relative h-40 w-full bg-white/50">
               <Image
@@ -111,31 +131,61 @@ export default function GrammarCard({
 
               {/* Progress Info */}
               {!isLocked && (
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{exerciseMastery.icon}</span>
-                    <div>
-                      <p className="font-semibold text-green-700 capitalize">
-                        {exerciseMastery.level}
-                      </p>
-                      <p className="text-gray-600">
-                        Avg: {exerciseMastery.avgScore}% •{" "}
-                        {exerciseMastery.difficulty}
-                      </p>
-                    </div>
-                  </div>
-                  {(progress.attempts ?? 0) > 0 && (
-                    <div className="text-right">
-                      <p className="text-gray-600">
-                        {progress.attempts} attempt
-                        {(progress.attempts ?? 0) > 1 ? "s" : ""}
-                      </p>
-                      {progress.score !== null && (
+                <div className="text-xs">
+                  {/* ✅ FIX: Different display for lessons vs quizzes */}
+                  {isLesson ? (
+                    // Lesson Progress Display
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-green-600" />
+                      <div>
                         <p className="font-semibold text-green-700">
-                          Best: {progress.score}%
+                          {isCompleted ? "✓ Lesson Completed" : "Study Mode"}
                         </p>
-                      )}
+                        <p className="text-gray-600">
+                          No scoring • Learn at your pace
+                        </p>
+                      </div>
                     </div>
+                  ) : (
+                    // Quiz Progress Display
+                    exerciseMastery && (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">
+                            {exerciseMastery.icon}
+                          </span>
+                          <div>
+                            <p className="font-semibold text-green-700 capitalize">
+                              {exerciseMastery.level}
+                            </p>
+                            <p className="text-gray-600">
+                              Avg: {exerciseMastery.avgScore}% •{" "}
+                              <span className="capitalize">
+                                {exerciseMastery.difficulty}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                        {(exerciseProgress as QuizProgress).attempts > 0 && (
+                          <div className="text-right">
+                            <p className="text-gray-600">
+                              {(exerciseProgress as QuizProgress).attempts}{" "}
+                              attempt
+                              {(exerciseProgress as QuizProgress).attempts > 1
+                                ? "s"
+                                : ""}
+                            </p>
+                            {(exerciseProgress as QuizProgress).score !==
+                              null && (
+                              <p className="font-semibold text-green-700">
+                                Best: {(exerciseProgress as QuizProgress).score}
+                                %
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
                   )}
                 </div>
               )}

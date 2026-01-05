@@ -65,43 +65,65 @@ class ExerciseProgress(models.Model):
     """Track individual exercise progress"""
 
     EXERCISE_TYPES = [
-        ('flashcards', 'Flashcards'),
-        ('quiz', 'Quiz'),
-        ('antonym', 'Antonym'),
-        ('lesson-cards', 'Lesson Cards'),
-        ('error-identification', 'Error Identification'),
-        ('fill-blanks', 'Fill the Blanks'),
+        # ✅ Vocabulary
+        ('flashcards', 'Flashcards (Lesson)'),           # Lesson type
+        ('quiz', 'What is its Closest Meaning'),         # Quiz type
+        ('antonym', 'Antonym of the Word'),              # Quiz type
+
+        # ✅ Grammar
+        ('lesson-cards', 'Grammar Lesson Cards'),        # Lesson type
+        ('error-identification', 'Error Identification'),  # Quiz type
+        ('fill-blanks', 'Fill the Blanks'),              # Quiz type
+
+        # ✅ Sentence Construction
+        ('complete-sentence', 'Complete the Sentence'),
+        ('sentence-ordering', 'Sentence Ordering'),
+
+        # ✅ Reading Comprehension
+        ('passage-questions', 'Passage Questions'),
+        ('comprehension', 'Reading Comprehension'),
     ]
 
-    STATUS_CHOICES = [
-        ('locked', 'Locked'),
-        ('available', 'Available'),
-        ('in-progress', 'In Progress'),
-        ('completed', 'Completed'),
-    ]
+    LESSON_EXERCISES = ['flashcards', 'lesson-cards']
 
     module_progress = models.ForeignKey(
         ModuleProgress,
         on_delete=models.CASCADE,
         related_name='exercises'
     )
-    exercise_type = models.CharField(max_length=20, choices=EXERCISE_TYPES)
+    exercise_type = models.CharField(max_length=30, choices=EXERCISE_TYPES)
 
-    # Progress
     status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='locked')
+        max_length=20,
+        choices=[
+            ('not-started', 'Not Started'),
+            ('in-progress', 'In Progress'),
+            ('completed', 'Completed'),
+            ('locked', 'Locked'),
+        ],
+        default='locked'
+    )
+
+    # Lesson-specific fields
+    time_spent = models.IntegerField(
+        default=0, help_text="Time spent in seconds")
+    cards_reviewed = models.IntegerField(
+        null=True, blank=True, help_text="For flashcards")
+    lessons_viewed = models.IntegerField(
+        null=True, blank=True, help_text="For lesson cards")
+
+    # Quiz-specific fields (null for lessons)
     attempts = models.IntegerField(default=0)
     best_score = models.IntegerField(null=True, blank=True)
     last_score = models.IntegerField(null=True, blank=True)
-
-    # Difficulty tracking
     last_difficulty = models.CharField(
         max_length=10,
         choices=[('easy', 'Easy'), ('medium', 'Medium'), ('hard', 'Hard')],
-        default='easy'
+        default='easy',
+        null=True,
+        blank=True
     )
 
-    # Metadata
     first_attempt_at = models.DateTimeField(null=True, blank=True)
     last_completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -114,6 +136,10 @@ class ExerciseProgress(models.Model):
             models.Index(fields=['module_progress', 'exercise_type']),
             models.Index(fields=['status']),
         ]
+
+    def is_lesson_exercise(self) -> bool:
+        """Check if this is a lesson (non-scored) exercise"""
+        return self.exercise_type in self.LESSON_EXERCISES
 
     def __str__(self):
         return f"{self.module_progress.module} - {self.exercise_type} ({self.status})"

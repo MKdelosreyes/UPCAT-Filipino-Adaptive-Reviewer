@@ -2,14 +2,10 @@
 
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type {
-  ExerciseProgress,
-  ExerciseType,
-} from "@/contexts/LearningProgressContext";
-
-export type {
-  ExerciseType,
-  ExerciseStatus,
-  ExerciseProgress,
+  LessonProgress,
+  QuizProgress,
+  GrammarExercise,
+  GrammarProgress,
 } from "@/contexts/LearningProgressContext";
 
 export type MasteryLevel =
@@ -37,17 +33,19 @@ export interface ExerciseMastery {
 export function useGrammarProgress() {
   const {
     progress,
-    updateProgress: updateLearningProgress,
+    updateLessonProgress,
+    updateQuizProgress,
     getModuleProgress,
-    getNextRecommended: getNextRecommendedContext,
-    canAccessExercise: canAccessExerciseContext,
+    getNextRecommended,
+    canAccessExercise,
+    isLessonExercise,
   } = useLearningProgress();
 
   const getGrammarMastery = (): GrammarMastery => {
-    const grammar = progress.grammar;
+    const grammar = progress.grammar as GrammarProgress;
 
+    // ✅ Only use quiz exercises for mastery calculation
     const allHistory = [
-      ...grammar["lesson-cards"].performanceHistory,
       ...grammar["error-identification"].performanceHistory,
       ...grammar["fill-blanks"].performanceHistory,
     ];
@@ -62,7 +60,6 @@ export function useGrammarProgress() {
     }
 
     const difficulties = [
-      grammar["lesson-cards"].lastDifficulty,
       grammar["error-identification"].lastDifficulty,
       grammar["fill-blanks"].lastDifficulty,
     ];
@@ -130,7 +127,22 @@ export function useGrammarProgress() {
     };
   };
 
-  const getExerciseMastery = (exercise: ExerciseProgress): ExerciseMastery => {
+  // ✅ FIX: Only accepts QuizProgress now
+  const getExerciseMastery = (exercise: QuizProgress): ExerciseMastery => {
+    // ✅ Safety check for performanceHistory
+    if (
+      !exercise.performanceHistory ||
+      exercise.performanceHistory.length === 0
+    ) {
+      return {
+        level: "beginner",
+        icon: "🐣",
+        difficulty: exercise.lastDifficulty || "easy",
+        sessionsAtDifficulty: 0,
+        avgScore: 0,
+      };
+    }
+
     const currentDiff = exercise.lastDifficulty;
     const history = exercise.performanceHistory.filter(
       (h) => h.difficulty === currentDiff
@@ -172,20 +184,43 @@ export function useGrammarProgress() {
     };
   };
 
-  const getExerciseProgress = (exercise: ExerciseType): ExerciseProgress => {
+  const getExerciseProgress = (
+    exercise: GrammarExercise
+  ): LessonProgress | QuizProgress => {
     return progress.grammar[exercise];
   };
 
   return {
     progress: progress.grammar,
-    updateProgress: (exercise: ExerciseType, data: Partial<ExerciseProgress>) =>
-      updateLearningProgress("grammar", exercise, data),
+
+    // ✅ NEW: Smart update function that detects lesson vs quiz
+    updateProgress: (
+      exercise: GrammarExercise,
+      data: Partial<LessonProgress> | Partial<QuizProgress>
+    ) => {
+      if (exercise === "lesson-cards") {
+        return updateLessonProgress(
+          "grammar",
+          exercise,
+          data as Partial<LessonProgress>
+        );
+      } else {
+        return updateQuizProgress(
+          "grammar",
+          exercise,
+          data as Partial<QuizProgress>
+        );
+      }
+    },
+
     getOverallProgress: () => getModuleProgress("grammar"),
-    getNextRecommended: () => getNextRecommendedContext("grammar"),
-    canAccessExercise: (exercise: ExerciseType) =>
-      canAccessExerciseContext("grammar", exercise),
+    getNextRecommended: () => getNextRecommended("grammar"),
+    canAccessExercise: (exercise: GrammarExercise) =>
+      canAccessExercise("grammar", exercise),
     getGrammarMastery,
-    getExerciseMastery,
+    getExerciseMastery, // ✅ Now only accepts QuizProgress
     getExerciseProgress,
+    isLessonExercise: (exercise: GrammarExercise) =>
+      isLessonExercise("grammar", exercise),
   };
 }

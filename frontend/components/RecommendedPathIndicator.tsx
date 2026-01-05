@@ -21,8 +21,8 @@ export default function RecommendedPathIndicator() {
   const steps = [
     "vocabulary",
     "grammar",
-    "reading-comprehension",
     "sentence-construction",
+    "reading-comprehension",
   ] as const;
 
   return (

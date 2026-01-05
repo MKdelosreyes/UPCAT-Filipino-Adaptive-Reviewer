@@ -4,36 +4,48 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import * as ProgressAPI from "@/lib/api/progress";
 
-// Types
+// Distinguish between lesson and quiz exercises
+export type VocabularyLessonExercise = "flashcards";
+export type VocabularyQuizExercise = "quiz" | "antonym";
+export type VocabularyExercise =
+  | VocabularyLessonExercise
+  | VocabularyQuizExercise;
+
+export type GrammarLessonExercise = "lesson-cards";
+export type GrammarQuizExercise = "error-identification" | "fill-blanks";
+export type GrammarExercise = GrammarLessonExercise | GrammarQuizExercise;
+
+export type SentenceExercise = "complete-sentence" | "sentence-ordering";
+export type ReadingExercise = "passage-questions" | "comprehension";
+
+export type ExerciseType =
+  | VocabularyExercise
+  | GrammarExercise
+  | SentenceExercise
+  | ReadingExercise;
+
 export type ModuleType =
   | "vocabulary"
   | "grammar"
   | "sentence-construction"
   | "reading-comprehension";
 
-export type ExerciseType =
-  | "flashcards"
-  | "quiz"
-  | "antonym"
-  | "lesson-cards"
-  | "error-identification"
-  | "fill-blanks";
-
 export type ExerciseStatus =
   | "locked"
-  | "available"
+  | "not-started"
   | "in-progress"
   | "completed";
 
-export interface PerformanceMetrics {
-  difficulty: "easy" | "medium" | "hard";
-  score: number;
-  missedLowFreq: number;
-  similarChoiceErrors: number;
-  timestamp: string;
+// Different interfaces for lessons vs quizzes
+export interface LessonProgress {
+  status: ExerciseStatus;
+  completedAt: string | null;
+  timeSpent: number; // in seconds
+  cardsReviewed?: number; // for flashcards
+  lessonsViewed?: number; // for lesson cards
 }
 
-export interface ExerciseProgress {
+export interface QuizProgress {
   status: ExerciseStatus;
   score: number | null;
   completedAt: string | null;
@@ -43,21 +55,46 @@ export interface ExerciseProgress {
   performanceHistory: PerformanceMetrics[];
 }
 
-export interface ModuleProgress {
-  flashcards: ExerciseProgress;
-  quiz: ExerciseProgress;
-  antonym: ExerciseProgress;
-  "lesson-cards": ExerciseProgress;
-  "error-identification": ExerciseProgress;
-  "fill-blanks": ExerciseProgress;
+export interface PerformanceMetrics {
+  difficulty: "easy" | "medium" | "hard";
+  score: number;
+  missedLowFreq: number;
+  similarChoiceErrors: number;
+  timestamp: string;
+}
+
+// UPDATED: Module progress with lessons + quizzes
+export interface VocabularyProgress {
+  flashcards: LessonProgress;
+  quiz: QuizProgress;
+  antonym: QuizProgress;
+  lastAccessedAt: string | null;
+}
+
+export interface GrammarProgress {
+  "lesson-cards": LessonProgress;
+  "error-identification": QuizProgress;
+  "fill-blanks": QuizProgress;
+  lastAccessedAt: string | null;
+}
+
+export interface SentenceProgress {
+  "complete-sentence": QuizProgress;
+  "sentence-ordering": QuizProgress;
+  lastAccessedAt: string | null;
+}
+
+export interface ReadingProgress {
+  "passage-questions": QuizProgress;
+  comprehension: QuizProgress;
   lastAccessedAt: string | null;
 }
 
 export interface AllModulesProgress {
-  vocabulary: ModuleProgress;
-  grammar: ModuleProgress;
-  "sentence-construction": ModuleProgress;
-  "reading-comprehension": ModuleProgress;
+  vocabulary: VocabularyProgress;
+  grammar: GrammarProgress;
+  "sentence-construction": SentenceProgress;
+  "reading-comprehension": ReadingProgress;
   recommendedModule: ModuleType;
   lastCompletedModule: ModuleType | null;
 }
@@ -66,11 +103,22 @@ interface LearningProgressContextType {
   progress: AllModulesProgress;
   isLoading: boolean;
   error: string | null;
-  updateProgress: (
+
+  updateLessonProgress: (
     module: ModuleType,
-    exercise: ExerciseType,
-    data: Partial<ExerciseProgress>
+    exercise: VocabularyLessonExercise | GrammarLessonExercise,
+    data: Partial<LessonProgress>
   ) => Promise<void>;
+
+  updateQuizProgress: (
+    module: ModuleType,
+    exercise: Exclude<
+      ExerciseType,
+      VocabularyLessonExercise | GrammarLessonExercise
+    >,
+    data: Partial<QuizProgress>
+  ) => Promise<void>;
+
   resetProgress: (module?: ModuleType) => Promise<void>;
   syncProgress: () => Promise<void>;
   getModuleProgress: (module: ModuleType) => number;
@@ -83,16 +131,27 @@ interface LearningProgressContextType {
   getModuleRecommendationReason: (module: ModuleType) => string;
   addPerformanceMetrics: (
     module: ModuleType,
-    exercise: ExerciseType,
+    exercise: Exclude<
+      ExerciseType,
+      VocabularyLessonExercise | GrammarLessonExercise
+    >,
     metrics: PerformanceMetrics
   ) => Promise<void>;
   getPerformanceHistory: (
     module: ModuleType,
     exercise: ExerciseType
   ) => PerformanceMetrics[];
+  getModuleExercises: (module: ModuleType) => ExerciseType[];
+  isLessonExercise: (module: ModuleType, exercise: ExerciseType) => boolean;
 }
 
-const defaultExerciseProgress: ExerciseProgress = {
+const defaultLessonProgress: LessonProgress = {
+  status: "not-started",
+  completedAt: null,
+  timeSpent: 0,
+};
+
+const defaultQuizProgress: QuizProgress = {
   status: "locked",
   score: null,
   completedAt: null,
@@ -102,52 +161,37 @@ const defaultExerciseProgress: ExerciseProgress = {
   performanceHistory: [],
 };
 
-// ✅ UPDATED: Different default module progress for vocabulary and grammar
-const createDefaultModuleProgress = (module: ModuleType): ModuleProgress => {
-  if (module === "vocabulary") {
-    // Vocabulary: flashcards is first (available by default)
-    return {
-      flashcards: { ...defaultExerciseProgress, status: "available" },
-      quiz: { ...defaultExerciseProgress },
-      "fill-blanks": { ...defaultExerciseProgress },
-      antonym: { ...defaultExerciseProgress },
-      "lesson-cards": { ...defaultExerciseProgress },
-      "error-identification": { ...defaultExerciseProgress },
-      lastAccessedAt: null,
-    };
-  } else if (module === "grammar") {
-    // ✅ Grammar: sentence-correction is first (available by default)
-    return {
-      flashcards: { ...defaultExerciseProgress },
-      quiz: { ...defaultExerciseProgress },
-      antonym: { ...defaultExerciseProgress },
-      "lesson-cards": {
-        ...defaultExerciseProgress,
-        status: "available",
-      },
-      "error-identification": { ...defaultExerciseProgress },
-      "fill-blanks": { ...defaultExerciseProgress },
-      lastAccessedAt: null,
-    };
-  } else {
-    // Other modules: flashcards is first (available by default)
-    return {
-      flashcards: { ...defaultExerciseProgress, status: "available" },
-      quiz: { ...defaultExerciseProgress },
-      antonym: { ...defaultExerciseProgress },
-      "lesson-cards": { ...defaultExerciseProgress },
-      "error-identification": { ...defaultExerciseProgress },
-      "fill-blanks": { ...defaultExerciseProgress },
-      lastAccessedAt: null,
-    };
-  }
-};
+const createDefaultVocabularyProgress = (): VocabularyProgress => ({
+  flashcards: { ...defaultLessonProgress, status: "not-started" },
+  quiz: { ...defaultQuizProgress, status: "locked" },
+  antonym: { ...defaultQuizProgress, status: "locked" },
+  lastAccessedAt: null,
+});
+
+const createDefaultGrammarProgress = (): GrammarProgress => ({
+  "lesson-cards": { ...defaultLessonProgress, status: "not-started" },
+  "error-identification": { ...defaultQuizProgress, status: "locked" },
+  "fill-blanks": { ...defaultQuizProgress, status: "locked" },
+  lastAccessedAt: null,
+});
+
+const createDefaultSentenceProgress = (): SentenceProgress => ({
+  "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
+  "sentence-ordering": { ...defaultQuizProgress, status: "locked" },
+  lastAccessedAt: null,
+});
+
+const createDefaultReadingProgress = (): ReadingProgress => ({
+  "passage-questions": { ...defaultQuizProgress, status: "not-started" },
+  comprehension: { ...defaultQuizProgress, status: "locked" },
+  lastAccessedAt: null,
+});
 
 const defaultProgress: AllModulesProgress = {
-  vocabulary: createDefaultModuleProgress("vocabulary"),
-  grammar: createDefaultModuleProgress("grammar"),
-  "sentence-construction": createDefaultModuleProgress("sentence-construction"),
-  "reading-comprehension": createDefaultModuleProgress("reading-comprehension"),
+  vocabulary: createDefaultVocabularyProgress(),
+  grammar: createDefaultGrammarProgress(),
+  "sentence-construction": createDefaultSentenceProgress(),
+  "reading-comprehension": createDefaultReadingProgress(),
   recommendedModule: "vocabulary",
   lastCompletedModule: null,
 };
@@ -166,13 +210,148 @@ export function LearningProgressProvider({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const exerciseTypeMap: Record<ExerciseType, string> = {
-    flashcards: "flashcards",
-    quiz: "quiz",
-    antonym: "antonym",
-    "lesson-cards": "lesson-cards",
-    "error-identification": "error-identification",
-    "fill-blanks": "fill-blanks",
+  const isLessonExercise = (
+    module: ModuleType,
+    exercise: ExerciseType
+  ): boolean => {
+    if (module === "vocabulary") return exercise === "flashcards";
+    if (module === "grammar") return exercise === "lesson-cards";
+    return false;
+  };
+
+  const updateLessonProgress = async (
+    module: ModuleType,
+    exercise: VocabularyLessonExercise | GrammarLessonExercise,
+    data: Partial<LessonProgress>
+  ) => {
+    setProgress((prev) => {
+      const moduleProgress = { ...prev[module] };
+
+      if (module === "vocabulary" && exercise === "flashcards") {
+        moduleProgress.flashcards = {
+          ...moduleProgress.flashcards,
+          ...data,
+        };
+
+        if (data.status === "completed") {
+          moduleProgress.quiz.status = "not-started";
+        }
+      } else if (module === "grammar" && exercise === "lesson-cards") {
+        (moduleProgress as GrammarProgress)["lesson-cards"] = {
+          ...(moduleProgress as GrammarProgress)["lesson-cards"],
+          ...data,
+        };
+
+        if (data.status === "completed") {
+          (moduleProgress as GrammarProgress)["error-identification"].status =
+            "not-started";
+        }
+      }
+
+      return {
+        ...prev,
+        [module]: moduleProgress,
+      };
+    });
+
+    if (user && tokens) {
+      try {
+        await ProgressAPI.updateExerciseProgress(module, exercise, {
+          status: data.status,
+          completedAt: data.completedAt,
+        });
+      } catch (err) {
+        console.error("Failed to sync lesson progress:", err);
+      }
+    }
+  };
+
+  const updateQuizProgress = async (
+    module: ModuleType,
+    exercise: Exclude<
+      ExerciseType,
+      VocabularyLessonExercise | GrammarLessonExercise
+    >,
+    data: Partial<QuizProgress>
+  ) => {
+    setProgress((prev) => {
+      const moduleProgress = { ...prev[module] };
+
+      if (
+        module === "vocabulary" &&
+        (exercise === "quiz" || exercise === "antonym")
+      ) {
+        moduleProgress[exercise] = {
+          ...moduleProgress[exercise],
+          ...data,
+        };
+
+        if (exercise === "quiz" && data.status === "completed") {
+          moduleProgress.antonym.status = "not-started";
+        }
+      } else if (
+        module === "grammar" &&
+        (exercise === "error-identification" || exercise === "fill-blanks")
+      ) {
+        (moduleProgress as GrammarProgress)[exercise] = {
+          ...(moduleProgress as GrammarProgress)[exercise],
+          ...data,
+        };
+
+        if (
+          exercise === "error-identification" &&
+          data.status === "completed"
+        ) {
+          (moduleProgress as GrammarProgress)["fill-blanks"].status =
+            "not-started";
+        }
+      } else if (
+        module === "sentence-construction" &&
+        (exercise === "complete-sentence" || exercise === "sentence-ordering")
+      ) {
+        (moduleProgress as SentenceProgress)[exercise] = {
+          ...(moduleProgress as SentenceProgress)[exercise],
+          ...data,
+        };
+
+        if (exercise === "complete-sentence" && data.status === "completed") {
+          (moduleProgress as SentenceProgress)["sentence-ordering"].status =
+            "not-started";
+        }
+      } else if (
+        module === "reading-comprehension" &&
+        (exercise === "passage-questions" || exercise === "comprehension")
+      ) {
+        (moduleProgress as ReadingProgress)[exercise] = {
+          ...(moduleProgress as ReadingProgress)[exercise],
+          ...data,
+        };
+
+        if (exercise === "passage-questions" && data.status === "completed") {
+          (moduleProgress as ReadingProgress).comprehension.status =
+            "not-started";
+        }
+      }
+
+      return {
+        ...prev,
+        [module]: moduleProgress,
+      };
+    });
+
+    if (user && tokens) {
+      try {
+        await ProgressAPI.updateExerciseProgress(module, exercise, {
+          status: data.status,
+          score: data.score,
+          attempts: data.attempts,
+          completedAt: data.completedAt,
+          lastDifficulty: data.lastDifficulty,
+        });
+      } catch (err) {
+        console.error("Failed to sync quiz progress:", err);
+      }
+    }
   };
 
   const convertBackendToFrontend = (
@@ -182,15 +361,23 @@ export function LearningProgressProvider({
 
     backendModules.forEach((module) => {
       const moduleKey = module.module as ModuleType;
-      if (moduleKey in frontendProgress) {
-        // ✅ Use module-specific defaults
-        const moduleProgress: ModuleProgress =
-          createDefaultModuleProgress(moduleKey);
+
+      if (moduleKey === "vocabulary") {
+        const vocabProgress: VocabularyProgress =
+          createDefaultVocabularyProgress();
 
         module.exercises.forEach((exercise) => {
-          const exerciseKey = exercise.exercise_type as ExerciseType;
-          if (exerciseKey in moduleProgress) {
-            moduleProgress[exerciseKey] = {
+          const exType = exercise.exercise_type;
+
+          if (exType === "flashcards") {
+            vocabProgress.flashcards = {
+              status: exercise.status as ExerciseStatus,
+              completedAt: exercise.last_completed_at,
+              timeSpent: exercise.time_spent || 0,
+              cardsReviewed: exercise.cards_reviewed || undefined,
+            };
+          } else if (exType === "quiz" || exType === "antonym") {
+            vocabProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.last_score,
               completedAt: exercise.last_completed_at,
@@ -208,8 +395,45 @@ export function LearningProgressProvider({
           }
         });
 
-        frontendProgress[moduleKey] = moduleProgress;
+        frontendProgress.vocabulary = vocabProgress;
+      } else if (moduleKey === "grammar") {
+        const grammarProgress: GrammarProgress = createDefaultGrammarProgress();
+
+        module.exercises.forEach((exercise) => {
+          const exType = exercise.exercise_type;
+
+          if (exType === "lesson-cards") {
+            grammarProgress["lesson-cards"] = {
+              status: exercise.status as ExerciseStatus,
+              completedAt: exercise.last_completed_at,
+              timeSpent: exercise.time_spent || 0,
+              lessonsViewed: exercise.lessons_viewed || undefined,
+            };
+          } else if (
+            exType === "error-identification" ||
+            exType === "fill-blanks"
+          ) {
+            grammarProgress[exType] = {
+              status: exercise.status as ExerciseStatus,
+              score: exercise.last_score,
+              completedAt: exercise.last_completed_at,
+              attempts: exercise.attempts,
+              lastDifficulty: exercise.last_difficulty as any,
+              errorTags: [],
+              performanceHistory: exercise.performance_history.map((p) => ({
+                difficulty: p.difficulty as any,
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })),
+            };
+          }
+        });
+
+        frontendProgress.grammar = grammarProgress;
       }
+      // Add similar logic for sentence-construction and reading-comprehension
     });
 
     return frontendProgress;
@@ -254,148 +478,6 @@ export function LearningProgressProvider({
     syncProgress();
   }, [user?.id]);
 
-  const updateProgress = async (
-    module: ModuleType,
-    exercise: ExerciseType,
-    data: Partial<ExerciseProgress>
-  ) => {
-    setProgress((prev) => {
-      const moduleProgress = { ...prev[module] };
-      moduleProgress[exercise] = {
-        ...moduleProgress[exercise],
-        ...data,
-      };
-
-      if (module === "vocabulary") {
-        // Vocabulary: flashcards → quiz → antonym
-        if (exercise === "flashcards" && data.status === "completed") {
-          moduleProgress.quiz.status = "available";
-        }
-        if (exercise === "quiz" && data.status === "completed") {
-          moduleProgress.antonym.status = "available";
-        }
-      } else if (module === "grammar") {
-        // Grammar: lesson-cards → error-identification → fill-blanks
-        if (exercise === "lesson-cards" && data.status === "completed") {
-          moduleProgress["error-identification"].status = "available";
-        }
-        if (
-          exercise === "error-identification" &&
-          data.status === "completed"
-        ) {
-          moduleProgress["fill-blanks"].status = "available";
-        }
-      } else {
-        // Other modules: flashcards → quiz → fill-blanks
-        if (exercise === "flashcards" && data.status === "completed") {
-          moduleProgress.quiz.status = "available";
-        }
-        if (exercise === "quiz" && data.status === "completed") {
-          moduleProgress["fill-blanks"].status = "available";
-        }
-      }
-
-      const updated = {
-        ...prev,
-        [module]: moduleProgress,
-      };
-
-      const exercises = getModuleExercises(module);
-      const isModuleComplete = exercises.every(
-        (ex) => moduleProgress[ex].status === "completed"
-      );
-
-      if (isModuleComplete) {
-        updated.lastCompletedModule = module;
-        const moduleOrder: ModuleType[] = [
-          "vocabulary",
-          "grammar",
-          "sentence-construction",
-          "reading-comprehension",
-        ];
-        const currentIndex = moduleOrder.indexOf(module);
-        if (currentIndex < moduleOrder.length - 1) {
-          updated.recommendedModule = moduleOrder[currentIndex + 1];
-        }
-      }
-
-      return updated;
-    });
-
-    if (user && tokens) {
-      try {
-        await ProgressAPI.updateExerciseProgress(
-          module,
-          exerciseTypeMap[exercise],
-          {
-            status: data.status,
-            score: data.score || undefined,
-            attempts: data.attempts,
-            completedAt: data.completedAt || undefined,
-            lastDifficulty: data.lastDifficulty,
-          }
-        );
-      } catch (err) {
-        console.error("Failed to sync progress to backend:", err);
-      }
-    }
-  };
-
-  const getModuleExercises = (module: ModuleType): ExerciseType[] => {
-    if (module === "vocabulary") {
-      return ["flashcards", "quiz", "antonym"];
-    } else if (module === "grammar") {
-      return ["lesson-cards", "error-identification", "fill-blanks"];
-    } else {
-      return ["flashcards", "quiz", "fill-blanks"];
-    }
-  };
-
-  const addPerformanceMetrics = async (
-    module: ModuleType,
-    exercise: ExerciseType,
-    metrics: PerformanceMetrics
-  ) => {
-    setProgress((prev) => {
-      const moduleProgress = { ...prev[module] };
-      const exerciseProgress = { ...moduleProgress[exercise] };
-
-      exerciseProgress.performanceHistory = [
-        ...exerciseProgress.performanceHistory,
-        metrics,
-      ];
-      exerciseProgress.lastDifficulty = metrics.difficulty;
-
-      moduleProgress[exercise] = exerciseProgress;
-
-      return {
-        ...prev,
-        [module]: moduleProgress,
-      };
-    });
-
-    if (user && tokens) {
-      try {
-        await ProgressAPI.updateExerciseProgress(
-          module,
-          exerciseTypeMap[exercise],
-          {
-            lastDifficulty: metrics.difficulty,
-            performanceMetrics: {
-              difficulty: metrics.difficulty,
-              score: metrics.score,
-              missedLowFreq: metrics.missedLowFreq,
-              similarChoiceErrors: metrics.similarChoiceErrors,
-              errorTags: [],
-            },
-          }
-        );
-      } catch (err) {
-        console.error("Failed to add performance metrics:", err);
-      }
-    }
-  };
-
   const resetProgress = async (module?: ModuleType) => {
     if (user && tokens) {
       try {
@@ -408,7 +490,14 @@ export function LearningProgressProvider({
       if (module) {
         setProgress((prev) => ({
           ...prev,
-          [module]: createDefaultModuleProgress(module),
+          [module]:
+            module === "vocabulary"
+              ? createDefaultVocabularyProgress()
+              : module === "grammar"
+              ? createDefaultGrammarProgress()
+              : module === "sentence-construction"
+              ? createDefaultSentenceProgress()
+              : createDefaultReadingProgress(),
         }));
       } else {
         setProgress(defaultProgress);
@@ -416,61 +505,68 @@ export function LearningProgressProvider({
     }
   };
 
-  const getModuleProgress = (module: ModuleType): number => {
-    const moduleData = progress[module];
-    const exercises = getModuleExercises(module);
-    const exerciseProgresses = exercises.map((ex) => moduleData[ex]);
+  const getModuleExercises = (module: ModuleType): ExerciseType[] => {
+    switch (module) {
+      case "vocabulary":
+        return ["flashcards", "quiz", "antonym"];
+      case "grammar":
+        return ["lesson-cards", "error-identification", "fill-blanks"];
+      case "sentence-construction":
+        return ["complete-sentence", "sentence-ordering"];
+      case "reading-comprehension":
+        return ["passage-questions", "comprehension"];
+      default:
+        return [];
+    }
+  };
 
-    const completed = exerciseProgresses.filter(
-      (ex) => ex.status === "completed"
-    ).length;
+  const getModuleProgress = (module: ModuleType): number => {
+    const exercises = getModuleExercises(module);
+    const completed = exercises.filter((ex) => {
+      const exerciseProgress =
+        progress[module][ex as keyof (typeof progress)[typeof module]];
+      return exerciseProgress?.status === "completed";
+    }).length;
 
     return Math.round((completed / exercises.length) * 100);
   };
 
   const getOverallProgress = (): number => {
-    const totalExercises = 12;
-    const moduleTypes: ModuleType[] = [
+    const modules: ModuleType[] = [
       "vocabulary",
       "grammar",
       "sentence-construction",
       "reading-comprehension",
     ];
 
-    let completedExercises = 0;
+    let totalCompleted = 0;
+    let totalExercises = 0;
 
-    moduleTypes.forEach((module) => {
-      const exerciseTypes = getModuleExercises(module);
+    modules.forEach((module) => {
+      const exercises = getModuleExercises(module);
+      totalExercises += exercises.length;
 
-      exerciseTypes.forEach((exercise) => {
-        if (progress[module][exercise].status === "completed") {
-          completedExercises++;
+      exercises.forEach((ex) => {
+        const exerciseProgress =
+          progress[module][ex as keyof (typeof progress)[typeof module]];
+        if (exerciseProgress?.status === "completed") {
+          totalCompleted++;
         }
       });
     });
 
-    return Math.round((completedExercises / totalExercises) * 100);
+    return Math.round((totalCompleted / totalExercises) * 100);
   };
 
   const getNextRecommended = (module: ModuleType): ExerciseType | null => {
-    const moduleData = progress[module];
+    const exercises = getModuleExercises(module);
 
-    if (module === "vocabulary") {
-      if (moduleData.flashcards.status !== "completed") return "flashcards";
-      if (moduleData.quiz.status !== "completed") return "quiz";
-      if (moduleData.antonym.status !== "completed") return "antonym";
-    } else if (module === "grammar") {
-      if (moduleData["lesson-cards"].status !== "completed")
-        return "lesson-cards";
-      if (moduleData["error-identification"].status !== "completed")
-        return "error-identification";
-      if (moduleData["fill-blanks"].status !== "completed")
-        return "fill-blanks";
-    } else {
-      if (moduleData.flashcards.status !== "completed") return "flashcards";
-      if (moduleData.quiz.status !== "completed") return "quiz";
-      if (moduleData["fill-blanks"].status !== "completed")
-        return "fill-blanks";
+    for (const ex of exercises) {
+      const exerciseProgress =
+        progress[module][ex as keyof (typeof progress)[typeof module]];
+      if (exerciseProgress?.status !== "completed") {
+        return ex;
+      }
     }
 
     return null;
@@ -480,14 +576,57 @@ export function LearningProgressProvider({
     module: ModuleType,
     exercise: ExerciseType
   ): boolean => {
-    return progress[module][exercise].status !== "locked";
+    if (isLessonExercise(module, exercise)) {
+      return true;
+    }
+
+    if (module === "vocabulary") {
+      const flashcardsCompleted =
+        progress.vocabulary.flashcards.status === "completed";
+      if (exercise === "quiz") return flashcardsCompleted;
+      if (exercise === "antonym") {
+        return (
+          flashcardsCompleted && progress.vocabulary.quiz.status === "completed"
+        );
+      }
+    } else if (module === "grammar") {
+      const lessonCompleted =
+        progress.grammar["lesson-cards"].status === "completed";
+      if (exercise === "error-identification") return lessonCompleted;
+      if (exercise === "fill-blanks") {
+        return (
+          lessonCompleted &&
+          progress.grammar["error-identification"].status === "completed"
+        );
+      }
+    } else if (module === "sentence-construction") {
+      if (exercise === "complete-sentence") return true;
+      if (exercise === "sentence-ordering") {
+        return (
+          progress["sentence-construction"]["complete-sentence"].status ===
+          "completed"
+        );
+      }
+    } else if (module === "reading-comprehension") {
+      if (exercise === "passage-questions") return true;
+      if (exercise === "comprehension") {
+        return (
+          progress["reading-comprehension"]["passage-questions"].status ===
+          "completed"
+        );
+      }
+    }
+
+    return false;
   };
 
   const isModuleCompleted = (module: ModuleType): boolean => {
-    const moduleData = progress[module];
     const exercises = getModuleExercises(module);
-
-    return exercises.every((ex) => moduleData[ex].status === "completed");
+    return exercises.every((ex) => {
+      const exerciseProgress =
+        progress[module][ex as keyof (typeof progress)[typeof module]];
+      return exerciseProgress?.status === "completed";
+    });
   };
 
   const getRecommendedModule = (): ModuleType => {
@@ -528,11 +667,75 @@ export function LearningProgressProvider({
     return "Available";
   };
 
+  const addPerformanceMetrics = async (
+    module: ModuleType,
+    exercise: Exclude<
+      ExerciseType,
+      VocabularyLessonExercise | GrammarLessonExercise
+    >,
+    metrics: PerformanceMetrics
+  ) => {
+    setProgress((prev) => {
+      const moduleProgress = { ...prev[module] };
+
+      if (
+        module === "vocabulary" &&
+        (exercise === "quiz" || exercise === "antonym")
+      ) {
+        const quizProgress = moduleProgress[exercise] as QuizProgress;
+        quizProgress.performanceHistory = [
+          ...quizProgress.performanceHistory,
+          metrics,
+        ];
+        quizProgress.lastDifficulty = metrics.difficulty;
+      } else if (
+        module === "grammar" &&
+        (exercise === "error-identification" || exercise === "fill-blanks")
+      ) {
+        const quizProgress = (moduleProgress as GrammarProgress)[exercise];
+        quizProgress.performanceHistory = [
+          ...quizProgress.performanceHistory,
+          metrics,
+        ];
+        quizProgress.lastDifficulty = metrics.difficulty;
+      }
+
+      return {
+        ...prev,
+        [module]: moduleProgress,
+      };
+    });
+
+    if (user && tokens) {
+      try {
+        await ProgressAPI.updateExerciseProgress(module, exercise, {
+          lastDifficulty: metrics.difficulty,
+          performanceMetrics: {
+            difficulty: metrics.difficulty,
+            score: metrics.score,
+            missedLowFreq: metrics.missedLowFreq,
+            similarChoiceErrors: metrics.similarChoiceErrors,
+            errorTags: [],
+          },
+        });
+      } catch (err) {
+        console.error("Failed to add performance metrics:", err);
+      }
+    }
+  };
+
   const getPerformanceHistory = (
     module: ModuleType,
     exercise: ExerciseType
   ): PerformanceMetrics[] => {
-    return progress[module][exercise].performanceHistory || [];
+    const exerciseProgress =
+      progress[module][exercise as keyof (typeof progress)[typeof module]];
+
+    if (exerciseProgress && "performanceHistory" in exerciseProgress) {
+      return (exerciseProgress as QuizProgress).performanceHistory || [];
+    }
+
+    return [];
   };
 
   return (
@@ -541,7 +744,8 @@ export function LearningProgressProvider({
         progress,
         isLoading,
         error,
-        updateProgress,
+        updateLessonProgress,
+        updateQuizProgress,
         resetProgress,
         syncProgress,
         getModuleProgress,
@@ -554,6 +758,8 @@ export function LearningProgressProvider({
         getModuleRecommendationReason,
         addPerformanceMetrics,
         getPerformanceHistory,
+        getModuleExercises,
+        isLessonExercise,
       }}
     >
       {children}

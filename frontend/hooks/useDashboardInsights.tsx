@@ -3,7 +3,10 @@
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type {
   ModuleType,
-  ExerciseProgress,
+  VocabularyProgress,
+  GrammarProgress,
+  SentenceProgress,
+  ReadingProgress,
 } from "@/contexts/LearningProgressContext";
 
 export type MasteryLevel =
@@ -26,12 +29,40 @@ export function useDashboardInsights() {
   const getModuleMastery = (module: ModuleType): ModuleMastery => {
     const moduleData = progress[module];
 
-    // Aggregate all exercise histories
-    const allHistory = [
-      ...moduleData.flashcards.performanceHistory,
-      ...moduleData.quiz.performanceHistory,
-      ...moduleData["antonym"].performanceHistory,
-    ];
+    // ✅ FIX: Handle different module types correctly
+    let allHistory: Array<{
+      difficulty: "easy" | "medium" | "hard";
+      score: number;
+      missedLowFreq: number;
+      similarChoiceErrors: number;
+      timestamp: string;
+    }> = [];
+
+    if (module === "vocabulary") {
+      const vocab = moduleData as VocabularyProgress;
+      allHistory = [
+        ...vocab.quiz.performanceHistory,
+        ...vocab.antonym.performanceHistory,
+      ];
+    } else if (module === "grammar") {
+      const grammar = moduleData as GrammarProgress;
+      allHistory = [
+        ...grammar["error-identification"].performanceHistory,
+        ...grammar["fill-blanks"].performanceHistory,
+      ];
+    } else if (module === "sentence-construction") {
+      const sentence = moduleData as SentenceProgress;
+      allHistory = [
+        ...sentence["complete-sentence"].performanceHistory,
+        ...sentence["sentence-ordering"].performanceHistory,
+      ];
+    } else if (module === "reading-comprehension") {
+      const reading = moduleData as ReadingProgress;
+      allHistory = [
+        ...reading["passage-questions"].performanceHistory,
+        ...reading.comprehension.performanceHistory,
+      ];
+    }
 
     if (allHistory.length === 0) {
       return {
@@ -43,11 +74,30 @@ export function useDashboardInsights() {
     }
 
     // Get current difficulty (highest across exercises)
-    const difficulties = [
-      moduleData.flashcards.lastDifficulty,
-      moduleData.quiz.lastDifficulty,
-      moduleData["antonym"].lastDifficulty,
-    ];
+    let difficulties: Array<"easy" | "medium" | "hard"> = [];
+
+    if (module === "vocabulary") {
+      const vocab = moduleData as VocabularyProgress;
+      difficulties = [vocab.quiz.lastDifficulty, vocab.antonym.lastDifficulty];
+    } else if (module === "grammar") {
+      const grammar = moduleData as GrammarProgress;
+      difficulties = [
+        grammar["error-identification"].lastDifficulty,
+        grammar["fill-blanks"].lastDifficulty,
+      ];
+    } else if (module === "sentence-construction") {
+      const sentence = moduleData as SentenceProgress;
+      difficulties = [
+        sentence["complete-sentence"].lastDifficulty,
+        sentence["sentence-ordering"].lastDifficulty,
+      ];
+    } else if (module === "reading-comprehension") {
+      const reading = moduleData as ReadingProgress;
+      difficulties = [
+        reading["passage-questions"].lastDifficulty,
+        reading.comprehension.lastDifficulty,
+      ];
+    }
 
     const currentDiff = difficulties.reduce((max, diff) => {
       if (diff === "hard") return "hard";
@@ -103,7 +153,7 @@ export function useDashboardInsights() {
         level: "developing",
         difficulty: currentDiff,
         icon: "📘",
-        color: "bg-blue-100 text-blue-700 border-blue-300",
+        color: "bg-green-100 text-green-700 border-green-300",
       };
     }
 
