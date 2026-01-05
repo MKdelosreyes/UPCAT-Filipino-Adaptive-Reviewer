@@ -24,7 +24,7 @@ export interface TipsRequest {
   missedLowFreq: number;
   similarChoiceErrors: number;
   lastDifficulty: "easy" | "medium" | "hard";
-  module: string;
+  module: "vocabulary" | "grammar" | "sentence-construction" | "reading-comprehension";
 }
 
 export interface TipsResponse {
@@ -64,9 +64,7 @@ export async function getExplanation(
   return response.data;
 }
 
-export async function getTips(
-  request: TipsRequest
-): Promise<TipsResponse> {
+export async function getTips(request: TipsRequest): Promise<TipsResponse> {
   const response = await aiServiceClient.post('/tips', request);
   return response.data;
 }

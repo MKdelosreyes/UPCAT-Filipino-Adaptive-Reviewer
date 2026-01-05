@@ -59,6 +59,13 @@ except ImportError as e:
     print(f"⚠️ Error loading redefine handler: {e}")
     handle_redefine = None
 
+try:
+    from handlers.tips import handle_tips, TipsRequest, TipsResponse
+    print("✅ Loaded tips handler")
+except ImportError as e:
+    print(f"⚠️ Error loading tips handler: {e}")
+    handle_tips = None
+
 # Initialize FastAPI
 app = FastAPI(
     title="UPCAT Filipino Reviewer AI Service",
@@ -98,16 +105,16 @@ class GrammarExercisesRequest(BaseModel):
     limit: int = 15
 
 
-class TipsRequest(BaseModel):
-    score: int
-    missedLowFreq: int
-    similarChoiceErrors: int
-    lastDifficulty: str
-    module: str
+# class TipsRequest(BaseModel):
+#     score: int
+#     missedLowFreq: int
+#     similarChoiceErrors: int
+#     lastDifficulty: str
+#     module: str
 
 
-class TipsResponse(BaseModel):
-    tips: str
+# class TipsResponse(BaseModel):
+#     tips: str
 
 
 class ConfusablesRequest(BaseModel):
@@ -286,6 +293,36 @@ async def redefine_word(request: RedefineRequest):
     return await handle_redefine(request)
 
 
+@app.post("/tips", response_model=TipsResponse)
+async def generate_tips(request: TipsRequest):
+    """
+    Generate personalized study tips based on exercise performance.
+
+    Request body:
+    {
+      "score": 75,
+      "missedLowFreq": 3,
+      "similarChoiceErrors": 2,
+      "lastDifficulty": "medium",
+      "module": "vocabulary"
+    }
+    """
+    if not handle_tips:
+        raise HTTPException(
+            status_code=503,
+            detail="Tips generation service not available"
+        )
+
+    try:
+        return await handle_tips(request)
+    except Exception as e:
+        print(f"❌ Error in /tips endpoint: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate tips: {str(e)}"
+        )
+
+
 # ============================================================
 # OTHER ENDPOINTS
 # ============================================================
@@ -303,29 +340,6 @@ Student summary:
 Give:
 - 3 short, actionable tips (bullets)
 - A 15–20 minute plan with concrete steps (bullets)"""
-
-
-@app.post("/tips", response_model=TipsResponse)
-async def generate_tips(request: TipsRequest):
-    """Generate personalized study tips"""
-    try:
-        prompt = tips_prompt(request.dict())
-
-        completion = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            temperature=0.3,
-            messages=[
-                {"role": "system", "content": "Be practical and concise."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-
-        tips = completion.choices[0].message.content or ""
-        return TipsResponse(tips=tips)
-
-    except Exception as e:
-        print(f"Error in /tips: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/confusables", response_model=ConfusablesResponse)

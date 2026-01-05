@@ -13,6 +13,7 @@ import Link from "next/link";
 import confetti from "canvas-confetti";
 import { useEffect, useState } from "react";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import { getTips } from "@/lib/api/ai-service";
 
 interface FillBlanksCompletionModalProps {
   isOpen: boolean;
@@ -51,25 +52,32 @@ export default function FillBlanksCompletionModal({
       const history = getPerformanceHistory("vocabulary", "antonym");
       const latestMetrics = history[history.length - 1];
 
-      const response = await fetch("/api/tips", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          score: latestMetrics?.score ?? score,
-          missedLowFreq: latestMetrics?.missedLowFreq ?? 0,
-          similarChoiceErrors: latestMetrics?.similarChoiceErrors ?? 0,
-          lastDifficulty: latestMetrics?.difficulty ?? "easy",
-        }),
+      const response = await getTips({
+        score: latestMetrics?.score ?? score,
+        missedLowFreq: latestMetrics?.missedLowFreq ?? 0,
+        similarChoiceErrors: latestMetrics?.similarChoiceErrors ?? 0,
+        lastDifficulty: (latestMetrics?.difficulty ?? "easy") as
+          | "easy"
+          | "medium"
+          | "hard",
+        module: "vocabulary",
       });
 
-      const data = await response.json();
-      if (data.tips) {
-        setTips(data.tips);
+      if (response.tips) {
+        setTips(response.tips);
         setShowTips(true);
+      } else {
+        throw new Error("No tips received");
       }
     } catch (error) {
       console.error("Failed to fetch tips:", error);
-      setTips("Unable to generate tips at this time. Please try again later.");
+      setTips(
+        "Unable to generate tips at this time. Please try again later.\n\n" +
+          "💡 Quick Tips:\n" +
+          "• Study antonym pairs together\n" +
+          "• Use context clues in sentences\n" +
+          "• Practice identifying opposite meanings"
+      );
       setShowTips(true);
     } finally {
       setLoadingTips(false);
