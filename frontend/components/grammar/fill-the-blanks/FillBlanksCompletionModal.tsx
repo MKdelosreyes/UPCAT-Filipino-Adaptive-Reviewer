@@ -50,7 +50,7 @@ export default function FillBlanksCompletionModal({
   const handleGetTips = async () => {
     setLoadingTips(true);
     try {
-      const history = getPerformanceHistory("grammar", "complete-sentence");
+      const history = getPerformanceHistory("grammar", "fill-blanks");
       const latestMetrics = history[history.length - 1];
 
       const response = await getTips({

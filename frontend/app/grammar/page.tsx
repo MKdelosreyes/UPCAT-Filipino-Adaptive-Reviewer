@@ -81,7 +81,7 @@ export default function GrammarPage() {
           <ProgressStepper />
         </div>
 
-        {/* Cards - ✅ REORDERED: Sentence Correction first */}
+        {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <GrammarCard
             name="Lesson Cards"
@@ -100,12 +100,12 @@ export default function GrammarPage() {
             exerciseType="error-identification"
           />
           <GrammarCard
-            name="Complete the Sentence"
-            description="Complete sentences with proper grammar"
+            name="Fill the Blank"
+            description="Fill the blank with the correct word"
             imagePath="/art/grammar-icon1.png"
             color="bg-green-50"
-            url="/grammar/complete-sentence"
-            exerciseType="complete-sentence"
+            url="/grammar/fill-blanks"
+            exerciseType="fill-blanks"
           />
         </div>
       </div>

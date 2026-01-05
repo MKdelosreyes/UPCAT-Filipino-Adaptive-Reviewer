@@ -17,7 +17,7 @@ export type ExerciseType =
   | "antonym"
   | "lesson-cards"
   | "error-identification"
-  | "complete-sentence";
+  | "fill-blanks";
 
 export type ExerciseStatus =
   | "locked"
@@ -49,7 +49,7 @@ export interface ModuleProgress {
   antonym: ExerciseProgress;
   "lesson-cards": ExerciseProgress;
   "error-identification": ExerciseProgress;
-  "complete-sentence": ExerciseProgress;
+  "fill-blanks": ExerciseProgress;
   lastAccessedAt: string | null;
 }
 
@@ -109,7 +109,7 @@ const createDefaultModuleProgress = (module: ModuleType): ModuleProgress => {
     return {
       flashcards: { ...defaultExerciseProgress, status: "available" },
       quiz: { ...defaultExerciseProgress },
-      "complete-sentence": { ...defaultExerciseProgress },
+      "fill-blanks": { ...defaultExerciseProgress },
       antonym: { ...defaultExerciseProgress },
       "lesson-cards": { ...defaultExerciseProgress },
       "error-identification": { ...defaultExerciseProgress },
@@ -126,7 +126,7 @@ const createDefaultModuleProgress = (module: ModuleType): ModuleProgress => {
         status: "available",
       },
       "error-identification": { ...defaultExerciseProgress },
-      "complete-sentence": { ...defaultExerciseProgress },
+      "fill-blanks": { ...defaultExerciseProgress },
       lastAccessedAt: null,
     };
   } else {
@@ -137,7 +137,7 @@ const createDefaultModuleProgress = (module: ModuleType): ModuleProgress => {
       antonym: { ...defaultExerciseProgress },
       "lesson-cards": { ...defaultExerciseProgress },
       "error-identification": { ...defaultExerciseProgress },
-      "complete-sentence": { ...defaultExerciseProgress },
+      "fill-blanks": { ...defaultExerciseProgress },
       lastAccessedAt: null,
     };
   }
@@ -172,7 +172,7 @@ export function LearningProgressProvider({
     antonym: "antonym",
     "lesson-cards": "lesson-cards",
     "error-identification": "error-identification",
-    "complete-sentence": "complete-sentence",
+    "fill-blanks": "fill-blanks",
   };
 
   const convertBackendToFrontend = (
@@ -275,7 +275,7 @@ export function LearningProgressProvider({
           moduleProgress.antonym.status = "available";
         }
       } else if (module === "grammar") {
-        // Grammar: lesson-cards → error-identification → complete-sentence
+        // Grammar: lesson-cards → error-identification → fill-blanks
         if (exercise === "lesson-cards" && data.status === "completed") {
           moduleProgress["error-identification"].status = "available";
         }
@@ -283,7 +283,7 @@ export function LearningProgressProvider({
           exercise === "error-identification" &&
           data.status === "completed"
         ) {
-          moduleProgress["complete-sentence"].status = "available";
+          moduleProgress["fill-blanks"].status = "available";
         }
       } else {
         // Other modules: flashcards → quiz → fill-blanks
@@ -291,7 +291,7 @@ export function LearningProgressProvider({
           moduleProgress.quiz.status = "available";
         }
         if (exercise === "quiz" && data.status === "completed") {
-          moduleProgress["complete-sentence"].status = "available";
+          moduleProgress["fill-blanks"].status = "available";
         }
       }
 
@@ -345,9 +345,9 @@ export function LearningProgressProvider({
     if (module === "vocabulary") {
       return ["flashcards", "quiz", "antonym"];
     } else if (module === "grammar") {
-      return ["lesson-cards", "error-identification", "complete-sentence"];
+      return ["lesson-cards", "error-identification", "fill-blanks"];
     } else {
-      return ["flashcards", "quiz", "complete-sentence"];
+      return ["flashcards", "quiz", "fill-blanks"];
     }
   };
 
@@ -464,13 +464,13 @@ export function LearningProgressProvider({
         return "lesson-cards";
       if (moduleData["error-identification"].status !== "completed")
         return "error-identification";
-      if (moduleData["complete-sentence"].status !== "completed")
-        return "complete-sentence";
+      if (moduleData["fill-blanks"].status !== "completed")
+        return "fill-blanks";
     } else {
       if (moduleData.flashcards.status !== "completed") return "flashcards";
       if (moduleData.quiz.status !== "completed") return "quiz";
-      if (moduleData["complete-sentence"].status !== "completed")
-        return "complete-sentence";
+      if (moduleData["fill-blanks"].status !== "completed")
+        return "fill-blanks";
     }
 
     return null;

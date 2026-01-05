@@ -18,7 +18,7 @@ class LexicalPerformanceEventSerializer(serializers.Serializer):
             "fill-blanks",
             "antonym",
             "error-identification",
-            "complete-sentence",
+            "fill-blanks",
         ]
     )
 

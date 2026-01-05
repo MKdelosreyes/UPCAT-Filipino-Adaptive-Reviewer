@@ -28,7 +28,7 @@ except Exception as e:
 # ============================================================
 
 class ExplainRequest(BaseModel):
-    mode: str  # ✅ Updated: "quiz", "antonym", "complete-sentence", "error-identification"
+    mode: str  # ✅ Updated: "quiz", "antonym", "fill-blanks", "error-identification"
     word: str
     correct: str
     selected: Optional[str] = None
@@ -180,7 +180,7 @@ Gumamit ng mga bullet points. Panatilihing maikli at malinaw."""
     # GRAMMAR MODES
     # ============================================================
 
-    elif mode == "complete-sentence":
+    elif mode == "fill-blanks":
         base_prompt = f"""You are a helpful Filipino grammar tutor for UPCAT preparation.
 
 Context:
@@ -284,7 +284,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "example": example
             })
 
-        elif request.mode in ["complete-sentence", "error-identification"]:
+        elif request.mode in ["fill-blanks", "error-identification"]:
             # ✅ GRAMMAR MODES - Use grammar data and lexicon
             word_data = get_word_data(request.word)
 
@@ -327,7 +327,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
         completion = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.2,
-            max_tokens=300,  # ✅ Slightly increased for grammar explanations
+            max_tokens=300,
             messages=[
                 {
                     "role": "system",

@@ -70,7 +70,7 @@ class ExerciseProgress(models.Model):
         ('antonym', 'Antonym'),
         ('lesson-cards', 'Lesson Cards'),
         ('error-identification', 'Error Identification'),
-        ('complete-sentence', 'Complete the Sentence'),
+        ('fill-blanks', 'Fill the Blanks'),
     ]
 
     STATUS_CHOICES = [

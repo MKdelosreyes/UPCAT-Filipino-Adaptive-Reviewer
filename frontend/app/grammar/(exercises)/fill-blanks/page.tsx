@@ -25,12 +25,12 @@ interface FillBlanksAnswer {
   selectedAnswer: string;
   correctAnswer: string;
   sentence: string;
-  lemmaId: string; // ✅ Added for performance tracking
+  lemmaId: string;
 }
 
 interface ProcessedFillBlanksItem {
   item_id: string;
-  lemma_id: string; // ✅ Added for performance tracking
+  lemma_id: string;
   sentence: string;
   choices: string[];
   correct_answer: string;
@@ -135,6 +135,9 @@ export default function GrammarFillBlanksPage() {
     "easy" | "medium" | "hard"
   >("easy");
 
+  const [finalScore, setFinalScore] = useState(0);
+  const [finalCorrectCount, setFinalCorrectCount] = useState(0);
+
   // ✅ Load questions with adaptive difficulty
   useEffect(() => {
     async function loadQuestions() {
@@ -142,7 +145,7 @@ export default function GrammarFillBlanksPage() {
         setIsLoading(true);
 
         // ✅ 1. Get performance history to determine difficulty
-        const history = getPerformanceHistory("grammar", "complete-sentence");
+        const history = getPerformanceHistory("grammar", "fill-blanks");
         const targetDifficulty =
           history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
@@ -154,7 +157,7 @@ export default function GrammarFillBlanksPage() {
           getGrammarExercisesAdaptive({
             userId: user?.id,
             targetDifficulty,
-            exerciseType: "complete-sentence", // Note: backend ignores this but kept for API compatibility
+            exerciseType: "fill-blanks", // Note: backend ignores this but kept for API compatibility
             limit: 20, // Get more items for better variety
             accessToken: tokens?.access,
           }),
@@ -214,7 +217,15 @@ export default function GrammarFillBlanksPage() {
     }
   }, [user?.id, tokens?.access, authLoading, getPerformanceHistory]);
 
-  if (authLoading || isLoading) {
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-red-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="h-screen bg-green-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
@@ -228,7 +239,7 @@ export default function GrammarFillBlanksPage() {
 
           <div className="text-center flex-1 px-4">
             <h1 className="text-xl md:text-2xl font-bold text-green-900">
-              Complete the Sentence
+              Fill the Blank
             </h1>
           </div>
 
@@ -311,7 +322,7 @@ export default function GrammarFillBlanksPage() {
     try {
       await reportLexicalItemPerformance({
         module: "grammar",
-        exerciseType: "complete-sentence",
+        exerciseType: "fill-blanks",
         lemmaId: currentFillBlanks.lemma_id,
         correctAnswer: currentFillBlanks.correct_answer,
         userAnswer: answer,
@@ -326,6 +337,7 @@ export default function GrammarFillBlanksPage() {
   const handleNext = () => {
     if (isLastQuestion) {
       completeExercise();
+      return;
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -337,6 +349,9 @@ export default function GrammarFillBlanksPage() {
     const correctCount = answers.filter((a) => a === true).length;
     const score = Math.round((correctCount / fillBlanksQuestions.length) * 100);
 
+    setFinalScore(score);
+    setFinalCorrectCount(correctCount);
+
     let missedLowFreq = 0;
     let similarChoiceErrors = 0;
 
@@ -346,8 +361,6 @@ export default function GrammarFillBlanksPage() {
       }
     });
 
-    const history = getPerformanceHistory("grammar", "complete-sentence");
-
     const metrics = {
       difficulty: currentDifficulty,
       score,
@@ -356,12 +369,13 @@ export default function GrammarFillBlanksPage() {
       timestamp: new Date().toISOString(),
     };
 
-    addPerformanceMetrics("grammar", "complete-sentence", metrics);
+    addPerformanceMetrics("grammar", "fill-blanks", metrics);
 
+    const history = getPerformanceHistory("grammar", "fill-blanks");
     const allHistory = [...history, metrics];
     const evaluation = evaluateUserPerformance(allHistory);
 
-    updateProgress("complete-sentence", {
+    updateProgress("fill-blanks", {
       status: "completed",
       score,
       completedAt: new Date().toISOString(),
@@ -373,12 +387,11 @@ export default function GrammarFillBlanksPage() {
     setShowCompletion(true);
   };
 
-  // ✅ Reset with adaptive exercises
   const resetExercise = async () => {
     try {
       setIsLoading(true);
 
-      const history = getPerformanceHistory("grammar", "complete-sentence");
+      const history = getPerformanceHistory("grammar", "fill-blanks");
       const targetDifficulty =
         history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
@@ -388,7 +401,7 @@ export default function GrammarFillBlanksPage() {
         getGrammarExercisesAdaptive({
           userId: user?.id,
           targetDifficulty,
-          exerciseType: "complete-sentence",
+          exerciseType: "fill-blanks",
           limit: 20,
           accessToken: tokens?.access,
         }),
@@ -413,6 +426,8 @@ export default function GrammarFillBlanksPage() {
       setAnswers(Array(selected.length).fill(null));
       setDetailedAnswers([]);
       setShowCompletion(false);
+      setFinalScore(0);
+      setFinalCorrectCount(0);
     } catch (err) {
       console.error("Failed to reload exercises:", err);
     } finally {
@@ -455,64 +470,62 @@ export default function GrammarFillBlanksPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
-        <FillBlanksProgress
-          currentQuestion={currentQuestion}
-          totalQuestions={fillBlanksQuestions.length}
-          answers={answers}
-        />
-
-        <motion.div
-          key={currentQuestion}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.3 }}
-        >
-          <FillBlanksQuestion
-            questionNumber={currentQuestion + 1}
+      {!showCompletion && currentFillBlanks && (
+        <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
+          <FillBlanksProgress
+            currentQuestion={currentQuestion}
             totalQuestions={fillBlanksQuestions.length}
-            sentence={currentFillBlanks.sentence}
-            choices={currentFillBlanks.choices}
-            correctAnswer={currentFillBlanks.correct_answer}
-            selectedAnswer={selectedAnswer}
-            onSelectAnswer={handleSelectAnswer}
-            showResult={showResult}
-            explanation={currentFillBlanks.explanation}
+            answers={answers}
           />
-        </motion.div>
 
-        {showResult ? (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex justify-center"
+            key={currentQuestion}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
           >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleNext}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
-            >
-              {isLastQuestion ? "Finish Exercise" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
-            </motion.button>
+            <FillBlanksQuestion
+              questionNumber={currentQuestion + 1}
+              totalQuestions={fillBlanksQuestions.length}
+              sentence={currentFillBlanks.sentence}
+              choices={currentFillBlanks.choices}
+              correctAnswer={currentFillBlanks.correct_answer}
+              selectedAnswer={selectedAnswer}
+              onSelectAnswer={handleSelectAnswer}
+              showResult={showResult}
+              explanation={currentFillBlanks.explanation}
+            />
           </motion.div>
-        ) : (
-          <div className="text-center text-xs text-green-600">
-            📝 Fill in the blank with the correct word
-          </div>
-        )}
-      </div>
+
+          {showResult ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-center"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleNext}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              >
+                {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                <ChevronRight className="w-5 h-5" />
+              </motion.button>
+            </motion.div>
+          ) : (
+            <div className="text-center text-xs text-green-600">
+              📝 Fill in the blank with the correct word
+            </div>
+          )}
+        </div>
+      )}
 
       <FillBlanksCompletionModal
         isOpen={showCompletion}
-        score={Math.round(
-          (answers.filter((a) => a === true).length /
-            fillBlanksQuestions.length) *
-            100
-        )}
-        correctCount={answers.filter((a) => a === true).length}
+        score={finalScore}
+        correctCount={finalCorrectCount}
         totalQuestions={fillBlanksQuestions.length}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}

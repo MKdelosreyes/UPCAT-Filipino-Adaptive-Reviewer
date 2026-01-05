@@ -53,7 +53,7 @@ export default function FillBlanksQuestion({
         );
 
         const aiPromise = getExplanation({
-          mode: "complete-sentence",
+          mode: "fill-blanks",
           word: correctAnswer,
           correct: correctAnswer,
           selected: selectedAnswer || undefined,
