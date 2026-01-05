@@ -506,7 +506,7 @@ export default function ClosestMeaningQuizPage() {
 
         <div className="text-center flex-1 px-4">
           <h1 className="text-xl md:text-2xl font-bold text-blue-900">
-            Multiple Choice Quiz
+            What is its Closest Meaning
           </h1>
           <p className="text-xs text-gray-500 mt-1">
             Difficulty:{" "}

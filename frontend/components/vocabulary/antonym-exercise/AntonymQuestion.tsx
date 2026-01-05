@@ -272,18 +272,22 @@ export default function AntonymQuestion({
                       </p>
                     </div>
                   ) : (
-                    renderExplanation()
+                    <>
+                      {renderExplanation()}
+
+                      {/* Explain Button */}
+                      <div className="mt-4 pt-4 border-t border-orange-100">
+                        <button
+                          onClick={() => setShowChatModal(true)}
+                          className="w-full flex items-center justify-center gap-2 border bg-orange-50 hover:bg-orange-100 text-orange-800 font-semibold py-3 px-6 rounded-lg transition-all"
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                          <span>Ask AI for More Help</span>
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
-
-                {/* Explain Button */}
-                <button
-                  onClick={() => setShowChatModal(true)}
-                  className="w-full flex items-center justify-center gap-2 border-2 border-orange-800 text-orange-800 font-semibold py-3 px-6 rounded-lg shadow-lg transition-all hover:shadow-xl"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Ask AI for More Help</span>
-                </button>
               </div>
             </motion.div>
           )}

@@ -268,18 +268,21 @@ export default function QuizQuestion({
                       </p>
                     </div>
                   ) : (
-                    renderExplanation()
+                    <>
+                      {renderExplanation()}
+                      {/* Explain Button */}
+                      <div className="mt-4 pt-4 border-t border-purple-100">
+                        <button
+                          onClick={() => setShowChatModal(true)}
+                          className="w-full flex items-center justify-center gap-2 border bg-purple-50 hover:bg-purple-100 text-purple-800 font-semibold py-3 px-6 rounded-lg transition-all"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>Ask AI for More Help</span>
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
-
-                {/* Explain Button */}
-                <button
-                  onClick={() => setShowChatModal(true)}
-                  className="w-full flex items-center justify-center gap-2 border-2 border-purple-800 text-purple-800 font-semibold py-3 px-6 rounded-lg shadow-lg transition-all hover:shadow-xl"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Ask AI for More Help</span>
-                </button>
               </div>
             </motion.div>
           )}
