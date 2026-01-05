@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Lightbulb } from "lucide-react";
+import { getExplanation, ExplainResponse } from "@/lib/api/ai-service";
 
 interface ErrorQuestionProps {
   questionNumber: number;
@@ -26,10 +28,80 @@ export default function ErrorQuestion({
   selectedAnswer,
   onSelectAnswer,
   showResult,
-  explanation,
+  explanation: fallbackExplanation,
 }: ErrorQuestionProps) {
+  const [explanation, setExplanation] = useState<string>(fallbackExplanation);
+  const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
+  const [isAIExplanation, setIsAIExplanation] = useState(false);
+
   const showExplanation =
     showResult && selectedAnswer && selectedAnswer !== correctAnswer;
+
+  useEffect(() => {
+    async function loadExplanation() {
+      if (!showExplanation) return;
+
+      setIsLoadingExplanation(true);
+
+      try {
+        // Try to get AI explanation with timeout
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("AI timeout")), 5000)
+        );
+
+        const aiPromise = getExplanation({
+          mode: "error-identification",
+          word: correctAnswer, // The error phrase
+          correct: correctAnswer,
+          selected: selectedAnswer || undefined,
+          sentence: sentence,
+        });
+
+        // Race between AI response and timeout
+        const aiResponse = await Promise.race<ExplainResponse>([
+          aiPromise,
+          timeoutPromise,
+        ]);
+
+        setExplanation(aiResponse.explanation);
+        setIsAIExplanation(true);
+        console.log("✅ AI explanation loaded");
+      } catch (aiError) {
+        console.log("⚠️ AI unavailable, using fallback explanation");
+        // Use fallback explanation
+        setExplanation(fallbackExplanation);
+        setIsAIExplanation(false);
+      } finally {
+        setIsLoadingExplanation(false);
+      }
+    }
+
+    loadExplanation();
+  }, [
+    showExplanation,
+    correctAnswer,
+    selectedAnswer,
+    sentence,
+    fallbackExplanation,
+  ]);
+
+  const renderExplanation = () => {
+    if (!explanation) return null;
+
+    return (
+      <div className="prose prose-sm max-w-none">
+        <div
+          className="text-gray-700 text-sm space-y-2"
+          dangerouslySetInnerHTML={{
+            __html: explanation
+              .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+              .replace(/\n/g, "<br />")
+              .replace(/^- /gm, "• "),
+          }}
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
@@ -144,13 +216,24 @@ export default function ErrorQuestion({
                   </h3>
                 </div>
                 <div className="text-sm text-gray-800 leading-relaxed">
-                  <p className="mb-3">
-                    <span className="font-semibold text-red-700">
-                      Correct Answer:
-                    </span>{" "}
-                    {correctAnswer}
-                  </p>
-                  <p className="text-gray-700">{explanation}</p>
+                  {isLoadingExplanation ? (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+                      <p className="text-sm text-gray-600">
+                        Loading explanation...
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="mb-3">
+                        <span className="font-semibold text-red-700">
+                          Correct Answer:
+                        </span>{" "}
+                        {correctAnswer}
+                      </p>
+                      {renderExplanation()}
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>

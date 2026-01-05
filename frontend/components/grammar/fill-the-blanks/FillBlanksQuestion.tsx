@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Lightbulb } from "lucide-react";
+import { getExplanation, ExplainResponse } from "@/lib/api/ai-service";
 
 interface FillBlanksQuestionProps {
   questionNumber: number;
@@ -13,6 +15,7 @@ interface FillBlanksQuestionProps {
   onSelectAnswer: (answer: string) => void;
   showResult: boolean;
   explanation: string;
+  lemmaId?: string;
 }
 
 export default function FillBlanksQuestion({
@@ -24,13 +27,85 @@ export default function FillBlanksQuestion({
   selectedAnswer,
   onSelectAnswer,
   showResult,
-  explanation,
+  explanation: fallbackExplanation,
+  lemmaId,
 }: FillBlanksQuestionProps) {
+  const [explanation, setExplanation] = useState<string>(fallbackExplanation);
+  const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
+  const [isAIExplanation, setIsAIExplanation] = useState(false);
   const showExplanation =
     showResult && selectedAnswer && selectedAnswer !== correctAnswer;
 
   // Split sentence by blank marker
   const parts = sentence.split("_____");
+  const fullSentence = parts.join(correctAnswer);
+
+  useEffect(() => {
+    async function loadExplanation() {
+      if (!showExplanation) return;
+
+      setIsLoadingExplanation(true);
+
+      try {
+        // Try to get AI explanation with timeout
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("AI timeout")), 5000)
+        );
+
+        const aiPromise = getExplanation({
+          mode: "complete-sentence",
+          word: correctAnswer,
+          correct: correctAnswer,
+          selected: selectedAnswer || undefined,
+          sentence: fullSentence,
+        });
+
+        // Race between AI response and timeout
+        const aiResponse = await Promise.race<ExplainResponse>([
+          aiPromise,
+          timeoutPromise,
+        ]);
+
+        // Use AI explanation
+        setExplanation(aiResponse.explanation);
+        setIsAIExplanation(true);
+        console.log("✅ AI explaination loaded");
+      } catch (aiError) {
+        console.log("⚠️ AI unavailable, using fallback explaination");
+        // Use fallback explanation
+        setExplanation(fallbackExplanation);
+        setIsAIExplanation(false);
+      } finally {
+        setIsLoadingExplanation(false);
+      }
+    }
+
+    loadExplanation();
+  }, [
+    showExplanation,
+    correctAnswer,
+    selectedAnswer,
+    fullSentence,
+    fallbackExplanation,
+  ]);
+
+  const renderExplanation = () => {
+    if (!explanation) return null;
+
+    return (
+      <div className="prose prose-sm max-w-none">
+        <div
+          className="text-gray-700 text-sm space-y-2"
+          dangerouslySetInnerHTML={{
+            __html: explanation
+              .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+              .replace(/\n/g, "<br />")
+              .replace(/^- /gm, "• "),
+          }}
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
@@ -156,17 +231,29 @@ export default function FillBlanksQuestion({
                     <Lightbulb className="w-5 h-5 text-green-600" />
                   </div>
                   <h3 className="text-lg font-bold text-green-900">
-                    Explanation
+                    Explaination
                   </h3>
                 </div>
+                {/* ✅ Updated Content */}
                 <div className="text-sm text-gray-800 leading-relaxed">
-                  <p className="mb-3">
-                    <span className="font-semibold text-green-700">
-                      Correct Answer:
-                    </span>{" "}
-                    {correctAnswer}
-                  </p>
-                  <p className="text-gray-700">{explanation}</p>
+                  {isLoadingExplanation ? (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                      <p className="text-sm text-gray-600">
+                        Loading explaination...
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="mb-3">
+                        <span className="font-semibold text-green-700">
+                          Correct Answer:
+                        </span>{" "}
+                        {correctAnswer}
+                      </p>
+                      {renderExplanation()}
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
