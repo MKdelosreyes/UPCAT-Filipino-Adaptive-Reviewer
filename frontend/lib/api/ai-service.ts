@@ -57,6 +57,26 @@ export interface ConfusablesResponse {
   results: ConfusableWord[];
 }
 
+export interface ChatRequest {
+  conversation_history: Array<{ role: string; content: string }>;
+  word: string;
+  correct_answer: string;
+  definition?: string;
+  example?: string;
+  context_type?: "vocabulary" | "grammar";
+}
+
+export interface ChatResponse {
+  response: string;
+}
+
+export async function sendChatMessage(
+  request: ChatRequest
+): Promise<ChatResponse> {
+  const response = await aiServiceClient.post('/chat', request);
+  return response.data;
+}
+
 // API Functions
 export async function getExplanation(
   request: ExplainRequest

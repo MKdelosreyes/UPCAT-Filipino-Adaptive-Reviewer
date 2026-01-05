@@ -145,6 +145,20 @@ class DetailedHealthResponse(BaseModel):
     vocabulary_count: Optional[int] = None
 
 
+class ChatRequest(BaseModel):
+    # [{"role": "user", "content": "..."}, ...]
+    conversation_history: List[Dict[str, str]]
+    word: str
+    correct_answer: str
+    definition: Optional[str] = None
+    example: Optional[str] = None
+    context_type: str = "vocabulary"  # or "grammar"
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
 # ============================================================
 # HELPER FUNCTIONS
 # ============================================================
@@ -251,6 +265,78 @@ async def root():
         message="UPCAT Filipino AI Service",
         openai_configured=bool(api_key)
     )
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat_with_ai(request: ChatRequest):
+    """
+    Chat endpoint for conversational help during exercises.
+    Maintains context about the current word/question.
+    """
+    try:
+        # Get RAG context for the word
+        from rag.RAGOrchestrator import get_rag_orchestrator
+        rag = get_rag_orchestrator()
+
+        # Build query from user's question and word context
+        last_user_message = next(
+            (msg["content"] for msg in reversed(request.conversation_history)
+             if msg["role"] == "user"),
+            ""
+        )
+
+        query = f"{request.word}: {last_user_message}"
+        rag_context = rag.get_context(
+            query=query,
+            context_type=request.context_type,
+            top_k=2,
+            min_similarity=0.4,
+            include_mistakes=True
+        )
+
+        # Build system prompt with context
+        system_prompt = f"""You are a helpful Filipino language tutor for UPCAT preparation.
+
+Current Context:
+- Word/Topic: {request.word}
+- Correct Answer: {request.correct_answer}
+{f"- Definition: {request.definition}" if request.definition else ""}
+{f"- Example: {request.example}" if request.example else ""}
+
+{rag_context if rag_context else ""}
+
+Guidelines:
+- Answer in Filipino (Tagalog) when appropriate, but use English for grammar explanations if clearer
+- Keep responses concise (2-3 sentences max)
+- Focus on helping the student understand the word/concept
+- Reference the context provided above when relevant
+- If asked about unrelated topics, politely redirect to the current word/topic
+- Use examples from Filipino culture and daily life
+"""
+        # Build messages for OpenAI
+        messages = [{"role": "system", "content": system_prompt}]
+
+        # Add conversation history (last 6 messages to stay within token limits)
+        messages.extend(request.conversation_history[-6:])
+
+        # Call OpenAI
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=200  # Keep responses short
+        )
+
+        ai_response = response.choices[0].message.content
+
+        return ChatResponse(response=ai_response)
+
+    except Exception as e:
+        print(f"❌ Error in /chat endpoint: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate chat response: {str(e)}"
+        )
 
 
 @app.get("/health", response_model=DetailedHealthResponse)

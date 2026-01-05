@@ -3,19 +3,16 @@ from typing import Optional
 import os
 import sys
 
-# Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-# Import RAG orchestrator
 try:
-    from rag.orchestrator import get_rag_orchestrator
+    from rag.RAGOrchestrator import get_rag_orchestrator
     rag = get_rag_orchestrator()
     print("✅ RAG orchestrator loaded in tips.py")
 except ImportError as e:
     print(f"⚠️ Error importing RAG orchestrator in tips.py: {e}")
     rag = None
 
-# Import OpenAI client
 try:
     from openai import OpenAI
     openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -24,10 +21,6 @@ except Exception as e:
     print(f"⚠️ Error initializing OpenAI in tips handler: {e}")
     openai_client = None
 
-
-# ============================================================
-# REQUEST/RESPONSE MODELS
-# ============================================================
 
 class TipsRequest(BaseModel):
     score: int
@@ -41,13 +34,9 @@ class TipsResponse(BaseModel):
     tips: str
 
 
-# ============================================================
-# HELPER FUNCTIONS
-# ============================================================
-
 def tips_prompt_with_rag(data: dict) -> str:
     """
-    ✅ NEW: Generate tips prompt with RAG context
+    ✅ ENHANCED: Generate tips prompt with RAG context including common mistakes and strategies
     """
     module_map = {
         "vocabulary": "vocab",
@@ -62,34 +51,63 @@ def tips_prompt_with_rag(data: dict) -> str:
     similar_errors = data["similarChoiceErrors"]
     difficulty = data["lastDifficulty"]
 
-    # ============================================================
-    # GET RAG CONTEXT BASED ON STUDENT'S WEAK AREAS
-    # ============================================================
-
     rag_context = ""
 
     if rag:
         try:
-            # Determine what kind of help the student needs
+            # ✅ ENHANCED: Determine what kind of help the student needs
             if missed_low_freq > 2:
-                # Student struggles with uncommon words
-                rag_query = f"Filipino {module} learning strategies for uncommon words and rare vocabulary. Memory techniques and study methods."
-                context_type = "vocabulary" if module == "vocab" else "mixed"
-            elif similar_errors > 2:
-                # Student confuses similar options
-                rag_query = f"Filipino {module} common mistakes and confusion points. How to distinguish similar words or grammar patterns."
-                context_type = "grammar" if module == "grammar" else "mixed"
-            else:
-                # General improvement
-                rag_query = f"Filipino {module} study tips and learning strategies for UPCAT preparation"
-                context_type = "mixed"
+                # Student struggles with uncommon words - get strategies
+                rag_query = f"Filipino {module} learning strategies for uncommon words and rare vocabulary. Memory techniques and study methods"
 
-            rag_context = rag.get_context(
-                rag_query,
-                context_type=context_type,
-                top_k=2,
-                min_similarity=0.3
-            )
+                # Get both strategies and common mistakes
+                strategies_context = rag.get_context(
+                    rag_query,
+                    context_type="strategies",
+                    top_k=2,
+                    min_similarity=0.3
+                )
+
+                mistakes_context = rag.get_context(
+                    f"Filipino {module} common mistakes with vocabulary",
+                    context_type="mistakes",
+                    top_k=1,
+                    min_similarity=0.3
+                )
+
+                rag_context = strategies_context + "\n" + mistakes_context
+
+            elif similar_errors > 2:
+                # Student confuses similar options - get common mistakes
+                rag_query = f"Filipino {module} common mistakes and confusion points"
+
+                mistakes_context = rag.get_context(
+                    rag_query,
+                    context_type="mistakes",
+                    top_k=2,
+                    min_similarity=0.3
+                )
+
+                strategies_context = rag.get_context(
+                    f"Filipino {module} learning strategies to distinguish similar words",
+                    context_type="strategies",
+                    top_k=1,
+                    min_similarity=0.3
+                )
+
+                rag_context = mistakes_context + "\n" + strategies_context
+
+            else:
+                # General improvement - mixed approach
+                content_context = rag.get_context(
+                    f"Filipino {module} study tips",
+                    context_type="vocabulary" if module == "vocab" else "grammar",
+                    top_k=1,
+                    min_similarity=0.3,
+                    include_strategies=True  # ✅ NEW parameter
+                )
+
+                rag_context = content_context
 
             print(
                 f"✅ Retrieved RAG context for tips ({len(rag_context)} chars)")
@@ -98,10 +116,6 @@ def tips_prompt_with_rag(data: dict) -> str:
             rag_context = ""
     else:
         print("⚠️ RAG not available for tips")
-
-    # ============================================================
-    # BUILD PROMPT WITH RAG CONTEXT
-    # ============================================================
 
     prompt = f"""Filipino {module} tutor for UPCAT prep.
 
@@ -113,26 +127,22 @@ def tips_prompt_with_rag(data: dict) -> str:
 - Confused similar options: {similar_errors}
 - Current level: {difficulty}
 
-Based on the reference materials above (if provided), provide:
+Based on the reference materials above (learning strategies, common mistakes), provide:
 
-**📊 Analysis** (1-2 sentences on strengths/weaknesses based on stats)
+**📊 Analysis** (1-2 sentences on strengths/weaknesses)
 
-**💡 Focus Areas** (3 specific, actionable tips with emojis. If references mention common mistakes or learning strategies, cite them)
+**💡 Focus Areas** (3 specific, actionable tips with emojis. Reference the common mistakes and learning strategies provided above)
 
-**🎯 Next Steps** (recommended difficulty level + 1 concrete action. If references suggest strategies, incorporate them)
+**🎯 Next Steps** (recommended difficulty level + 1 concrete action based on the learning strategies above)
 
-Keep concise, practical, and encouraging. Cite specific learning strategies from references when relevant."""
+Keep concise, practical, and encouraging. Cite specific strategies and mistakes from the references."""
 
     return prompt
 
 
-# ============================================================
-# MAIN HANDLER FUNCTION
-# ============================================================
-
 async def handle_tips(request: TipsRequest) -> TipsResponse:
     """
-    ✅ ENHANCED: Generate tips with RAG integration
+    ✅ ENHANCED: Generate tips with RAG integration including mistakes and strategies
     """
     try:
         print(
@@ -143,19 +153,18 @@ async def handle_tips(request: TipsRequest) -> TipsResponse:
             fallback_tips = generate_fallback_tips(request.dict())
             return TipsResponse(tips=fallback_tips)
 
-        # ✅ Use RAG-enhanced prompt builder
         prompt = tips_prompt_with_rag(request.dict())
 
-        print(f"🤖 Calling OpenAI with RAG-enhanced prompt for tips...")
+        print(f"🤖 Calling OpenAI with enhanced RAG prompt for tips...")
 
         completion = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.7,
-            max_tokens=450,
+            max_tokens=500,  # ✅ Increased for more comprehensive tips
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a Filipino tutor. Use reference materials to give evidence-based, practical study tips. Always cite specific strategies or common mistakes when available from references."
+                    "content": "You are a Filipino tutor. Use reference materials (common mistakes and learning strategies) to give evidence-based, practical study tips. Always cite specific strategies or common mistakes when available from references."
                 },
                 {
                     "role": "user",
@@ -165,7 +174,7 @@ async def handle_tips(request: TipsRequest) -> TipsResponse:
         )
 
         tips = completion.choices[0].message.content or "Unable to generate tips."
-        print(f"✅ Generated RAG-enhanced tips ({len(tips)} chars)")
+        print(f"✅ Generated enhanced tips ({len(tips)} chars)")
 
         return TipsResponse(tips=tips)
 
@@ -174,15 +183,12 @@ async def handle_tips(request: TipsRequest) -> TipsResponse:
         import traceback
         traceback.print_exc()
 
-        # Fallback to basic tips
         fallback_tips = generate_fallback_tips(request.dict())
         return TipsResponse(tips=fallback_tips)
 
 
 def generate_fallback_tips(data: dict) -> str:
-    """
-    Generate basic tips when AI service fails.
-    """
+    """Generate basic tips when AI service fails"""
     score = data["score"]
     missed_low_freq = data["missedLowFreq"]
     similar_errors = data["similarChoiceErrors"]
@@ -195,8 +201,10 @@ def generate_fallback_tips(data: dict) -> str:
 
     if missed_low_freq > 2:
         tips += "• 📚 Study uncommon words - create flashcards for rare vocabulary\n"
+        tips += "• 🔄 Use spaced repetition - review words at increasing intervals\n"
     if similar_errors > 2:
         tips += "• 🔍 Practice distinguishing similar options - compare definitions side-by-side\n"
+        tips += "• ⚠️ Learn common mistake patterns - avoid typical confusion points\n"
     if score < 70:
         tips += "• 📖 Review fundamentals - strengthen your foundation\n"
 

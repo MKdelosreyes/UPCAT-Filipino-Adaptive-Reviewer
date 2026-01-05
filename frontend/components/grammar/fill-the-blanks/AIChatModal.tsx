@@ -3,15 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LexiconItem } from "@/lib/api/exercises";
 import { sendChatMessage, ChatRequest } from "@/lib/api/ai-service";
 
 interface AIChatModalProps {
   isOpen: boolean;
   onClose: () => void;
-  word: string;
+  sentence: string;
   correctAnswer: string;
-  lexiconData: LexiconItem | null;
+  explanation: string;
 }
 
 interface Message {
@@ -22,9 +21,9 @@ interface Message {
 export default function AIChatModal({
   isOpen,
   onClose,
-  word,
+  sentence,
   correctAnswer,
-  lexiconData,
+  explanation,
 }: AIChatModalProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -37,7 +36,7 @@ export default function AIChatModal({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Reset messages when modal opens/closes or word changes
+  // Reset messages when modal opens/closes or sentence changes
   useEffect(() => {
     if (!isOpen) {
       setMessages([]);
@@ -48,11 +47,11 @@ export default function AIChatModal({
       setMessages([
         {
           role: "assistant",
-          content: `Kumusta! Magtanong ako tungkol sa salitang "${word}". Ano ang gusto mong malaman?`,
+          content: `Kumusta! Magtanong ako tungkol sa tamang salita para sa puwang. Ano ang gusto mong malaman?`,
         },
       ]);
     }
-  }, [isOpen, word]);
+  }, [isOpen, sentence]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -76,12 +75,11 @@ export default function AIChatModal({
           role: msg.role,
           content: msg.content,
         })),
-        word,
+        word: correctAnswer,
         correct_answer: correctAnswer,
-        definition: lexiconData?.base_definition,
-        example:
-          lexiconData?.relations?.synonyms?.[0] || "No example available",
-        context_type: "vocabulary",
+        definition: explanation,
+        example: sentence,
+        context_type: "grammar",
       };
 
       // Call AI service
@@ -140,13 +138,14 @@ export default function AIChatModal({
             className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl md:h-[600px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b text-purple-950 rounded-t-2xl">
+            <div className="flex items-center justify-between p-4 border-b text-green-950 rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-6 h-6" />
                 <div>
                   <h3 className="text-lg font-bold">AI Assistant</h3>
                   <p className="text-xs text-gray-600">
-                    Tungkol sa: <span className="font-semibold">{word}</span>
+                    Tungkol sa:{" "}
+                    <span className="font-semibold">{correctAnswer}</span>
                   </p>
                 </div>
               </div>
@@ -159,7 +158,7 @@ export default function AIChatModal({
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-gray-100">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-green-300 scrollbar-track-gray-100">
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -170,7 +169,7 @@ export default function AIChatModal({
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-2 ${
                       message.role === "user"
-                        ? "bg-purple-600 text-white"
+                        ? "bg-green-600 text-white"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
@@ -210,14 +209,14 @@ export default function AIChatModal({
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Magtanong tungkol sa salita..."
+                  placeholder="Magtanong tungkol sa tamang sagot..."
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={isLoading || !inputMessage.trim()}
-                  className="px-4 py-2 text-purple-950 border-2 border-purple-950/50 rounded-lg hover:border-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-green-950 border-2 border-green-950/50 rounded-lg hover:border-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -227,7 +226,7 @@ export default function AIChatModal({
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-2 text-center">
-                Press Enter to send
+                Press Enter to send • Conversation resets after exercise
               </p>
             </div>
           </motion.div>

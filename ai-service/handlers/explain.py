@@ -4,19 +4,16 @@ from pydantic import BaseModel
 import os
 import sys
 
-# Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-# Import RAG orchestrator
 try:
-    from rag.orchestrator import get_rag_orchestrator
+    from rag.RAGOrchestrator import get_rag_orchestrator
     rag = get_rag_orchestrator()
     print("✅ RAG orchestrator loaded in explain.py")
 except ImportError as e:
     print(f"⚠️ Error importing RAG orchestrator in explain.py: {e}")
     rag = None
 
-# Import data
 try:
     from data.vocabulary_core import vocabulary_data
     from data.lexicon import lexicon_data
@@ -27,7 +24,6 @@ except ImportError as e:
     lexicon_data = []
     grammar_data = []
 
-# Import OpenAI client
 try:
     from openai import OpenAI
     openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -37,12 +33,8 @@ except Exception as e:
     openai_client = None
 
 
-# ============================================================
-# REQUEST/RESPONSE MODELS
-# ============================================================
-
 class ExplainRequest(BaseModel):
-    mode: str  # "quiz", "antonym", "fill-blanks", "error-identification"
+    mode: str
     word: str
     correct: str
     selected: Optional[str] = None
@@ -52,10 +44,6 @@ class ExplainRequest(BaseModel):
 class ExplainResponse(BaseModel):
     explanation: str
 
-
-# ============================================================
-# HELPER FUNCTIONS
-# ============================================================
 
 def get_word_data(word: str):
     """Find word data from lexicon"""
@@ -118,7 +106,7 @@ def get_grammar_explanation(word: str):
 
 def build_explanation_prompt_with_rag(data: dict) -> str:
     """
-    ✅ NEW: Generate explanation prompt with RAG context
+    ✅ ENHANCED: Generate explanation prompt with RAG context including common mistakes
     """
     mode = data["mode"]
     word = data["word"]
@@ -128,47 +116,42 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
     example = data.get("example", "")
     sentence = data.get("sentence", "")
 
-    # ============================================================
-    # GET RAG CONTEXT BASED ON MODE
-    # ============================================================
-
     rag_context = ""
 
-    if rag:  # Only use RAG if available
+    if rag:
         try:
             if mode in ["quiz", "antonym"]:
                 # Vocabulary context
-                rag_query = f"Filipino word: {word}. Definition: {definition}. Usage and examples"
+                rag_query = f"Filipino word: {word}. Definition: {definition}"
                 rag_context = rag.get_context(
                     rag_query,
                     context_type="vocabulary",
                     top_k=2,
-                    min_similarity=0.4
+                    min_similarity=0.4,
+                    include_mistakes=True
                 )
                 print(
-                    f"✅ Retrieved vocabulary RAG context ({len(rag_context)} chars)")
+                    f"✅ Retrieved vocabulary context with mistakes ({len(rag_context)} chars)")
 
             elif mode in ["fill-blanks", "error-identification"]:
-                # Grammar context
-                rag_query = f"Filipino grammar: {sentence}. Word: {word}. Grammar rules and patterns"
+                # Grammar context with mistakes
+                rag_query = f"Filipino grammar: {sentence}. Word: {word}"
                 rag_context = rag.get_context(
                     rag_query,
                     context_type="grammar",
                     top_k=2,
-                    min_similarity=0.4
+                    min_similarity=0.4,
+                    include_mistakes=True
                 )
                 print(
-                    f"✅ Retrieved grammar RAG context ({len(rag_context)} chars)")
+                    f"✅ Retrieved grammar context with mistakes ({len(rag_context)} chars)")
         except Exception as e:
             print(f"⚠️ Error getting RAG context: {e}")
             rag_context = ""
     else:
-        print("⚠️ RAG not available, using prompt without context")
+        print("⚠️ RAG not available")
 
-    # ============================================================
-    # BUILD PROMPTS WITH RAG CONTEXT
-    # ============================================================
-
+    # Build prompts based on mode
     if mode == "quiz":
         prompt = f"""You are a helpful Filipino language tutor for UPCAT preparation.
 
@@ -187,12 +170,12 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
 
         prompt += f"""
 
-Using the reference materials above (if provided), magbigay ng 3 na punto:
+Using the reference materials above (including common mistakes if provided), magbigay ng 3 na punto:
 1) Bakit "{correct}" ang tamang sagot (gamitin ang kahulugan at references)
-2) Bakit mali ang napiling sagot (ipaliwanag ang pagkakaiba)
-3) Maikling talang pangbokabularyo (isang pangungusap, cite similar words from references if relevant)
+2) Bakit mali ang napiling sagot (mention if this is a common mistake pattern)
+3) Maikling talang pangbokabularyo (cite similar words from references if relevant)
 
-Gumamit ng mga bullet points at panatilihing maikli at malinaw. Gumamit ng simpleng Filipino."""
+Gumamit ng mga bullet points. Panatilihing maikli at malinaw. If this is a common mistake, mention it."""
 
         return prompt
 
@@ -214,12 +197,12 @@ Gumamit ng mga bullet points at panatilihing maikli at malinaw. Gumamit ng simpl
 
         prompt += f"""
 
-Using the reference materials above (if provided), magbigay ng 3 na punto:
-1) Bakit "{correct}" ang tamang antonym ng "{word}" (cite related words from references if available)
-2) Bakit mali ang napiling sagot
+Using the reference materials above, magbigay ng 3 na punto:
+1) Bakit "{correct}" ang tamang antonym ng "{word}"
+2) Bakit mali ang napiling sagot (check if this is a common confusion)
 3) Maikling tala tungkol sa antonyms
 
-Gumamit ng mga bullet points. Panatilihing maikli at malinaw."""
+Gumamit ng mga bullet points. Panatilihing maikli at malinaw. Mention if the error is a common mistake pattern."""
 
         return prompt
 
@@ -238,12 +221,12 @@ Gumamit ng mga bullet points. Panatilihing maikli at malinaw."""
 
         prompt += f"""
 
-Using the grammar rules above (if provided), magbigay ng 3 na punto:
+Using the grammar rules and common mistakes above (if provided), magbigay ng 3 na punto:
 1) Bakit "{correct}" ang tamang salita para sa puwang
-2) Ano ang grammatical rule o pattern (cite specific rules from references if available)
+2) Ano ang grammatical rule (cite specific rules from references, mention if student made a common mistake)
 3) Bakit mali ang napiling sagot (kung may napili)
 
-Gumamit ng mga bullet points. Maikli at malinaw ang paliwanag. Cite grammar rules when possible."""
+Gumamit ng mga bullet points. Panatilihing maikli at malinaw ang sagot. Always mention if this is a documented common error."""
 
         return prompt
 
@@ -261,30 +244,25 @@ Gumamit ng mga bullet points. Maikli at malinaw ang paliwanag. Cite grammar rule
 
         prompt += f"""
 
-Using the grammar rules above (if provided), magbigay ng 4 na punto:
-1) Bakit may error ang "{correct}"
+Using the grammar rules and common mistakes above (if provided), magbigay ng 4 na punto:
+1) Bakit may error ang "{correct}" (check if this is a documented common mistake)
 2) Ano ang tamang paraan (correction)
 3) Anong grammar rule ang nilabag (cite from references if available)
 4) Bakit mali ang napiling sagot ng estudyante (kung iba sa tamang sagot)
 
-Gumamit ng mga bullet points. Maikli at malinaw ang paliwanag. Always cite grammar rules."""
+Gumamit ng mga bullet points. Panatilihing maikli at malinaw ang sagot. Always cite if this matches a known error pattern from the references."""
 
         return prompt
 
     else:
-        # Fallback
         return f"""Explain why "{correct}" is the correct answer.
 The student selected "{selected}".
 Keep it brief and educational in Filipino."""
 
 
-# ============================================================
-# MAIN HANDLER FUNCTION
-# ============================================================
-
 async def handle_explain(request: ExplainRequest) -> ExplainResponse:
     """
-    ✅ ENHANCED: Main handler function with RAG integration
+    ✅ ENHANCED: Main handler function with RAG integration including common mistakes
     """
     try:
         print(
@@ -296,7 +274,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 detail="OpenAI service not available"
             )
 
-        # Get word/grammar data as before
+        # Get word/grammar data
         if request.mode in ["quiz", "antonym"]:
             word_data = get_word_data(request.word)
             definition = word_data["meaning"] if word_data else request.correct
@@ -337,16 +315,16 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
         # ✅ Use RAG-enhanced prompt builder
         prompt = build_explanation_prompt_with_rag(prompt_data)
 
-        print(f"🤖 Calling OpenAI with RAG-enhanced prompt...")
+        print(f"🤖 Calling OpenAI with enhanced RAG prompt...")
 
         completion = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.2,
-            max_tokens=350,
+            max_tokens=300,
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a Filipino language tutor. Use the provided reference materials to give accurate, evidence-based explanations. Always cite sources when available. Be concise and educational."
+                    "content": "You are a Filipino language tutor. Use the provided reference materials (including common mistakes) to give accurate, evidence-based explanations. Always cite if the student's error matches a known common mistake pattern. Be concise and educational."
                 },
                 {
                     "role": "user",
@@ -356,8 +334,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
         )
 
         explanation = completion.choices[0].message.content or ""
-        print(
-            f"✅ Generated RAG-enhanced explanation ({len(explanation)} chars)")
+        print(f"✅ Generated enhanced explanation ({len(explanation)} chars)")
 
         return ExplainResponse(explanation=explanation)
 

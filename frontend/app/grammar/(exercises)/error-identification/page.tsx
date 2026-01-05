@@ -534,7 +534,7 @@ export default function ErrorIdentificationPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              className="flex items-center mt-5 gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
             >
               {isLastQuestion ? "Finish Exercise" : "Next Question"}
               <ChevronRight className="w-5 h-5" />

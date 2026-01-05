@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Lightbulb } from "lucide-react";
+import { Check, X, Lightbulb, MessageCircle } from "lucide-react";
 import { getExplanation, ExplainResponse } from "@/lib/api/ai-service";
+import AIChatModal from "./AIChatModal";
 
 interface ErrorQuestionProps {
   questionNumber: number;
@@ -33,6 +34,7 @@ export default function ErrorQuestion({
   const [explanation, setExplanation] = useState<string>(fallbackExplanation);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
   const [isAIExplanation, setIsAIExplanation] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const showExplanation =
     showResult && selectedAnswer && selectedAnswer !== correctAnswer;
@@ -232,6 +234,17 @@ export default function ErrorQuestion({
                         {correctAnswer}
                       </p>
                       {renderExplanation()}
+
+                      {/* AI Chat Button */}
+                      <div className="mt-4 pt-4 border-t border-red-100">
+                        <button
+                          onClick={() => setIsChatOpen(true)}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors font-medium"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          Ask AI for More Help
+                        </button>
+                      </div>
                     </>
                   )}
                 </div>
@@ -240,6 +253,15 @@ export default function ErrorQuestion({
           )}
         </AnimatePresence>
       </div>
+
+      {/* AI Chat Modal */}
+      <AIChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        sentence={sentence}
+        correctAnswer={correctAnswer}
+        explanation={explanation}
+      />
     </div>
   );
 }

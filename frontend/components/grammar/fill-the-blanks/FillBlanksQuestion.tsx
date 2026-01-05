@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Lightbulb } from "lucide-react";
+import { Check, X, Lightbulb, MessageCircle } from "lucide-react";
 import { getExplanation, ExplainResponse } from "@/lib/api/ai-service";
+import AIChatModal from "./AIChatModal";
 
 interface FillBlanksQuestionProps {
   questionNumber: number;
@@ -35,6 +36,7 @@ export default function FillBlanksQuestion({
   const [isAIExplanation, setIsAIExplanation] = useState(false);
   const showExplanation =
     showResult && selectedAnswer && selectedAnswer !== correctAnswer;
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Split sentence by blank marker
   const parts = sentence.split("_____");
@@ -234,7 +236,6 @@ export default function FillBlanksQuestion({
                     Explaination
                   </h3>
                 </div>
-                {/* ✅ Updated Content */}
                 <div className="text-sm text-gray-800 leading-relaxed">
                   {isLoadingExplanation ? (
                     <div className="flex flex-col items-center justify-center py-8 space-y-3">
@@ -252,6 +253,17 @@ export default function FillBlanksQuestion({
                         {correctAnswer}
                       </p>
                       {renderExplanation()}
+
+                      {/* AI Chat Button */}
+                      <div className="mt-4 pt-4 border-t border-green-100">
+                        <button
+                          onClick={() => setIsChatOpen(true)}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors font-medium"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          Ask AI for More Help
+                        </button>
+                      </div>
                     </>
                   )}
                 </div>
@@ -260,6 +272,15 @@ export default function FillBlanksQuestion({
           )}
         </AnimatePresence>
       </div>
+
+      {/* AI Chat Modal */}
+      <AIChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        sentence={fullSentence}
+        correctAnswer={correctAnswer}
+        explanation={explanation}
+      />
     </div>
   );
 }
