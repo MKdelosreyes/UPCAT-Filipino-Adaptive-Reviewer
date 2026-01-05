@@ -2,11 +2,25 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import os
+import sys
+
+# Add parent directory to path
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+# Import RAG orchestrator
+try:
+    from rag.orchestrator import get_rag_orchestrator
+    rag = get_rag_orchestrator()
+    print("✅ RAG orchestrator loaded in redefine.py")
+except ImportError as e:
+    print(f"⚠️ Error importing RAG orchestrator in redefine.py: {e}")
+    rag = None
 
 # Import OpenAI client
 try:
     from openai import OpenAI
     openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    print("✅ OpenAI client initialized in redefine.py")
 except Exception as e:
     print(f"⚠️ Error initializing OpenAI in redefine handler: {e}")
     openai_client = None
@@ -30,18 +44,52 @@ class RedefineResponse(BaseModel):
 # HELPER FUNCTIONS
 # ============================================================
 
-def build_redefine_prompt(data: dict) -> str:
-    """Generate redefine prompt"""
-    return f"""Rewrite the definition and examples for Filipino word "{data["word"]}".
+def build_redefine_prompt_with_rag(data: dict) -> str:
+    """
+    ✅ NEW: Generate redefine prompt with RAG context
+    """
+    word = data["word"]
+    base_meaning = data["baseMeaning"]
+    example = data["example"]
 
-Base meaning: {data["baseMeaning"]}
-Base example: {data["example"]}
+    # Get vocabulary context from RAG
+    rag_context = ""
 
-Return:
-- Easy definition (casual, must be in English)
-- Brief formal definition (academic, must be in Filipino)
-- 2 new example sentences (Filipino)
-- 1 short bilingual gloss (Filipino)"""
+    if rag:
+        try:
+            rag_query = f"Filipino word: {word}. Usage examples, related words, synonyms, and learning context"
+            rag_context = rag.get_context(
+                rag_query,
+                context_type="vocabulary",
+                top_k=3,
+                min_similarity=0.3
+            )
+            print(
+                f"✅ Retrieved vocabulary RAG context for redefinition ({len(rag_context)} chars)")
+        except Exception as e:
+            print(f"⚠️ Error getting RAG context for redefine: {e}")
+            rag_context = ""
+    else:
+        print("⚠️ RAG not available for redefine")
+
+    prompt = f"""You are a Filipino language educator creating multiple learning perspectives for UPCAT students.
+
+{rag_context}
+
+**Word to Redefine:** {word}
+**Base Meaning:** {base_meaning}
+**Base Example:** {example}
+
+Using the reference materials above (if provided), create:
+
+1. **Easy Definition** (casual, conversational tone, in English, for beginners. Make it relatable)
+2. **Formal Definition** (academic, precise, in Filipino, for advanced learners)
+3. **2 New Example Sentences** (Filipino, showing different contexts. Cite similar usage from references if available)
+4. **Usage Notes** (when/how to use, common collocations, mention related words from references)
+
+Be concise and educational. If you find related words in the references, mention them to help students build vocabulary connections."""
+
+    return prompt
 
 
 # ============================================================
@@ -50,36 +98,34 @@ Return:
 
 async def handle_redefine(request: RedefineRequest) -> RedefineResponse:
     """
-    Main handler function for word redefinition.
-    This is called from main.py
+    ✅ ENHANCED: Main handler function with RAG integration
     """
     try:
         print(f"📝 Redefine request - Word: {request.word}")
 
-        # Check if OpenAI client is available
         if not openai_client:
             raise HTTPException(
                 status_code=503,
                 detail="OpenAI service not available"
             )
 
-        # Generate prompt
-        prompt = build_redefine_prompt({
+        # ✅ Use RAG-enhanced prompt builder
+        prompt = build_redefine_prompt_with_rag({
             "word": request.word,
             "baseMeaning": request.baseMeaning,
             "example": request.example
         })
 
-        print(f"🤖 Calling OpenAI API for redefinition...")
+        print(f"🤖 Calling OpenAI with RAG-enhanced prompt for redefinition...")
 
-        # Call OpenAI
         completion = openai_client.chat.completions.create(
             model="gpt-4o-mini",
-            temperature=0.2,
+            temperature=0.3,
+            max_tokens=450,
             messages=[
                 {
                     "role": "system",
-                    "content": "Return concise teaching content. Be clear and educational."
+                    "content": "You are a Filipino language educator. Use reference materials to provide accurate, multi-perspective definitions that help students learn effectively. Cite related words when available."
                 },
                 {
                     "role": "user",
@@ -89,12 +135,11 @@ async def handle_redefine(request: RedefineRequest) -> RedefineResponse:
         )
 
         content = completion.choices[0].message.content or ""
-        print(f"✅ Generated redefinition ({len(content)} chars)")
+        print(f"✅ Generated RAG-enhanced redefinition ({len(content)} chars)")
 
         return RedefineResponse(content=content)
 
     except HTTPException:
-        # Re-raise HTTP exceptions
         raise
     except Exception as e:
         print(f"❌ Error in handle_redefine: {e}")

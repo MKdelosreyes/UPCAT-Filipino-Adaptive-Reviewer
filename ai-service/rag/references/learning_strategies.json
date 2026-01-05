@@ -1,0 +1,234 @@
+[
+    {
+        "strategy_id": "LLS-001",
+        "strategy_name": "Language Immersion Through Media & Conversation",
+        "strategy_category": "comprehension_and_exposure",
+        "description": "Immerse yourself in Tagalog by engaging with media and native speakers to naturally absorb vocabulary and language patterns.",
+        "difficulty_level": "beginner_to_intermediate",
+        "target_skills": ["listening", "speaking", "vocabulary"],
+        "step_by_step": [
+            "Watch Filipino movies and TV shows with or without subtitles to expose yourself to natural language use.",
+            "Listen to Filipino music and podcasts that match your interests to reinforce pronunciation and common expressions.",
+            "Engage in conversations with native speakers via language exchanges, social media, or forums."
+        ],
+        "tools_recommended": ["Filipino films & TV","Podcasts","Reddit r/Tagalog"],
+        "sources": ["SRC-TJ-BUILD-VOCAB"],
+        "rag_metadata": {
+            "embedding_tags": ["immersion","Tagalog listening practice","native speaker interaction"],
+            "retrieval_priority": "high"
+        },
+        "examples": [
+            {
+            "context": "Improving listening skills",
+            "example_action": "Watch a Filipino sitcom episode with Tagalog subtitles and note repeated phrases to reinforce understanding."
+            }
+        ],
+        "benefits": [
+            "Improves listening comprehension and pronunciation",
+            "Exposes learner to authentic daily vocabulary"
+        ]
+    },
+    {
+        "strategy_id": "LLS-002",
+        "strategy_name": "Flashcards with Spaced Repetition",
+        "strategy_category": "vocabulary_acquisition",
+        "description": "Use flashcards combined with spaced repetition to enhance long-term retention of new Tagalog vocabulary.",
+        "difficulty_level": "beginner",
+        "target_skills": ["vocabulary","memory_retention"],
+        "step_by_step": [
+            "Create physical or digital flashcards with Tagalog words and their English translations.",
+            "Include example sentences on flashcards to see words in context.",
+            "Review flashcards regularly using a spaced repetition schedule (e.g., via apps like Anki or Quizlet)."
+        ],
+        "tools_recommended": ["Anki","Quizlet"],
+        "sources": ["SRC-TJ-BUILD-VOCAB"],
+        "rag_metadata": {
+            "embedding_tags": ["spaced repetition","flashcards","vocabulary memory"],
+            "retrieval_priority": "high"
+        },
+        "examples": [
+            {
+            "context": "New vocabulary learning",
+            "example_action": "Learn and review 10 new Tagalog words per day, scheduling repeating reviews at increasing intervals."
+            }
+        ],
+        "benefits": [
+            "Enhances long-term retention",
+            "Allows efficient review of challenging words"
+        ]
+    },
+    {
+        "strategy_id": "LLS-003",
+        "strategy_name": "Daily Integration of New Vocabulary",
+        "strategy_category": "contextual_practice",
+        "description": "Integrate new Tagalog words into daily routines and activities to reinforce retention and contextual understanding.",
+        "difficulty_level": "all_levels",
+        "target_skills": ["speaking","writing","everyday_use"],
+        "step_by_step": [
+            "Label household items with Tagalog names to create constant exposure.",
+            "Keep a vocabulary journal with definitions and example sentences.",
+            "Practice speaking to yourself in Tagalog by narrating daily activities."
+        ],
+        "tools_recommended": ["Notebooks","Sticky labels"],
+        "sources": ["SRC-TJ-BUILD-VOCAB"],
+        "rag_metadata": {
+            "embedding_tags": ["daily tagalog practice","vocabulary integration","contextual learning"],
+            "retrieval_priority": "medium"
+        },
+        "examples": [
+            {
+            "context": "Reinforcing household vocabulary",
+            "example_action": "Label items like “mesa” (table) and “pridyider” (refrigerator) around the house and say the words aloud when using them."
+            }
+        ],
+        "benefits": [
+            "Connects vocabulary to real life",
+            "Strengthens recall through repeated exposure"
+        ]
+    },
+    {
+        "strategy_id": "LLS-004",
+        "strategy_name": "Extensive Reading in Tagalog",
+        "strategy_category": "reading_and_comprehension",
+        "description": "Read a variety of texts in Tagalog to encounter vocabulary in context, aiding comprehension and memory.",
+        "difficulty_level": "beginner_to_intermediate",
+        "target_skills": ["reading","vocabulary","contextual_usage"],
+        "step_by_step": [
+            "Start with simple texts like children’s books or short stories in Tagalog.",
+            "Use bilingual books to compare Tagalog sentences with English translations.",
+            "Highlight and look up unfamiliar words while reading."
+        ],
+        "tools_recommended": ["Children’s books","Bilingual books","Comics"],
+        "sources": ["SRC-TJ-BUILD-VOCAB"],
+        "rag_metadata": {
+            "embedding_tags": ["reading in Tagalog","vocabulary through reading","contextual vocabulary"],
+            "retrieval_priority": "medium"
+        },
+        "examples": [
+            {
+            "context": "Vocabulary in context",
+            "example_action": "Read a bilingual Tagalog/English short story and note new words with example sentences."
+            }
+        ],
+        "benefits": [
+            "Improves contextual understanding of vocabulary",
+            "Builds reading comprehension skills"
+        ]
+    },
+    {
+        "strategy_id": "LLS-005",
+        "strategy_name": "Active Writing Practice",
+        "strategy_category": "writing_and_output",
+        "description": "Use writing exercises to apply new vocabulary and reinforce language skills.",
+        "difficulty_level": "intermediate",
+        "target_skills": ["writing","production"],
+        "step_by_step": [
+            "Keep a daily journal in Tagalog to write about your experiences or thoughts.",
+            "Write short stories or essays using newly learned vocabulary.",
+            "Ask native speakers or language partners for feedback on your writing."
+        ],
+        "tools_recommended": ["Language exchange partners","Journals"],
+        "sources": ["SRC-TJ-BUILD-VOCAB"],
+        "rag_metadata": {
+            "embedding_tags": ["Tagalog writing practice","vocabulary deployment","feedback writing"],
+            "retrieval_priority": "medium"
+        },
+        "examples": [
+            {
+            "context": "Personal journaling",
+            "example_action": "Write a few sentences about your day in Tagalog, using at least five new words you learned this week."
+            }
+        ],
+        "benefits": [
+            "Encourages active use of vocabulary",
+            "Improves expressive skills in writing"
+        ]
+    },
+    {
+        "strategy_id": "LLS-006",
+        "strategy_name": "Structured Vocabulary Note-Taking",
+        "strategy_category": "organizational_learning",
+        "description": "Create organized vocabulary lists that include Tagalog words, translations, pronunciations, and example sentences to enhance retention.",
+        "difficulty_level": "beginner",
+        "target_skills": ["vocabulary","writing"],
+        "step_by_step": [
+            "Use a dedicated notebook exclusively for Tagalog notes.",
+            "Create themed tables with columns for word, translation, and examples.",
+            "Add pronunciation guides to help with speaking."
+        ],
+        "tools_recommended": ["Notebooks","Tables"],
+        "sources": ["SRC-TJ-NOTE-TAKING"],
+        "rag_metadata": {
+            "embedding_tags": ["vocabulary notes","Tagalog note taking","table vocabulary"],
+            "retrieval_priority": "medium"
+        },
+        "examples": [
+            {
+            "context": "Organized review",
+            "example_action": "Make a table of travel-related words and review them weekly before practice conversations."
+            }
+        ],
+        "benefits": [
+            "Provides an organized reference for review",
+            "Tailors vocabulary study to individual themes"
+        ]
+    },
+    {
+        "strategy_id": "LLS-007",
+        "strategy_name": "Grammar Cheat Sheets",
+        "strategy_category": "grammar_support",
+        "description": "Create concise, visual grammar reference sheets to simplify complex grammar rules and make them easy to review.",
+        "difficulty_level": "intermediate",
+        "target_skills": ["grammar","reference"],
+        "step_by_step": [
+            "Compile core grammar rules into visual formats like charts or diagrams.",
+            "Highlight key points with color coding or sectioning.",
+            "Include example sentences to show rule application."
+        ],
+        "tools_recommended": ["Pens/markers","Diagrams"],
+        "sources": ["SRC-TJ-NOTE-TAKING"],
+        "rag_metadata": {
+            "embedding_tags": ["grammar notes","Tagalog cheat sheets","visual grammar aids"],
+            "retrieval_priority": "medium"
+        },
+        "examples": [
+            {
+            "context": "Grammar revision",
+            "example_action": "Create a color-coded sheet for verb conjugations and review it before writing practice."
+            }
+        ],
+        "benefits": [
+            "Simplifies complex grammar concepts",
+            "Provides quick reference during review"
+        ]
+    },
+    {
+        "strategy_id": "LLS-008",
+        "strategy_name": "Multi-Sensory Note-Taking",
+        "strategy_category": "engaged_learning",
+        "description": "Integrate visual, auditory, and kinesthetic elements into your note-taking to deepen memory retention and engagement.",
+        "difficulty_level": "all_levels",
+        "target_skills": ["memory","engagement"],
+        "step_by_step": [
+            "Use visual aids, diagrams, and color-coding in notes.",
+            "Record and listen to audio notes for pronunciation practice.",
+            "Engage physically with flashcards and gestures to reinforce meaning."
+        ],
+        "tools_recommended": ["Color pens","Audio recorder","Flashcards"],
+        "sources": ["SRC-TJ-NOTE-TAKING"],
+        "rag_metadata": {
+            "embedding_tags": ["multisensory learning","Tagalog note techniques","active engagement"],
+            "retrieval_priority": "medium"
+        },
+        "examples": [
+            {
+            "context": "Multi-sensory review",
+            "example_action": "Draw a mind map of vocabulary themes and record yourself reciting words while reviewing the map."
+            }
+        ],
+        "benefits": [
+            "Enhances retention through multiple senses",
+            "Engages different learning styles"
+        ]
+    }
+]

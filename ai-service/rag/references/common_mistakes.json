@@ -1,0 +1,545 @@
+[
+    {
+        "error_id": "ERR-FIL-001",
+        "error_name": "Ng vs. Nang misuse",
+        "error_category": "grammar",
+        "sub_category": "function_words",
+        "linguistic_focus": ["ng", "nang"],
+        "error_type": "substitution / confusion",
+        "description": "Confusion between the Filipino function words 'ng' and 'nang', often misused in place of one another.",
+        "why_it_occurs": [
+            "Both words sound the same but serve different grammatical roles",
+            "Lack of clarity on when each form should be used in writing"
+        ],
+        "difficulty_level": "beginner",
+        "grade_alignment": ["Grade 4", "Grade 5", "Grade 6"],
+        "examples": {
+            "incorrect": [
+            "Gumising siya **ng** maaga.",
+            "Nagsalita ako **ng** sinabi ko agad."
+            ],
+            "correct": [
+            "Gumising siya **nang** maaga.",
+            "Nagsalita ako **nang** sinabi ko agad."
+            ],
+            "explanation": "'Ng' connects a verb to its object while 'nang' is used as an adverbial marker or to mean 'when', 'for', or 'so that.'"
+        },
+        "grammar_rule": {
+            "rule_name": "Ng vs Nang",
+            "rule_statement": "'Ng' is used to link verbs to their objects or to express possession, while 'nang' functions as a marker for adverbial clauses or manner.",
+            "decision_guide": [
+            "If it answers 'what?' use 'ng'",
+            "If it answers 'how?', 'when?', or introduces adverbial clause use 'nang'"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng 'ng' at 'nang'.",
+            "detailed_feedback": "Ginamit mo ang 'ng' sa pangungusap ngunit mas angkop ang 'nang' batay sa ibig ipahayag.",
+            "teacher_feedback": "Pakitiyak ang tamang gamit ng 'ng' at 'nang' sa pangungusap."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_grammar_score": 0.20,
+            "frequency_weight": 1.5
+        },
+        "sources": ["SRC-FP101-2020","SRC-8LIST-2021"],
+        "rag_metadata": {
+            "embedding_tags": ["ng vs nang","Filipino grammar mistakes","function words"],
+            "retrieval_priority": "high",
+            "chunk_type": "error_pattern"
+        }
+        
+    },
+    {
+        "error_id": "ERR-FIL-002",
+        "error_name": "Kumusta vs. Kamusta confusion",
+        "error_category": "vocabulary/usage",
+        "sub_category": "borrowed_terms",
+        "linguistic_focus": ["kumusta","kamusta"],
+        "error_type": "usage",
+        "description": "Incorrect usage of the greeting 'kamusta' instead of the historically accepted 'kumusta' in formal writing.",
+        "why_it_occurs": [
+            "Informal normalization of 'kamusta' in spoken language",
+            "Influence from casual digital communication"
+        ],
+        "difficulty_level": "beginner",
+        "grade_alignment": ["Grade 2", "Grade 3"],
+        "examples": {
+            "incorrect": ["**Kamusta** ang araw mo?"],
+            "correct": ["**Kumusta** ang araw mo?"],
+            "explanation": "'Kumusta' is historically derived from the Spanish 'como esta' and is preferred in formal usage."
+        },
+        "grammar_rule": {
+            "rule_name": "Use of Kumusta",
+            "rule_statement": "The formally correct greeting in Filipino writing is 'kumusta' not 'kamusta'.",
+            "decision_guide": [
+            "Use 'kumusta' for both formal and correct written contexts.",
+            "Recognize that 'kamusta' may appear in informal speech."
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling anyo ng pagbati.",
+            "detailed_feedback": "Ginamit mo ang 'kamusta', samantalang ang mas tumpak na anyo sa pagsulat ay 'kumusta'.",
+            "teacher_feedback": "Turuan ang guro tungkol sa pinagmulan at tamang gamit ng 'kumusta'."
+        },
+        "severity": {
+            "impact_on_clarity": "low",
+            "impact_on_grammar_score": 0.05,
+            "frequency_weight": 1.1
+        },
+        "sources": ["SRC-FP101-2020","SRC-8LIST-2021"],
+        "rag_metadata": {
+            "embedding_tags": ["kumusta kamusta","Filipino greetings","vocabulary usage"],
+            "retrieval_priority": "medium",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-003",
+        "error_name": "Incorrect Din/Daw vs Rin/Raw usage",
+        "error_category": "grammar",
+        "sub_category": "particles",
+        "linguistic_focus": ["din","daw","rin","raw"],
+        "error_type": "usage",
+        "description": "Misuse of the adverbial particles din/daw and rin/raw depending on the preceding word’s ending.",
+        "why_it_occurs": [
+            "Learners often generalize adverbial particles without considering phonological rules"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment": ["Grade 6", "Grade 7"],
+        "examples": {
+            "incorrect": ["Sinabi **daw** niya kanina.", "Maganda **raw** ang panahon kahapon."],
+            "correct": ["Sinabi **rin** niya kanina.", "Maganda **daw** ang panahon kahapon."],
+            "explanation": "Use 'rin/daw' if the word before the particle ends in consonant; use 'din/raw' if it ends in vowel or soft vowel-like sounds."
+        },
+        "grammar_rule": {
+            "rule_name": "Din/Daw vs Rin/Raw rule",
+            "rule_statement": "Particle choice depends on the ending of the preceding word’s sound.",
+            "decision_guide": [
+            "If preceding word ends with consonant → use daw/din",
+            "If preceding word ends with vowel/soft vowel sound → use raw/rin"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng pang-abay na din/daw/rin/raw.",
+            "detailed_feedback": "Ang pang-abay ay dapat batay sa tunog ng naunang salita — pakinggan ang huling tunog bago piliin ang tamang anyo.",
+            "teacher_feedback": "Bigyang-pansin ang katinig o patinig na pang-tunog bago gamitin ang pang-abay."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_grammar_score": 0.10,
+            "frequency_weight": 1.2
+        },
+        "sources": ["SRC-8LIST-2021"],
+        "rag_metadata": {
+            "embedding_tags": ["din daw rin raw","Filipino adverbial particles","grammar usage"],
+            "retrieval_priority": "medium",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-004",
+        "error_name": "Incorrect Affix Spacing (pa + na)",
+        "error_category": "orthography/usage",
+        "sub_category": "affixes",
+        "linguistic_focus": ["pa","na","palang","parin"],
+        "error_type": "orthographic",
+        "description": "Incorrect joining of 'pa' + 'na' forms into one unit, e.g., 'palang', 'parin' instead of correct separate forms.",
+        "why_it_occurs": [
+            "Casual writing norms merge particles incorrectly",
+            "Lack of formal instruction on particle separation"
+        ],
+        "difficulty_level": "beginner",
+        "grade_alignment": ["Grade 3", "Grade 4"],
+        "examples": {
+            "incorrect": ["**palang** ako dito.", "**parin** siya."],
+            "correct": ["**pa lang** ako dito.", "**pa rin** siya."],
+            "explanation": "The ‘pa’ particle should be separate from ‘na’ or other elements to reflect correct grammar."
+        },
+        "grammar_rule": {
+            "rule_name": "Affix Spacing for pa + na forms",
+            "rule_statement": "Particles like ‘pa’, ‘na’, ‘rin’ should be written as separate units unless officially recognized as merged forms.",
+            "decision_guide": ["If combining two independent morphemes → keep them separate; check dictionary norms."]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling pagbabuo ng mga salitang may pa + na.",
+            "detailed_feedback": "Siguraduhin na ang mga morpemang pa at na ay magkahiwalay kung may sariling kahulugan o gamit.",
+            "teacher_feedback": "Hikayatin ang wastong paggamit ng mga morpema at tamang spacing."
+        },
+        "severity": {
+            "impact_on_clarity": "low",
+            "impact_on_grammar_score": 0.05,
+            "frequency_weight": 1.1
+        },
+        "sources": ["SRC-8LIST-2021"],
+        "rag_metadata": {
+            "embedding_tags": ["affix spacing Filipino","pa na usage","orthography errors"],
+            "retrieval_priority": "low",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-005",
+        "error_name": "Substitution Errors in Academic Essays",
+        "error_category": "grammar",
+        "sub_category": "sentence_elements",
+        "linguistic_focus": ["incorrect linguistic element choice"],
+        "error_type": "substitution",
+        "description": "Selection of incorrect linguistic elements (wrong words or forms) in students’ academic essays.",
+        "why_it_occurs": [
+            "Lack of grammatical awareness in Filipino structures",
+            "Confusion between similar morphological forms"
+        ],
+        "examples": {
+            "incorrect": ["Incorrect word form used in sentence elements"],
+            "correct": ["Target linguistic element properly used"],
+            "explanation": "Students chose incorrect word types or inflections in sentences due to low grammatical awareness."
+        },
+        "feedback_templates": {
+            "short_feedback": "May maling pagpili ng salita o anyo.",
+            "detailed_feedback": "Ang salitang ginamit ay hindi angkop sa konteksto—piliin ang tamang anyo batay sa pangungusap.",
+            "teacher_feedback": "Ipakita sa estudyante kung bakit mali ang seleksyon at ituro ang tamang alternatibo."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_score": 0.15,
+            "frequency_weight": 1.3
+        },
+        "sources": ["SRC-IJLLLC-2025"],
+        "rag_metadata": {
+            "embedding_tags": ["academic essay Filipino errors","substitution error Corder analysis","Filipino grammar mistakes"],
+            "retrieval_priority": "high"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-006",
+        "error_name": "Mechanics Errors in Filipino Essays",
+        "error_category": "mechanics",
+        "sub_category": "spelling_and_punctuation",
+        "linguistic_focus": ["orthography","punctuation"],
+        "error_type": "mechanics",
+        "description": "Errors in writing mechanics including spelling, punctuation, capitalization, and word breaks.",
+        "why_it_occurs": [
+            "Incomplete knowledge of Filipino writing conventions",
+            "Inconsistency in applying orthographic rules"
+        ],
+        "examples": {
+            "incorrect": ["Incorrect capitalization", "Wrong punctuation"],
+            "correct": ["Proper capitalization and correct punctuation"],
+            "explanation": "Walang wastong pagsunod sa tuntunin ng pagbabaybay at bantas."
+        },
+        "feedback_templates": {
+            "short_feedback": "May kamalian sa mekaniks ng pagsulat.",
+            "detailed_feedback": "Ayusin ang pagbabaybay at paggamit ng bantas upang mas malinaw ang pahayag.",
+            "teacher_feedback": "Bigyang-turing ang ortograpiya at mekaniks sa pagsulat bilang bahagi ng rubrics."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_score": 0.10,
+            "frequency_weight": 1.4
+        },
+        "sources": ["SRC-IJLLLC-2025"],
+        "rag_metadata": {
+            "embedding_tags": ["Filipino essay mechanics","spelling errors in Filipino","capitalization errors"],
+            "retrieval_priority": "medium"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-007",
+        "error_name": "Omission Errors in Filipino Essays",
+        "error_category": "grammar",
+        "sub_category": "missing_elements",
+        "linguistic_focus": ["affixes","particles","necessary morphemes"],
+        "error_type": "omission",
+        "description": "Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+        "why_it_occurs": [
+            "Weak understanding of morphological structures",
+            "Failure to recognize required grammatical elements"
+        ],
+        "examples": {
+            "incorrect": ["Missing inflection or auxiliary markers"],
+            "correct": ["Full sentence with required grammatical markers"],
+            "explanation": "Malimit nagkukulang ang mga estudyante sa paglalagay ng wastong morpema o pantulong na salita."
+        },
+        "feedback_templates": {
+            "short_feedback": "May nawawalang elemento sa pangungusap.",
+            "detailed_feedback": "Idinagdag ang nawawalang bahagi upang maging buo at tama ang pangungusap.",
+            "teacher_feedback": "Turuan ang pagkilala sa mga kailangang elemento sa Filipino."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_score": 0.12,
+            "frequency_weight": 1.1
+        },
+        "sources": ["SRC-IJLLLC-2025"],
+        "rag_metadata": {
+            "embedding_tags": ["Filipino essay omission errors","missing elements Filipino sentences","Filipino writing errors taxonomy"],
+            "retrieval_priority": "medium"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-008",
+        "error_name": "Permutation Errors (Incorrect Word/Component Order)",
+        "error_category": "syntax",
+        "sub_category": "word_order",
+        "linguistic_focus": ["sentence arrangement"],
+        "error_type": "permutation",
+        "description": "Errors due to incorrect arrangement of sentence components affecting coherence.",
+        "why_it_occurs": [
+            "Students struggle with structuring complex Filipino sentences",
+            "Misapplication of standard word order"
+        ],
+        "examples": {
+            "incorrect": ["Incorrect sequence of subject, predicate, modifiers"],
+            "correct": ["Properly ordered sentence elements"],
+            "explanation": "Hindi maayos ang pagkakasunod-sunod ng mga bahagi ng pangungusap kaya nalilito ang mambabasa."
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling ayos ng mga bahagi ng pangungusap.",
+            "detailed_feedback": "Ayusin ang pagkakasunod-sunod ng mga bahagi ng pangungusap para mas maging lohikal ito.",
+            "teacher_feedback": "Bigyang-pansin ang tamang estruktura ng pangungusap sa Filipino."
+        },
+        "severity": {
+            "impact_on_clarity": "low",
+            "impact_on_score": 0.05,
+            "frequency_weight": 0.8
+        },
+        "sources": ["SRC-IJLLLC-2025"],
+        "rag_metadata": {
+            "embedding_tags": ["Filipino essay syntax errors","permutation errors","word order mistakes Filipino"],
+            "retrieval_priority": "low"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-009",
+        "error_name": "Ligature and Function Word Errors",
+        "error_category": "morphology",
+        "sub_category": "ligature_function_words",
+        "linguistic_focus": ["na","-ng","-g","nang","ng"],
+        "error_type": "morphological",
+        "description": "Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
+        "why_it_occurs": [
+            "Misunderstanding of phonological and morphological binding rules",
+            "Difficulty applying function words correctly"
+        ],
+        "examples": {
+            "incorrect": ["Wrong segmentation or attachment of ligature particles"],
+            "correct": ["Proper ligature use based on grammatical context"],
+            "explanation": "Ligature particles are frequently misused, leading to incorrect word formation."
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng ligature o pang-ukol.",
+            "detailed_feedback": "Linawin ang tungkulin ng bawat pang-ukol o ligature sa pangungusap.",
+            "teacher_feedback": "Ipakita ang mga pattern sa wastong pag-uugnay ng salita gamit ang mga ligature."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_score": 0.14,
+            "frequency_weight": 1.8
+        },
+        "sources": ["SRC-DLSU-2016"],
+        "rag_metadata": {
+            "embedding_tags": ["ligature errors Filipino","function word nang ng errors","Filipino corpus writing errors"],
+            "retrieval_priority": "high"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-010",
+        "error_name": "Spelling and Word Merging Errors",
+        "error_category": "orthography",
+        "sub_category": "spelling",
+        "linguistic_focus": ["incorrect merging","misspellings"],
+        "error_type": "spelling",
+        "description": "Errors involving spelling mistakes or incorrectly merged words.",
+        "why_it_occurs": [
+            "Lack of mastery in Filipino orthographic conventions",
+            "Overgeneralization of informal writing patterns"
+        ],
+        "examples": {
+            "incorrect": ["Words improperly merged or misspelled"],
+            "correct": ["Correctly spelled and segmented words"],
+            "explanation": "Filipino spelling conventions are misapplied or ignored, resulting in incorrect word forms."
+        },
+        "feedback_templates": {
+            "short_feedback": "May mali sa pagbabaybay o paghihiwalay ng salita.",
+            "detailed_feedback": "Ayusin ang pagbabaybay batay sa tuntunin ng ortograpiya.",
+            "teacher_feedback": "Bigyang-diin ang tamang pagbaybay at paghahati ng salita sa pagsulat."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_score": 0.20,
+            "frequency_weight": 1.5
+        },
+        "sources": ["SRC-DLSU-2016"],
+        "rag_metadata": {
+            "embedding_tags": ["spelling errors Filipino","incorrect word merging","Filipino writing orthography"],
+            "retrieval_priority": "medium"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-011",
+        "error_name": "General Grammatical Errors in Essay Writing",
+        "error_category": "grammar",
+        "sub_category": "general_grammar",
+        "linguistic_focus": ["ores of sentence", "agreement", "function words", "punctuation"],
+        "error_type": "general_grammar",
+        "description": "Senior high school students exhibit a range of grammatical errors in Filipino essay writing affecting linguistic competence.",
+        "why_it_occurs": [
+            "Insufficient mastery of formal Filipino grammar rules",
+            "Incomplete linguistic instruction and guided practice in classrooms"
+        ],
+        "examples": {
+            "incorrect": ["Incorrect word forms", "misplaced punctuation"],
+            "correct": ["Grammar aligned with authoritative Filipino linguistic rules"],
+            "explanation": "Errors span use of sentence components, word forms, and conventions that degrade clarity and formal correctness."
+        },
+        "feedback_templates": {
+            "short_feedback": "May hindi tamang gramatika sa pangungusap.",
+            "detailed_feedback": "Repasuhin ang pangungusap, tiyaking ang bawat bahagi ay sumusunod sa tuntunin ng Filipino grammar.",
+            "teacher_feedback": "Ipakita ang salitang may mali at ang wastong anyo batay sa gramatikang Filipino."
+        },
+        "severity": {
+            "impact_on_clarity": "high",
+            "impact_on_score": 0.25,
+            "frequency_weight": 1.6
+        },
+        "sources": ["SRC-EPRA-IJSR-5481"],
+        "rag_metadata": {
+            "embedding_tags": ["Filipino grammar mistakes","essay grammar secondary","karaniwang pagkakamali sanaysay"],
+            "retrieval_priority": "high"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-012",
+        "error_name": "Organizational & Coherence Errors",
+        "error_category": "structure",
+        "sub_category": "organization_coherence",
+        "linguistic_focus": ["introduction structure", "idea progression", "transitions"],
+        "error_type": "structure_error",
+        "description": "Students frequently produce essays with poor organization and weak progression of ideas, including flawed introductions and inadequate logical flow between paragraphs.",
+        "why_it_occurs": [
+            "Insufficient instruction on essay planning and structure",
+            "Lack of practice in organizing academic writing"
+        ],
+        "examples": {
+            "incorrect": ["Weak or disorganized introduction", "poor transitions between ideas"],
+            "correct": ["Clearly structured introduction followed by logically ordered paragraphs"],
+            "explanation": "Organizational errors undermine the clarity and coherence of the essay’s message."
+        },
+        "feedback_templates": {
+            "short_feedback": "Kulang sa maayos na organisasyon ng ideya.",
+            "detailed_feedback": "Ayusin ang estruktura ng sanaysay para mas maayos ang daloy ng mga ideya.",
+            "teacher_feedback": "Tulungan ang estudyante magbalangkas bago magsulat."
+        },
+        "severity": {
+            "impact_on_clarity": "high",
+            "impact_on_score": 0.30,
+            "frequency_weight": 1.7
+        },
+        "sources": ["SRC-EPRA-IJSR-5481"],
+        "rag_metadata": {
+            "embedding_tags": ["essay organization Filipino","coherence issues essay","secondary writing errors"],
+            "retrieval_priority": "high"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-013",
+        "error_name": "Inappropriate Word Choice & Vocabulary Errors",
+        "error_category": "lexical",
+        "sub_category": "word_choice",
+        "linguistic_focus": ["incorrect lexical choices"]
+        ,
+        "error_type": "lexical_error",
+        "description": "Students use words that do not fit the contextual meaning or that do not effectively express their intended idea in an academic Filipino essay.",
+        "why_it_occurs": [
+            "Limited vocabulary development",
+            "Confusion with semantically close but contextually inappropriate words"
+        ],
+        "examples": {
+            "incorrect": ["Ginamit ang salitang ‘nadarama’ upang ipahayag ang karanasan"],
+            "correct": ["Gumamit ng mas angkop na salita na tumutugma sa nais ipahayag"],
+            "explanation": "Word choice errors often lead to ambiguity or misinterpretation."
+        },
+        "feedback_templates": {
+            "short_feedback": "Hindi angkop ang napiling salita.",
+            "detailed_feedback": "Pumili ng salita na mas angkop sa konteksto ng pangungusap.",
+            "teacher_feedback": "Turuan ang tamang pagpili ng bokabularyo batay sa konteksto."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_score": 0.20,
+            "frequency_weight": 1.3
+        },
+        "sources": ["SRC-RESEARCHGATE-BAFL-2024"],
+        "rag_metadata": {
+            "embedding_tags": ["BAFL Filipino essay errors","lexical choice mistakes","word use Filipino writing"],
+            "retrieval_priority": "medium"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-014",
+        "error_name": "Orthography & Mechanics Errors",
+        "error_category": "mechanics",
+        "sub_category": "punctuation_spelling_capitalization",
+        "linguistic_focus": ["punctuation", "capitalization", "spelling"],
+        "error_type": "orthographic_error",
+        "description": "Errors involving incorrect spelling, incorrect use of punctuation, and misuse of uppercase and lowercase letters.",
+        "why_it_occurs": [
+            "Underdeveloped orthographic competence",
+            "Lack of disciplined writing practice in formal contexts"
+        ],
+        "examples": {
+            "incorrect": ["mali ang paggamit ng bantas at malaki/maliit na titik"],
+            "correct": ["tamang puntuwasyon at wastong pagkakabanggit ng malaki/maliit na titik"],
+            "explanation": "Orthography errors reduce the readability of essays and violate standard writing conventions."
+        },
+        "feedback_templates": {
+            "short_feedback": "May mali sa pagbabaybay o bantas.",
+            "detailed_feedback": "Tiyaking tama ang baybay, bantas, at pagkakagamit ng malaki/maliit na titik.",
+            "teacher_feedback": "I-highlight ang mga mekaniks na dapat pagtuunan ng pansin kapag nagwawasto."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_score": 0.18,
+            "frequency_weight": 1.4
+        },
+        "sources": ["SRC-RESEARCHGATE-BAFL-2024"],
+        "rag_metadata": {
+            "embedding_tags": ["orthography mistakes Filipino","spelling errors essay","capitalization punctuation Filipino"],
+            "retrieval_priority": "medium"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-015",
+        "error_name": "Incorrect Use of Cohesive Devices",
+        "error_category": "discourse",
+        "sub_category": "cohesion_connectors",
+        "linguistic_focus": ["connectives like dahil, ngunit, at"],
+        "error_type": "discourse_error",
+        "description": "Incorrect or inappropriate use of cohesive devices (pang-ugnay) that connect sentences or clauses, affecting logical flow.",
+        "why_it_occurs": [
+            "Misunderstanding of connective function",
+            "Limited exposure to structured academic writing"
+        ],
+        "examples": {
+            "incorrect": ["Dahil ginamit sa unahan ng pangungusap kahit walang matatapat na pahayag"],
+            "correct": ["Gamitin ang ‘dahil’ kapag may pangungusap na nagpapahayag ng kadahilanan"],
+            "explanation": "Cohesive device misuse weakens text coherence and logical relations."
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng pang-ugnay.",
+            "detailed_feedback": "Repasuhin kung ang pang-ugnay ay angkop sa katangian ng relasyon ng mga ideya.",
+            "teacher_feedback": "Ibigay ang mga tamang pang-ugnay at pagkakaiba ng mga ito sa magkakaibang konteksto."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_score": 0.22,
+            "frequency_weight": 1.2
+        },
+        "sources": ["SRC-RESEARCHGATE-BAFL-2024"],
+        "rag_metadata": {
+            "embedding_tags": ["cohesive devices Filipino","connectors misuse","essay linking words Filipino"],
+            "retrieval_priority": "medium"
+        }
+    }
+]

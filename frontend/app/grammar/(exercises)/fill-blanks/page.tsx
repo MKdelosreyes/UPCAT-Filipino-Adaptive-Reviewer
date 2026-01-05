@@ -100,7 +100,7 @@ function convertToFillBlanksFormat(
 
     processedItems.push({
       item_id: item.item_id,
-      lemma_id: item.lemma_id, // ✅ Added
+      lemma_id: item.lemma_id, // Added
       sentence: item.fill_sentence,
       choices,
       correct_answer: correctAnswer,
@@ -138,13 +138,13 @@ export default function GrammarFillBlanksPage() {
   const [finalScore, setFinalScore] = useState(0);
   const [finalCorrectCount, setFinalCorrectCount] = useState(0);
 
-  // ✅ Load questions with adaptive difficulty
+  // Load questions with adaptive difficulty
   useEffect(() => {
     async function loadQuestions() {
       try {
         setIsLoading(true);
 
-        // ✅ 1. Get performance history to determine difficulty
+        // 1. Get performance history to determine difficulty
         const history = getPerformanceHistory("grammar", "fill-blanks");
         const targetDifficulty =
           history.length > 0 ? history[history.length - 1].difficulty : "easy";
@@ -152,7 +152,7 @@ export default function GrammarFillBlanksPage() {
         setCurrentDifficulty(targetDifficulty);
         console.log(`🎯 Target difficulty: ${targetDifficulty}`);
 
-        // ✅ 2. Fetch adaptive grammar exercises and lexicon data
+        // 2. Fetch adaptive grammar exercises and lexicon data
         const [grammarExercises, lexiconData] = await Promise.all([
           getGrammarExercisesAdaptive({
             userId: user?.id,
@@ -174,12 +174,12 @@ export default function GrammarFillBlanksPage() {
           throw new Error("No grammar exercises available");
         }
 
-        // ✅ 3. Create lexicon map for distractor generation
+        // 3. Create lexicon map for distractor generation
         const lexiconMap = new Map(
           lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
         );
 
-        // ✅ 4. Convert to fill-in-the-blanks format
+        // 4. Convert to fill-in-the-blanks format
         const processedItems = convertToFillBlanksFormat(
           grammarExercises,
           lexiconMap
@@ -191,9 +191,9 @@ export default function GrammarFillBlanksPage() {
           );
         }
 
-        console.log("✅ Processed fill-blanks items:", processedItems.length);
+        console.log("Processed fill-blanks items:", processedItems.length);
 
-        // ✅ 5. Shuffle and select 10 questions
+        // 5. Shuffle and select 10 questions
         const shuffled = [...processedItems].sort(() => Math.random() - 0.5);
         const selected = shuffled.slice(0, Math.min(10, shuffled.length));
 
@@ -297,7 +297,7 @@ export default function GrammarFillBlanksPage() {
   const currentFillBlanks = fillBlanksQuestions[currentQuestion];
   const isLastQuestion = currentQuestion === fillBlanksQuestions.length - 1;
 
-  // ✅ Handle answer selection with performance tracking
+  // Handle answer selection with performance tracking
   const handleSelectAnswer = async (answer: string) => {
     setSelectedAnswer(answer);
     setShowResult(true);
@@ -318,7 +318,7 @@ export default function GrammarFillBlanksPage() {
       },
     ]);
 
-    // ✅ Report lexical performance
+    // Report lexical performance
     try {
       await reportLexicalItemPerformance({
         module: "grammar",
@@ -451,7 +451,7 @@ export default function GrammarFillBlanksPage() {
           <h1 className="text-xl md:text-2xl font-bold text-green-900">
             Complete the Sentence
           </h1>
-          {/* ✅ Show current difficulty */}
+          {/* Show current difficulty */}
           <p className="text-xs text-green-600 mt-1">
             Difficulty:{" "}
             <span className="font-semibold capitalize">

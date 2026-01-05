@@ -1,12 +1,26 @@
 from fastapi import HTTPException
 from typing import Optional
 from pydantic import BaseModel
+import os
+import sys
+
+# Add parent directory to path
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+# Import RAG orchestrator
+try:
+    from rag.orchestrator import get_rag_orchestrator
+    rag = get_rag_orchestrator()
+    print("✅ RAG orchestrator loaded in explain.py")
+except ImportError as e:
+    print(f"⚠️ Error importing RAG orchestrator in explain.py: {e}")
+    rag = None
 
 # Import data
 try:
     from data.vocabulary_core import vocabulary_data
     from data.lexicon import lexicon_data
-    from data.grammar_core import grammar_data  # ✅ Import grammar data
+    from data.grammar_core import grammar_data
 except ImportError as e:
     print(f"⚠️ Error importing data in explain handler: {e}")
     vocabulary_data = []
@@ -16,8 +30,8 @@ except ImportError as e:
 # Import OpenAI client
 try:
     from openai import OpenAI
-    import os
     openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    print("✅ OpenAI client initialized in explain.py")
 except Exception as e:
     print(f"⚠️ Error initializing OpenAI in explain handler: {e}")
     openai_client = None
@@ -28,11 +42,11 @@ except Exception as e:
 # ============================================================
 
 class ExplainRequest(BaseModel):
-    mode: str  # ✅ Updated: "quiz", "antonym", "fill-blanks", "error-identification"
+    mode: str  # "quiz", "antonym", "fill-blanks", "error-identification"
     word: str
     correct: str
     selected: Optional[str] = None
-    sentence: Optional[str] = None  # ✅ Added for grammar context
+    sentence: Optional[str] = None
 
 
 class ExplainResponse(BaseModel):
@@ -46,9 +60,7 @@ class ExplainResponse(BaseModel):
 def get_word_data(word: str):
     """Find word data from lexicon"""
     try:
-        # Search in lexicon_data for the word (lemma or surface form)
         for entry in lexicon_data:
-            # Check if word matches lemma
             if entry.get("lemma", "").lower() == word.lower():
                 return {
                     "word": entry.get("lemma"),
@@ -56,7 +68,6 @@ def get_word_data(word: str):
                     "synonyms": entry.get("relations", {}).get("synonyms", []),
                     "antonyms": entry.get("relations", {}).get("antonyms", [])
                 }
-            # Check if word matches any surface form
             if word.lower() in [sf.lower() for sf in entry.get("surface_forms", [])]:
                 return {
                     "word": word,
@@ -73,9 +84,7 @@ def get_word_data(word: str):
 def get_example_sentence(word: str):
     """Find example sentence from vocabulary_data"""
     try:
-        # Search in vocabulary_data for sentences containing the word
         for entry in vocabulary_data:
-            # Get the lexicon entry to find the lemma
             lexicon_entry = next(
                 (lex for lex in lexicon_data if lex.get(
                     "lemma_id") == entry.get("lemma_id")),
@@ -85,9 +94,7 @@ def get_example_sentence(word: str):
                 lemma = lexicon_entry.get("lemma", "")
                 surface_forms = lexicon_entry.get("surface_forms", [])
 
-                # Check if word appears in lemma or surface forms
                 if word.lower() in [lemma.lower()] + [sf.lower() for sf in surface_forms]:
-                    # Return first available example
                     return entry.get("sentence_example_1") or entry.get("sentence_example_2") or ""
         return ""
     except Exception as e:
@@ -95,13 +102,10 @@ def get_example_sentence(word: str):
         return ""
 
 
-# ✅ NEW: Get grammar explanation from grammar_data
 def get_grammar_explanation(word: str):
     """Find grammar explanation from grammar_data"""
     try:
-        # Search in grammar_data for the word
         for entry in grammar_data:
-            # Check fill_sentence or error_sentence
             if word.lower() in entry.get("fillCorrectAnswer", "").lower():
                 return entry.get("fill_explanation", "")
             if word.lower() in entry.get("errorCorrectAnswer", "").lower():
@@ -112,8 +116,10 @@ def get_grammar_explanation(word: str):
         return ""
 
 
-def build_explanation_prompt(data: dict) -> str:
-    """Generate explanation prompt based on mode"""
+def build_explanation_prompt_with_rag(data: dict) -> str:
+    """
+    ✅ NEW: Generate explanation prompt with RAG context
+    """
     mode = data["mode"]
     word = data["word"]
     correct = data["correct"]
@@ -123,112 +129,150 @@ def build_explanation_prompt(data: dict) -> str:
     sentence = data.get("sentence", "")
 
     # ============================================================
-    # VOCABULARY MODES
+    # GET RAG CONTEXT BASED ON MODE
+    # ============================================================
+
+    rag_context = ""
+
+    if rag:  # Only use RAG if available
+        try:
+            if mode in ["quiz", "antonym"]:
+                # Vocabulary context
+                rag_query = f"Filipino word: {word}. Definition: {definition}. Usage and examples"
+                rag_context = rag.get_context(
+                    rag_query,
+                    context_type="vocabulary",
+                    top_k=2,
+                    min_similarity=0.4
+                )
+                print(
+                    f"✅ Retrieved vocabulary RAG context ({len(rag_context)} chars)")
+
+            elif mode in ["fill-blanks", "error-identification"]:
+                # Grammar context
+                rag_query = f"Filipino grammar: {sentence}. Word: {word}. Grammar rules and patterns"
+                rag_context = rag.get_context(
+                    rag_query,
+                    context_type="grammar",
+                    top_k=2,
+                    min_similarity=0.4
+                )
+                print(
+                    f"✅ Retrieved grammar RAG context ({len(rag_context)} chars)")
+        except Exception as e:
+            print(f"⚠️ Error getting RAG context: {e}")
+            rag_context = ""
+    else:
+        print("⚠️ RAG not available, using prompt without context")
+
+    # ============================================================
+    # BUILD PROMPTS WITH RAG CONTEXT
     # ============================================================
 
     if mode == "quiz":
-        base_prompt = f"""You are a helpful Filipino language tutor for UPCAT preparation.
+        prompt = f"""You are a helpful Filipino language tutor for UPCAT preparation.
 
-Context:
+{rag_context}
+
+**Student's Answer:**
 - Salitang tinatalakay: {word}
 - Tamang kahulugan: {correct}
 - Official na kahulugan: {definition}"""
 
         if example:
-            base_prompt += f"\n- Halimbawang pangungusap: {example}"
+            prompt += f"\n- Halimbawang pangungusap: {example}"
 
         if selected:
-            base_prompt += f"\n- Napili ng estudyante: {selected}"
+            prompt += f"\n- Napili ng estudyante: {selected}"
 
-        base_prompt += f"""
+        prompt += f"""
 
-Magbigay ng 3 na punto:
-1) Bakit "{correct}" ang tamang sagot (gamitin ang kahulugan)
+Using the reference materials above (if provided), magbigay ng 3 na punto:
+1) Bakit "{correct}" ang tamang sagot (gamitin ang kahulugan at references)
 2) Bakit mali ang napiling sagot (ipaliwanag ang pagkakaiba)
-3) Maikling talang pangbokabularyo (isang pangungusap)
+3) Maikling talang pangbokabularyo (isang pangungusap, cite similar words from references if relevant)
 
 Gumamit ng mga bullet points at panatilihing maikli at malinaw. Gumamit ng simpleng Filipino."""
 
-        return base_prompt
+        return prompt
 
     elif mode == "antonym":
-        base_prompt = f"""You are a helpful Filipino language tutor for UPCAT preparation.
+        prompt = f"""You are a helpful Filipino language tutor for UPCAT preparation.
 
-Context:
+{rag_context}
+
+**Student's Answer:**
 - Salitang tinatalakay: {word}
 - Kahulugan: {definition}
 - Tamang antonym: {correct}"""
 
         if example:
-            base_prompt += f"\n- Halimbawang pangungusap: {example}"
+            prompt += f"\n- Halimbawang pangungusap: {example}"
 
         if selected:
-            base_prompt += f"\n- Napili ng estudyante: {selected}"
+            prompt += f"\n- Napili ng estudyante: {selected}"
 
-        base_prompt += f"""
+        prompt += f"""
 
-Magbigay ng 3 na punto:
-1) Bakit "{correct}" ang tamang antonym ng "{word}"
+Using the reference materials above (if provided), magbigay ng 3 na punto:
+1) Bakit "{correct}" ang tamang antonym ng "{word}" (cite related words from references if available)
 2) Bakit mali ang napiling sagot
 3) Maikling tala tungkol sa antonyms
 
 Gumamit ng mga bullet points. Panatilihing maikli at malinaw."""
 
-        return base_prompt
-
-    # ============================================================
-    # GRAMMAR MODES
-    # ============================================================
+        return prompt
 
     elif mode == "fill-blanks":
-        base_prompt = f"""You are a helpful Filipino grammar tutor for UPCAT preparation.
+        prompt = f"""You are a helpful Filipino grammar tutor for UPCAT preparation.
 
-Context:
+{rag_context}
+
+**Student's Answer:**
 - Pangungusap: {sentence}
 - Tamang salita: {correct}
 - Kahulugan ng salita: {definition}"""
 
         if selected:
-            base_prompt += f"\n- Isinulat ng estudyante: {selected}"
+            prompt += f"\n- Isinulat ng estudyante: {selected}"
 
-        base_prompt += f"""
+        prompt += f"""
 
-Magbigay ng 3 na punto:
+Using the grammar rules above (if provided), magbigay ng 3 na punto:
 1) Bakit "{correct}" ang tamang salita para sa puwang
-2) Ano ang grammatical rule o pattern (halimbawa: tense, case, agreement)
+2) Ano ang grammatical rule o pattern (cite specific rules from references if available)
 3) Bakit mali ang napiling sagot (kung may napili)
 
-Gumamit ng mga bullet points. Maikli at malinaw ang paliwanag."""
+Gumamit ng mga bullet points. Maikli at malinaw ang paliwanag. Cite grammar rules when possible."""
 
-        return base_prompt
+        return prompt
 
     elif mode == "error-identification":
-        base_prompt = f"""You are a helpful Filipino grammar tutor for UPCAT preparation.
+        prompt = f"""You are a helpful Filipino grammar tutor for UPCAT preparation.
 
-Context:
+{rag_context}
+
+**Student's Answer:**
 - Pangungusap: {sentence}
 - Bahagi na may error: {correct}"""
 
         if selected and selected != correct:
-            base_prompt += f"\n- Napili ng estudyante: {selected}"
+            prompt += f"\n- Napili ng estudyante: {selected}"
 
-        base_prompt += f"""
+        prompt += f"""
 
-Magbigay ng 4 na punto:
+Using the grammar rules above (if provided), magbigay ng 4 na punto:
 1) Bakit may error ang "{correct}"
 2) Ano ang tamang paraan (correction)
-3) Anong grammar rule ang nilabag
+3) Anong grammar rule ang nilabag (cite from references if available)
 4) Bakit mali ang napiling sagot ng estudyante (kung iba sa tamang sagot)
 
-Gumamit ng mga bullet points. Maikli at malinaw ang paliwanag."""
+Gumamit ng mga bullet points. Maikli at malinaw ang paliwanag. Always cite grammar rules."""
 
-        return base_prompt
-
-    # ============================================================
-    # FALLBACK
-    # ============================================================
+        return prompt
 
     else:
+        # Fallback
         return f"""Explain why "{correct}" is the correct answer.
 The student selected "{selected}".
 Keep it brief and educational in Filipino."""
@@ -240,98 +284,69 @@ Keep it brief and educational in Filipino."""
 
 async def handle_explain(request: ExplainRequest) -> ExplainResponse:
     """
-    Main handler function for AI explanation generation.
-    This is called from main.py
+    ✅ ENHANCED: Main handler function with RAG integration
     """
     try:
         print(
             f"📝 Explain request - Word: {request.word}, Mode: {request.mode}")
 
-        # Check if OpenAI client is available
         if not openai_client:
             raise HTTPException(
                 status_code=503,
                 detail="OpenAI service not available"
             )
 
-        # ✅ Branch logic based on mode
+        # Get word/grammar data as before
         if request.mode in ["quiz", "antonym"]:
-            # VOCABULARY MODES - Use lexicon data
             word_data = get_word_data(request.word)
-
-            if word_data:
-                definition = word_data["meaning"]
-                print(f"✅ Found word data: {definition[:50]}...")
-            else:
-                definition = request.correct
-                print(
-                    f"⚠️ Word not found in lexicon, using correct answer as definition")
-
-            # Get example sentence
+            definition = word_data["meaning"] if word_data else request.correct
             example = get_example_sentence(request.word)
-            if example:
-                print(f"✅ Found example sentence")
-            else:
-                print(f"⚠️ No example sentence found")
 
-            # Generate prompt for vocabulary
-            prompt = build_explanation_prompt({
+            prompt_data = {
                 "mode": request.mode,
                 "word": request.word,
                 "correct": request.correct,
                 "selected": request.selected,
                 "definition": definition,
                 "example": example
-            })
+            }
 
         elif request.mode in ["fill-blanks", "error-identification"]:
-            # ✅ GRAMMAR MODES - Use grammar data and lexicon
             word_data = get_word_data(request.word)
-
-            if word_data:
-                definition = word_data["meaning"]
-                print(f"✅ Found word definition: {definition[:50]}...")
-            else:
-                definition = request.correct
-                print(f"⚠️ Using correct answer as definition")
-
-            # Try to get grammar-specific explanation
+            definition = word_data["meaning"] if word_data else request.correct
             grammar_explanation = get_grammar_explanation(request.word)
-            if grammar_explanation:
-                print(f"✅ Found grammar explanation")
 
-            # Generate prompt for grammar
-            prompt = build_explanation_prompt({
+            prompt_data = {
                 "mode": request.mode,
                 "word": request.word,
                 "correct": request.correct,
                 "selected": request.selected,
                 "definition": definition,
                 "sentence": request.sentence or "",
-                "example": grammar_explanation  # Use grammar explanation if available
-            })
+                "example": grammar_explanation
+            }
 
         else:
-            # Unknown mode - use fallback
-            print(f"⚠️ Unknown mode: {request.mode}, using fallback")
-            prompt = build_explanation_prompt({
+            prompt_data = {
                 "mode": request.mode,
                 "word": request.word,
                 "correct": request.correct,
                 "selected": request.selected
-            })
+            }
 
-        print(f"🤖 Calling OpenAI API...")
+        # ✅ Use RAG-enhanced prompt builder
+        prompt = build_explanation_prompt_with_rag(prompt_data)
 
-        # Call OpenAI
+        print(f"🤖 Calling OpenAI with RAG-enhanced prompt...")
+
         completion = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.2,
-            max_tokens=300,
+            max_tokens=350,
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful Filipino language tutor. Be concise, accurate, and friendly. Always respond in Filipino unless asked otherwise."
+                    "content": "You are a Filipino language tutor. Use the provided reference materials to give accurate, evidence-based explanations. Always cite sources when available. Be concise and educational."
                 },
                 {
                     "role": "user",
@@ -341,12 +356,12 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
         )
 
         explanation = completion.choices[0].message.content or ""
-        print(f"✅ Generated explanation ({len(explanation)} chars)")
+        print(
+            f"✅ Generated RAG-enhanced explanation ({len(explanation)} chars)")
 
         return ExplainResponse(explanation=explanation)
 
     except HTTPException:
-        # Re-raise HTTP exceptions
         raise
     except Exception as e:
         print(f"❌ Error in handle_explain: {e}")
