@@ -253,7 +253,7 @@ export async function recordLexicalPerformance(
   event: LexicalPerformanceEvent
 ): Promise<{ message: string }> {
   try {
-    const response = await apiClient.post("/progress/performance-event/", event); // ✅ Uses apiClient
+    const response = await apiClient.post("/api/progress/performance-event/", event); // ✅ Uses apiClient
     console.log("✅ Lexical performance recorded successfully");
     return response.data;
   } catch (error: any) {
