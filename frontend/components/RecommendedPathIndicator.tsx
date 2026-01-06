@@ -2,18 +2,38 @@
 
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import { useDashboardInsights } from "@/hooks/useDashboardInsights";
-import { ArrowRight, Check } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  BookOpen,
+  Trophy,
+  Lock,
+  Sparkles,
+} from "lucide-react";
 
 const moduleNames = {
   vocabulary: "Vocabulary",
   grammar: "Grammar",
-  "sentence-construction": "Sentence Construction",
-  "reading-comprehension": "Reading Comprehension",
+  "sentence-construction": "Sentence",
+  "reading-comprehension": "Reading",
+};
+
+const moduleIcons = {
+  vocabulary: "📚",
+  grammar: "✍️",
+  "sentence-construction": "🔧",
+  "reading-comprehension": "📖",
 };
 
 export default function RecommendedPathIndicator() {
-  const { progress, getRecommendedModule, isModuleCompleted } =
-    useLearningProgress();
+  const {
+    progress,
+    getRecommendedModule,
+    isModuleCompleted,
+    getNextRecommended,
+    getModuleExercises,
+    isLessonExercise,
+  } = useLearningProgress();
   const { getModuleMastery } = useDashboardInsights();
 
   const recommended = getRecommendedModule();
@@ -25,54 +45,243 @@ export default function RecommendedPathIndicator() {
     "reading-comprehension",
   ] as const;
 
+  // Helper to get module status
+  const getModuleStatus = (module: (typeof steps)[number]) => {
+    const isCompleted = isModuleCompleted(module);
+    const isRecommended = recommended === module;
+    const nextExercise = getNextRecommended(module);
+    const exercises = getModuleExercises(module);
+    const mastery = getModuleMastery(module);
+
+    // Count completed exercises
+    const completedCount = exercises.filter((ex) => {
+      const exerciseProgress =
+        progress[module][ex as keyof (typeof progress)[typeof module]];
+      return exerciseProgress?.status === "completed";
+    }).length;
+
+    // Separate lessons from quizzes
+    const lessons = exercises.filter((ex) => isLessonExercise(module, ex));
+    const quizzes = exercises.filter((ex) => !isLessonExercise(module, ex));
+
+    const completedLessons = lessons.filter((ex) => {
+      const exerciseProgress =
+        progress[module][ex as keyof (typeof progress)[typeof module]];
+      return exerciseProgress?.status === "completed";
+    }).length;
+
+    const completedQuizzes = quizzes.filter((ex) => {
+      const exerciseProgress =
+        progress[module][ex as keyof (typeof progress)[typeof module]];
+      return exerciseProgress?.status === "completed";
+    }).length;
+
+    return {
+      isCompleted,
+      isRecommended,
+      nextExercise,
+      completedCount,
+      totalCount: exercises.length,
+      completedLessons,
+      totalLessons: lessons.length,
+      completedQuizzes,
+      totalQuizzes: quizzes.length,
+      mastery,
+      isNextLesson: nextExercise
+        ? isLessonExercise(module, nextExercise)
+        : false,
+    };
+  };
+
   return (
-    <div className="w-full bg-white rounded-xl p-4 shadow-lg border-2 border-blue-200 mb-4">
-      <h3 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
-        <span className="text-blue-600">🎯</span>
-        Recommended Learning Path
-      </h3>
+    <div className="w-full bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 shadow-md border border-blue-200">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-bold text-blue-900 flex items-center gap-2">
+          {/* <span className="text-lg">🎯</span> */}
+          Learning Path
+        </h3>
+        {/* <div className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full font-semibold">
+          Sequential
+        </div> */}
+      </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
-        {steps.map((module, index) => {
-          const isCompleted = isModuleCompleted(module);
-          const isRecommended = recommended === module;
-          const mastery = getModuleMastery(module);
+      {/* Horizontal Stepper */}
+      <div className="relative">
+        {/* Progress Line */}
+        <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 -z-10">
+          <div
+            className="h-full bg-gradient-to-r from-green-500 to-blue-500 transition-all duration-500"
+            style={{
+              width: `${
+                (steps.findIndex((s) => s === recommended) /
+                  (steps.length - 1)) *
+                100
+              }%`,
+            }}
+          />
+        </div>
 
-          return (
-            <div key={module} className="flex items-center gap-2">
+        {/* Module Steps */}
+        <div className="flex items-start justify-between gap-2">
+          {steps.map((module, index) => {
+            const status = getModuleStatus(module);
+
+            return (
               <div
-                className={`px-3 py-1. 5 rounded-full font-semibold transition-all ${
-                  isCompleted
-                    ? "bg-green-100 text-green-700 border border-green-300"
-                    : isRecommended
-                    ? "bg-blue-600 text-white ring-2 ring-blue-300 animate-pulse"
-                    : "bg-gray-100 text-gray-500"
-                }`}
+                key={module}
+                className="flex flex-col items-center flex-1 relative"
               >
-                <div className="flex items-center gap-1. 5">
-                  {isCompleted ? (
-                    <Check size={14} />
-                  ) : mastery.level !== "beginner" ? (
-                    <span>{mastery.icon}</span>
-                  ) : null}
-                  <span>{moduleNames[module]}</span>
-                  {mastery.level !== "beginner" && !isCompleted && (
-                    <span className="text-xs opacity-75 capitalize">
-                      ({mastery.level})
-                    </span>
+                {/* Module Circle */}
+                <div
+                  className={`relative w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 z-10 ${
+                    status.isCompleted
+                      ? "bg-green-500 text-white shadow-lg"
+                      : status.isRecommended
+                      ? "bg-blue-600 text-white shadow-xl ring-4 ring-blue-300 animate-pulse"
+                      : status.completedCount > 0
+                      ? "bg-blue-100 text-blue-600 border-2 border-blue-400"
+                      : "bg-gray-200 text-gray-400 border-2 border-gray-300"
+                  }`}
+                >
+                  {status.isCompleted ? (
+                    <Check size={20} />
+                  ) : status.isRecommended ? (
+                    <Sparkles size={20} />
+                  ) : status.completedCount === 0 ? (
+                    <Lock size={16} />
+                  ) : (
+                    <span className="text-base">{moduleIcons[module]}</span>
+                  )}
+
+                  {/* Recommended Sparkle Badge */}
+                  {status.isRecommended && !status.isCompleted && (
+                    <div className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 rounded-full w-5 h-5 flex items-center justify-center">
+                      <Sparkles size={12} />
+                    </div>
                   )}
                 </div>
-              </div>
 
-              {index < steps.length - 1 && (
-                <ArrowRight
-                  size={16}
-                  className={isCompleted ? "text-green-500" : "text-gray-300"}
-                />
-              )}
-            </div>
-          );
-        })}
+                {/* Module Name */}
+                <div className="mt-2 text-center">
+                  <p
+                    className={`text-xs font-semibold leading-tight ${
+                      status.isRecommended
+                        ? "text-blue-700"
+                        : status.isCompleted
+                        ? "text-green-700"
+                        : status.completedCount > 0
+                        ? "text-blue-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {moduleNames[module]}
+                  </p>
+
+                  {/* Progress Counts */}
+                  <div className="flex items-center justify-center gap-2 mt-1 text-[10px] text-gray-600">
+                    {status.totalLessons > 0 && (
+                      <div
+                        className={`flex items-center gap-0.5 ${
+                          status.completedLessons === status.totalLessons
+                            ? "text-green-600"
+                            : ""
+                        }`}
+                      >
+                        <BookOpen size={10} />
+                        <span>
+                          {status.completedLessons}/{status.totalLessons}
+                        </span>
+                      </div>
+                    )}
+                    <div
+                      className={`flex items-center gap-0.5 ${
+                        status.completedQuizzes === status.totalQuizzes
+                          ? "text-green-600"
+                          : ""
+                      }`}
+                    >
+                      <Trophy size={10} />
+                      <span>
+                        {status.completedQuizzes}/{status.totalQuizzes}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Next Action Badge */}
+                  {status.isRecommended && !status.isCompleted && (
+                    <div
+                      className={`mt-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                        status.isNextLesson
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {status.isNextLesson ? (
+                        <>
+                          <BookOpen size={8} />
+                          <span>Study</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trophy size={8} />
+                          <span>Quiz</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Mastery Badge */}
+                  {!status.isCompleted &&
+                    status.completedCount > 0 &&
+                    !status.isRecommended &&
+                    status.mastery.level !== "beginner" && (
+                      <div className="mt-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 bg-blue-50 text-blue-700 border border-blue-200">
+                        <span>{status.mastery.icon}</span>
+                        <span className="capitalize">
+                          {status.mastery.level}
+                        </span>
+                      </div>
+                    )}
+                </div>
+
+                {/* Arrow Between Steps */}
+                {index < steps.length - 1 && (
+                  <ArrowRight
+                    size={16}
+                    className={`absolute -right-3 top-5 ${
+                      status.isCompleted
+                        ? "text-green-500"
+                        : status.isRecommended
+                        ? "text-blue-600"
+                        : "text-gray-300"
+                    }`}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Compact Legend */}
+      <div className="mt-3 pt-3 border-t border-blue-200 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-gray-600">
+        <div className="flex items-center gap-1">
+          <BookOpen size={10} className="text-green-600" />
+          <span>Lessons</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Trophy size={10} className="text-yellow-600" />
+          <span>Quizzes</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Sparkles size={10} className="text-blue-600" />
+          <span>Next</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Check size={10} className="text-green-600" />
+          <span>Done</span>
+        </div>
       </div>
     </div>
   );
