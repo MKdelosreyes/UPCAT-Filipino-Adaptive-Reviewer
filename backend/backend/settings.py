@@ -124,10 +124,23 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 if os.getenv('DATABASE_URL'):
     DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
-            conn_max_age=600
-        )
+        # 'default': dj_database_url.config(
+        #     default=os.getenv('DATABASE_URL'),
+        #     conn_max_age=600
+        # )
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'postgres',
+            'USER': 'postgres.tvhuizlivrmozpljmevo',
+            'PASSWORD': 'SP@2025upcat',
+            'HOST': 'aws-1-ap-southeast-1.pooler.supabase.com',
+            'PORT': '6543',
+            'OPTIONS': {
+                'sslmode': 'require',
+                'connect_timeout': 10,
+            },
+            'CONN_MAX_AGE': 0,
+        }
     }
 else:
     DATABASES = {
