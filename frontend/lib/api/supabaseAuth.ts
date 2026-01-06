@@ -17,7 +17,7 @@ export async function signUp(data: SignUpData) {
         first_name: data.first_name || "", // Provide default empty string
         last_name: data.last_name || "", // Provide default empty string
       },
-      emailRedirectTo: `${window.location.origin}/callback`,
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 

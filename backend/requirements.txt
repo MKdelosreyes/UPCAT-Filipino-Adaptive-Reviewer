@@ -9,3 +9,6 @@ django-extensions
 django-debug-toolbar
 google-auth>=2.0.0
 google-auth-oauthlib>=1.0.0
+pyjwt[crypto] 
+cryptography 
+requests

@@ -2,6 +2,16 @@
 
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import { useDashboardInsights } from "@/hooks/useDashboardInsights";
+import type {
+  ModuleType,
+  VocabularyProgress,
+  GrammarProgress,
+  SentenceProgress,
+  ReadingProgress,
+  ExerciseType,
+  LessonProgress,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
 import {
   ArrowRight,
   Check,
@@ -38,41 +48,81 @@ export default function RecommendedPathIndicator() {
 
   const recommended = getRecommendedModule();
 
-  const steps = [
+  const steps: ModuleType[] = [
     "vocabulary",
     "grammar",
     "sentence-construction",
     "reading-comprehension",
-  ] as const;
+  ];
+
+  // ✅ Helper function to get exercise progress with proper typing
+  const getExerciseProgress = (
+    module: ModuleType,
+    exercise: ExerciseType
+  ): LessonProgress | QuizProgress | null => {
+    const moduleData = progress[module];
+
+    if (module === "vocabulary") {
+      const vocabData = moduleData as VocabularyProgress;
+      if (
+        exercise === "flashcards" ||
+        exercise === "quiz" ||
+        exercise === "antonym"
+      ) {
+        return vocabData[exercise];
+      }
+    } else if (module === "grammar") {
+      const grammarData = moduleData as GrammarProgress;
+      if (
+        exercise === "lesson-cards" ||
+        exercise === "error-identification" ||
+        exercise === "fill-blanks"
+      ) {
+        return grammarData[exercise];
+      }
+    } else if (module === "sentence-construction") {
+      const sentenceData = moduleData as SentenceProgress;
+      if (
+        exercise === "complete-sentence" ||
+        exercise === "sentence-ordering"
+      ) {
+        return sentenceData[exercise];
+      }
+    } else if (module === "reading-comprehension") {
+      const readingData = moduleData as ReadingProgress;
+      if (exercise === "passage-questions" || exercise === "comprehension") {
+        return readingData[exercise];
+      }
+    }
+
+    return null;
+  };
 
   // Helper to get module status
-  const getModuleStatus = (module: (typeof steps)[number]) => {
+  const getModuleStatus = (module: ModuleType) => {
     const isCompleted = isModuleCompleted(module);
     const isRecommended = recommended === module;
     const nextExercise = getNextRecommended(module);
     const exercises = getModuleExercises(module);
     const mastery = getModuleMastery(module);
 
-    // Count completed exercises
+    // ✅ Count completed exercises with proper typing
     const completedCount = exercises.filter((ex) => {
-      const exerciseProgress =
-        progress[module][ex as keyof (typeof progress)[typeof module]];
+      const exerciseProgress = getExerciseProgress(module, ex);
       return exerciseProgress?.status === "completed";
     }).length;
 
-    // Separate lessons from quizzes
+    // ✅ Separate lessons from quizzes
     const lessons = exercises.filter((ex) => isLessonExercise(module, ex));
     const quizzes = exercises.filter((ex) => !isLessonExercise(module, ex));
 
     const completedLessons = lessons.filter((ex) => {
-      const exerciseProgress =
-        progress[module][ex as keyof (typeof progress)[typeof module]];
+      const exerciseProgress = getExerciseProgress(module, ex);
       return exerciseProgress?.status === "completed";
     }).length;
 
     const completedQuizzes = quizzes.filter((ex) => {
-      const exerciseProgress =
-        progress[module][ex as keyof (typeof progress)[typeof module]];
+      const exerciseProgress = getExerciseProgress(module, ex);
       return exerciseProgress?.status === "completed";
     }).length;
 
@@ -98,12 +148,8 @@ export default function RecommendedPathIndicator() {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold text-blue-900 flex items-center gap-2">
-          {/* <span className="text-lg">🎯</span> */}
           Learning Path
         </h3>
-        {/* <div className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full font-semibold">
-          Sequential
-        </div> */}
       </div>
 
       {/* Horizontal Stepper */}

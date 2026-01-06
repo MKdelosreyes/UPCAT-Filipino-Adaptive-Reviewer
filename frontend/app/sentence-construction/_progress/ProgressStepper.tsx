@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
+import type { SentenceExercise } from "@/contexts/LearningProgressContext";
 
-const steps = [
-  { id: 1, name: "Ordering", key: "sentence-ordering" as const },
-  { id: 2, name: "Fill Missing", key: "fill-missing" as const },
-  { id: 3, name: "Create", key: "create-sentence" as const },
+const steps: Array<{ id: number; name: string; key: SentenceExercise }> = [
+  { id: 1, name: "Complete Sentence", key: "complete-sentence" }, // ✅ First exercise
+  { id: 2, name: "Sentence Ordering", key: "sentence-ordering" }, // ✅ Second exercise
 ];
 
 export default function SentenceConstructionProgressStepper() {

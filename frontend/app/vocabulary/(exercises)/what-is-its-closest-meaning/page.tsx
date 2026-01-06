@@ -9,6 +9,7 @@ import QuizProgress from "@/components/vocabulary/closest-meaning-exercise/QuizP
 import QuizCompletionModal from "@/components/vocabulary/closest-meaning-exercise/QuizCompletionModal";
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import type { QuizProgress as QuizProgressType } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import {
@@ -170,7 +171,7 @@ export default function ClosestMeaningQuizPage() {
   const { updateProgress, getExerciseProgress } = useVocabularyProgress();
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
 
   const [questions, setQuestions] = useState<QuizItem[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -210,7 +211,12 @@ export default function ClosestMeaningQuizPage() {
             evaluation.tags
           );
         } else {
-          targetDifficulty = exerciseProgress.lastDifficulty || "easy";
+          if ("lastDifficulty" in exerciseProgress) {
+            targetDifficulty =
+              (exerciseProgress as QuizProgressType).lastDifficulty || "easy";
+          } else {
+            targetDifficulty = "easy";
+          }
           console.log("🆕 First Session - Using difficulty:", targetDifficulty);
         }
 
@@ -226,7 +232,6 @@ export default function ClosestMeaningQuizPage() {
             userId: user?.id,
             targetDifficulty,
             limit: 15,
-            accessToken: tokens?.access,
           }),
           getLexiconData(),
         ]);
@@ -257,7 +262,7 @@ export default function ClosestMeaningQuizPage() {
       }
     }
     loadQuiz();
-  }, [user?.id, tokens?.access]);
+  }, [user?.id]);
 
   if (authLoading) {
     return (
@@ -470,7 +475,6 @@ export default function ClosestMeaningQuizPage() {
           userId: user?.id,
           targetDifficulty: currentDifficulty,
           limit: 15,
-          accessToken: tokens?.access,
         }),
         getLexiconData(),
       ]);

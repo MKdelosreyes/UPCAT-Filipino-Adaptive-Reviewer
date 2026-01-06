@@ -115,7 +115,7 @@ export default function GrammarFillBlanksPage() {
   const { updateProgress } = useGrammarProgress();
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
   const [fillBlanksQuestions, setFillBlanksQuestions] = useState<
@@ -159,7 +159,6 @@ export default function GrammarFillBlanksPage() {
             targetDifficulty,
             exerciseType: "fill-blanks", // Note: backend ignores this but kept for API compatibility
             limit: 20, // Get more items for better variety
-            accessToken: tokens?.access,
           }),
           getLexiconData(),
         ]);
@@ -215,7 +214,7 @@ export default function GrammarFillBlanksPage() {
     if (!authLoading) {
       loadQuestions();
     }
-  }, [user?.id, tokens?.access, authLoading, getPerformanceHistory]);
+  }, [user?.id, authLoading, getPerformanceHistory]);
 
   if (authLoading) {
     return (
@@ -403,7 +402,6 @@ export default function GrammarFillBlanksPage() {
           targetDifficulty,
           exerciseType: "fill-blanks",
           limit: 20,
-          accessToken: tokens?.access,
         }),
         getLexiconData(),
       ]);

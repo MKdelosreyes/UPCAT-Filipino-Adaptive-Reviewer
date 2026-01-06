@@ -17,6 +17,7 @@ import {
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import type { QuizProgress } from "@/contexts/LearningProgressContext";
 
 interface ErrorAnswer {
   isCorrect: boolean;
@@ -149,7 +150,7 @@ export default function ErrorIdentificationPage() {
   const { updateProgress, getExerciseProgress } = useGrammarProgress();
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
 
   const [errorQuestions, setErrorQuestions] = useState<ProcessedErrorItem[]>(
     []
@@ -196,7 +197,13 @@ export default function ErrorIdentificationPage() {
             evaluation.tags
           );
         } else {
-          targetDifficulty = exerciseProgress.lastDifficulty || "easy";
+          // Type guard to check if it's QuizProgress
+          if ("lastDifficulty" in exerciseProgress) {
+            targetDifficulty =
+              (exerciseProgress as QuizProgress).lastDifficulty || "easy";
+          } else {
+            targetDifficulty = "easy";
+          }
           console.log("🆕 First Session - Using difficulty:", targetDifficulty);
         }
 
@@ -213,7 +220,6 @@ export default function ErrorIdentificationPage() {
           targetDifficulty,
           exerciseType: "error_identification",
           limit: 15,
-          accessToken: tokens?.access,
         });
 
         console.log("📚 Adaptive Error ID Exercises:", exercises.length);
@@ -243,7 +249,7 @@ export default function ErrorIdentificationPage() {
     }
 
     loadQuestions();
-  }, [user?.id, tokens?.access]);
+  }, [user?.id]);
 
   if (authLoading) {
     return (
@@ -426,7 +432,6 @@ export default function ErrorIdentificationPage() {
       status: "completed",
       score: sessionScore,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });
@@ -442,7 +447,6 @@ export default function ErrorIdentificationPage() {
         targetDifficulty: currentDifficulty,
         exerciseType: "error_identification",
         limit: 15,
-        accessToken: tokens?.access,
       });
       const processedItems = convertToErrorFormat(exercises);
       const shuffled = [...processedItems].sort(() => Math.random() - 0.5);

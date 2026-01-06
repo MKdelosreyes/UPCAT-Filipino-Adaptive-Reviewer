@@ -15,12 +15,23 @@ export interface ExerciseProgress {
   id: number;
   exercise_type: string;
   status: string;
+  
+  // Lesson-specific fields
+  time_spent: number; // ✅ ADD: in seconds
+  cards_reviewed: number | null; // ✅ ADD: for flashcards
+  lessons_viewed: number | null; // ✅ ADD: for lesson cards
+  
+  // Quiz-specific fields
   attempts: number;
   best_score: number | null;
   last_score: number | null;
   last_difficulty: string;
+  
+  // Timestamps
   first_attempt_at: string | null;
   last_completed_at: string | null;
+  
+  // Performance history
   performance_history: PerformanceMetrics[];
 }
 
@@ -92,6 +103,9 @@ export async function updateExerciseProgress(
     attempts?: number;
     completedAt?: string;
     lastDifficulty?: string;
+    timeSpent?: number; 
+    cardsReviewed?: number; 
+    lessonsViewed?: number;
     performanceMetrics?: {
       difficulty: string;
       score: number;

@@ -170,21 +170,21 @@ export default function SentenceOrderingPage() {
     };
 
     // Add to performance history
-    addPerformanceMetrics("sentence-construction", "flashcards", metrics);
+    // addPerformanceMetrics("sentence-construction", "flashcards", metrics);
 
     // Evaluate and get next difficulty + tags
     const allHistory = [...history, metrics];
     const evaluation = evaluateUserPerformance(allHistory);
 
     // Update progress with evaluation results
-    updateProgress("flashcards", {
-      status: "completed",
-      score,
-      completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
+    // updateProgress("flashcards", {
+    //   status: "completed",
+    //   score,
+    //   completedAt: new Date().toISOString(),
+    //   attempts: (history.length || 0) + 1,
+    //   lastDifficulty: evaluation.nextDifficulty,
+    //   errorTags: evaluation.tags,
+    // });
 
     setShowCompletion(true);
   };

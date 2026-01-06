@@ -2,15 +2,8 @@
 
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type {
-  ExerciseProgress,
-  ExerciseType,
-} from "@/contexts/LearningProgressContext";
-
-// Re-export types for backward compatibility
-export type {
-  ExerciseType,
-  ExerciseStatus,
-  ExerciseProgress,
+  QuizProgress,
+  SentenceExercise,
 } from "@/contexts/LearningProgressContext";
 
 export type MasteryLevel =
@@ -38,20 +31,19 @@ export interface ExerciseMastery {
 export function useSentenceConstructionProgress() {
   const {
     progress,
-    updateProgress: updateLearningProgress,
+    updateQuizProgress,
     getModuleProgress,
-    getNextRecommended: getNextRecommendedContext,
-    canAccessExercise: canAccessExerciseContext,
+    getNextRecommended,
+    canAccessExercise,
   } = useLearningProgress();
 
   const getSentenceConstructionMastery = (): SentenceConstructionMastery => {
     const sentenceConstruction = progress["sentence-construction"];
 
-    // Aggregate all exercise histories
+    // ✅ FIX: Use correct exercise names from context
     const allHistory = [
-      ...sentenceConstruction.flashcards.performanceHistory, // maps to sentence-ordering
-      ...sentenceConstruction.quiz.performanceHistory, // maps to fill-missing
-      ...sentenceConstruction["complete-sentence"].performanceHistory, // maps to create-sentence
+      ...sentenceConstruction["complete-sentence"].performanceHistory,
+      ...sentenceConstruction["sentence-ordering"].performanceHistory,
     ];
 
     if (allHistory.length === 0) {
@@ -65,9 +57,8 @@ export function useSentenceConstructionProgress() {
 
     // Get current difficulty (highest across exercises)
     const difficulties = [
-      sentenceConstruction.flashcards.lastDifficulty,
-      sentenceConstruction.quiz.lastDifficulty,
       sentenceConstruction["complete-sentence"].lastDifficulty,
+      sentenceConstruction["sentence-ordering"].lastDifficulty,
     ];
 
     const currentDiff = difficulties.reduce((max, diff) => {
@@ -91,7 +82,7 @@ export function useSentenceConstructionProgress() {
         ? scoresAtDiff.reduce((a, b) => a + b, 0) / scoresAtDiff.length
         : 0;
 
-    // Determine mastery level based on sessions and performance
+    // Determine mastery level
     if (currentDiff === "hard" && sessionsAtDiff >= 5 && avgScore >= 90) {
       return {
         level: "master",
@@ -136,7 +127,7 @@ export function useSentenceConstructionProgress() {
     };
   };
 
-  const getExerciseMastery = (exercise: ExerciseProgress): ExerciseMastery => {
+  const getExerciseMastery = (exercise: QuizProgress): ExerciseMastery => {
     const currentDiff = exercise.lastDifficulty;
     const history = exercise.performanceHistory.filter(
       (h) => h.difficulty === currentDiff
@@ -178,27 +169,19 @@ export function useSentenceConstructionProgress() {
     };
   };
 
-  const getExerciseProgress = (
-    exercise: "sentence-ordering" | "fill-missing" | "complete-the-sentence"
-  ): ExerciseProgress => {
-    // Map custom exercise names to standard ExerciseType
-    const mapping: Record<string, ExerciseType> = {
-      "sentence-ordering": "flashcards",
-      "fill-missing": "quiz",
-      "complete-the-sentence": "complete-sentence",
-    };
-    return progress["sentence-construction"][mapping[exercise]];
+  // ✅ FIX: Use correct exercise names
+  const getExerciseProgress = (exercise: SentenceExercise): QuizProgress => {
+    return progress["sentence-construction"][exercise];
   };
 
   return {
     progress: progress["sentence-construction"],
-    updateProgress: (exercise: ExerciseType, data: Partial<ExerciseProgress>) =>
-      updateLearningProgress("sentence-construction", exercise, data),
+    updateProgress: (exercise: SentenceExercise, data: Partial<QuizProgress>) =>
+      updateQuizProgress("sentence-construction", exercise, data),
     getOverallProgress: () => getModuleProgress("sentence-construction"),
-    getNextRecommended: () =>
-      getNextRecommendedContext("sentence-construction"),
-    canAccessExercise: (exercise: ExerciseType) =>
-      canAccessExerciseContext("sentence-construction", exercise),
+    getNextRecommended: () => getNextRecommended("sentence-construction"),
+    canAccessExercise: (exercise: SentenceExercise) =>
+      canAccessExercise("sentence-construction", exercise),
     getSentenceConstructionMastery,
     getExerciseMastery,
     getExerciseProgress,

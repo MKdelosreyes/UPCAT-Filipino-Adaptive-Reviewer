@@ -81,21 +81,21 @@ export default function SentenceConstructionPage() {
             url="/sentence-construction/ordering"
             exerciseType="sentence-ordering"
           />
-          <SentenceConstructionCard
+          {/* <SentenceConstructionCard
             name="Fill Missing Words"
             description="Complete sentences with the right phrases"
             imagePath="/art/card2.png"
             color="bg-orange-50"
             url="/sentence-construction/fill-missing"
             exerciseType="fill-missing"
-          />
+          /> */}
           <SentenceConstructionCard
             name="Create a Sentence"
             description="Write your own sentences with AI review"
             imagePath="/art/card3.png"
             color="bg-red-50"
             url="/sentence-construction/create"
-            exerciseType="create-sentence"
+            exerciseType="complete-sentence"
           />
         </div>
       </div>

@@ -9,7 +9,6 @@ import {
 } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -20,9 +19,15 @@ interface User {
   email_confirmed: boolean;
 }
 
+interface AuthTokens {
+  access: string;
+  refresh: string;
+}
+
 interface AuthContextType {
   user: User | null;
   supabaseUser: SupabaseUser | null;
+  tokens: AuthTokens | null;
   logout: () => Promise<void>;
   isLoading: boolean;
   refreshUser: () => Promise<void>;
@@ -33,6 +38,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
+  const [tokens, setTokens] = useState<AuthTokens | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const mapSupabaseUser = (sbUser: SupabaseUser | null): User | null => {
@@ -54,18 +60,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshUser = async () => {
+    // ✅ FIX: getSession() only returns session, get user from session.user
     const {
-      data: { user: sbUser },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const sbUser = session?.user || null;
+
     setSupabaseUser(sbUser);
     setUser(mapSupabaseUser(sbUser));
+
+    if (session) {
+      setTokens({
+        access: session.access_token,
+        refresh: session.refresh_token,
+      });
+    } else {
+      setTokens(null);
+    }
   };
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSupabaseUser(session?.user || null);
-      setUser(mapSupabaseUser(session?.user || null));
+      const sbUser = session?.user || null;
+
+      setSupabaseUser(sbUser);
+      setUser(mapSupabaseUser(sbUser));
+
+      if (session) {
+        const tokens = {
+          access: session.access_token,
+          refresh: session.refresh_token,
+        };
+        setTokens(tokens);
+        localStorage.setItem("tokens", JSON.stringify(tokens));
+      } else {
+        setTokens(null);
+        localStorage.removeItem("tokens");
+      }
+
       setIsLoading(false);
     });
 
@@ -73,8 +107,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSupabaseUser(session?.user || null);
-      setUser(mapSupabaseUser(session?.user || null));
+      const sbUser = session?.user || null;
+
+      setSupabaseUser(sbUser);
+      setUser(mapSupabaseUser(sbUser));
+
+      if (session) {
+        setTokens({
+          access: session.access_token,
+          refresh: session.refresh_token,
+        });
+      } else {
+        setTokens(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -84,11 +129,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setUser(null);
     setSupabaseUser(null);
+    setTokens(null);
+    localStorage.removeItem("tokens");
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, supabaseUser, logout, isLoading, refreshUser }}
+      value={{
+        user,
+        supabaseUser,
+        tokens,
+        logout,
+        isLoading,
+        refreshUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

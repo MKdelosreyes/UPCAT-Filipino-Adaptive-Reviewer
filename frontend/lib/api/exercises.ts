@@ -36,7 +36,7 @@ export async function getVocabularyExercises(): Promise<VocabularyExerciseItem[]
 }
 
 export async function getVocabularyExercisesAdaptive(params: {
-  userId?: number;
+  userId?: string;
   targetDifficulty?: "easy" | "medium" | "hard";
   limit?: number;
   accessToken?: string;
@@ -57,7 +57,7 @@ export async function getVocabularyExercisesAdaptive(params: {
 // }
 
 export async function getGrammarExercisesAdaptive(params: {
-  userId?: number;
+  userId?: string;
   targetDifficulty?: "easy" | "medium" | "hard";
   exerciseType?: "error_identification" | "fill-blanks";
   limit?: number;

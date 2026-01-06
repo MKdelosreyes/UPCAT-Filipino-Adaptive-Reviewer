@@ -1,18 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, CheckCircle, RotateCcw, X, Trash2 } from "lucide-react";
 import Link from "next/link";
 import Flashcard from "@/components/vocabulary/flashcard-exercise/Flashcard";
 import FlashcardProgress from "@/components/vocabulary/flashcard-exercise/FlashcardProgress";
 import { useReviewDeck } from "@/contexts/ReviewDeckProvider";
-import { vocabularyData } from "@/data/vocabulary-dataset";
+import { getLexiconData, type LexiconItem } from "@/lib/api/exercises";
+import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 
 type CardStatus = "unseen" | "learning" | "mastered";
 
+interface ReviewCardData {
+  lemma_id: string;
+  word: string;
+  meaning: string;
+  example: string;
+}
+
 interface CardState {
-  id: number;
+  lemma_id: string;
   status: CardStatus;
   flips: number;
 }
@@ -20,21 +28,61 @@ interface CardState {
 export default function ReviewDeckPage() {
   const { reviewDeck, removeFromReviewDeck, clearReviewDeck } = useReviewDeck();
 
-  // Get words from review deck
-  const reviewWords = vocabularyData.filter((word) =>
-    reviewDeck.includes(word.id)
-  );
-
+  const [reviewWords, setReviewWords] = useState<ReviewCardData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [cardStates, setCardStates] = useState<CardState[]>(
-    reviewWords.map((word) => ({ id: word.id, status: "unseen", flips: 0 }))
-  );
+  const [cardStates, setCardStates] = useState<CardState[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (reviewWords.length === 0) {
+  // Load lexicon data for review deck words
+  useEffect(() => {
+    async function loadReviewWords() {
+      if (reviewDeck.length === 0) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const lexiconData = await getLexiconData();
+
+        // Filter lexicon items that are in the review deck
+        const reviewItems: ReviewCardData[] = lexiconData
+          .filter((item: LexiconItem) => reviewDeck.includes(item.lemma_id))
+          .map((item: LexiconItem) => ({
+            lemma_id: item.lemma_id,
+            word: item.lemma,
+            meaning: item.base_definition,
+            example: `Example: ${item.lemma}`, // You can enhance this with real examples
+          }));
+
+        setReviewWords(reviewItems);
+        setCardStates(
+          reviewItems.map((word) => ({
+            lemma_id: word.lemma_id,
+            status: "unseen" as CardStatus,
+            flips: 0,
+          }))
+        );
+        setError(null);
+      } catch (err) {
+        console.error("❌ Failed to load review deck:", err);
+        setError("Failed to load review deck. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadReviewWords();
+  }, [reviewDeck]);
+
+  // Empty State
+  if (!isLoading && reviewWords.length === 0) {
     return (
-      <div className="h-screen bg-blue-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+      <div className="h-screen max-h-screen overflow-hidden flex flex-col bg-blue-50">
+        <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
           <Link
             href="/vocabulary"
             className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
@@ -42,9 +90,12 @@ export default function ReviewDeckPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          <h1 className="text-xl md:text-2xl font-bold text-blue-900">
-            Review Deck
-          </h1>
+          <div className="text-center flex-1 px-4">
+            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+              Review Deck
+            </h1>
+            <p className="text-xs text-gray-500 mt-1">Review saved words</p>
+          </div>
           <div className="w-20"></div>
         </div>
 
@@ -54,16 +105,46 @@ export default function ReviewDeckPage() {
             <h2 className="text-2xl font-bold text-gray-700">
               Your Review Deck is Empty
             </h2>
-            <p className="text-gray-600">
-              Add words from exercises to review them later!
+            <p className="text-gray-600 max-w-md">
+              Add words from flashcards by clicking the bookmark button to
+              review them later!
             </p>
             <Link
-              href="/vocabulary"
+              href="/vocabulary/flashcards"
               className="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
             >
-              Go to Exercises
+              Go to Flashcards
             </Link>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading State
+  if (isLoading) {
+    return (
+      <div className="h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-blue-600 font-semibold">Loading review deck...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <div className="h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <p className="text-red-600 font-semibold mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -79,35 +160,113 @@ export default function ReviewDeckPage() {
   const isLastCard = currentIndex === reviewWords.length - 1;
 
   const handleFlip = () => {
+    if (isProcessing) return;
+
     const newStates = [...cardStates];
     newStates[currentIndex].flips++;
     setCardStates(newStates);
     setIsFlipped(!isFlipped);
   };
 
-  const handleKnowIt = () => {
-    const newStates = [...cardStates];
-    newStates[currentIndex].status = "mastered";
-    setCardStates(newStates);
-    removeFromReviewDeck(currentWord.id);
-    nextCard();
+  const handleKnowIt = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    try {
+      // Report performance
+      await reportLexicalItemPerformance({
+        module: "vocabulary",
+        exerciseType: "flashcards",
+        lemmaId: currentWord.lemma_id,
+        correctAnswer: currentWord.word,
+        userAnswer: currentWord.word,
+        difficultyShown: "easy",
+        score: 100,
+      });
+
+      // Update card state
+      const newStates = [...cardStates];
+      newStates[currentIndex].status = "mastered";
+      setCardStates(newStates);
+
+      // Remove from review deck
+      removeFromReviewDeck(currentWord.lemma_id);
+
+      // Move to next card or finish
+      if (isLastCard) {
+        // If this was the last card, go back to first unmastered card or show completion
+        const remainingCards = newStates.filter((c) => c.status !== "mastered");
+        if (remainingCards.length === 0) {
+          // All cards mastered
+          setCurrentIndex(0);
+          setIsFlipped(false);
+        } else {
+          const nextUnmasteredIndex = newStates.findIndex(
+            (c, idx) => idx > currentIndex && c.status !== "mastered"
+          );
+          if (nextUnmasteredIndex !== -1) {
+            setIsFlipped(false);
+            setTimeout(() => setCurrentIndex(nextUnmasteredIndex), 300);
+          } else {
+            setCurrentIndex(0);
+            setIsFlipped(false);
+          }
+        }
+      } else {
+        nextCard();
+      }
+    } catch (error) {
+      console.error("Failed to report performance:", error);
+      // Still proceed with local state update
+      const newStates = [...cardStates];
+      newStates[currentIndex].status = "mastered";
+      setCardStates(newStates);
+      removeFromReviewDeck(currentWord.lemma_id);
+      nextCard();
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleStillLearning = () => {
-    const newStates = [...cardStates];
-    if (newStates[currentIndex].status === "unseen") {
-      newStates[currentIndex].status = "learning";
+  const handleStillLearning = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    try {
+      // Report performance
+      await reportLexicalItemPerformance({
+        module: "vocabulary",
+        exerciseType: "flashcards",
+        lemmaId: currentWord.lemma_id,
+        correctAnswer: currentWord.word,
+        userAnswer: "",
+        difficultyShown: "easy",
+        score: 0,
+      });
+
+      // Update card state
+      const newStates = [...cardStates];
+      if (newStates[currentIndex].status === "unseen") {
+        newStates[currentIndex].status = "learning";
+      }
+      setCardStates(newStates);
+      nextCard();
+    } catch (error) {
+      console.error("Failed to report performance:", error);
+      const newStates = [...cardStates];
+      if (newStates[currentIndex].status === "unseen") {
+        newStates[currentIndex].status = "learning";
+      }
+      setCardStates(newStates);
+      nextCard();
+    } finally {
+      setIsProcessing(false);
     }
-    setCardStates(newStates);
-    nextCard();
   };
 
   const nextCard = () => {
-    if (isLastCard) {
-      setCurrentIndex(0);
-      setIsFlipped(false);
-    } else {
-      setIsFlipped(false);
+    setIsFlipped(false);
+    if (!isLastCard) {
       setTimeout(() => {
         setCurrentIndex((prev) => prev + 1);
       }, 300);
@@ -118,46 +277,56 @@ export default function ReviewDeckPage() {
     setCurrentIndex(0);
     setIsFlipped(false);
     setCardStates(
-      reviewWords.map((word) => ({ id: word.id, status: "unseen", flips: 0 }))
+      reviewWords.map((word) => ({
+        lemma_id: word.lemma_id,
+        status: "unseen" as CardStatus,
+        flips: 0,
+      }))
     );
+    setIsProcessing(false);
   };
 
   const handleClearAll = () => {
     if (
-      confirm("Are you sure you want to clear all cards from the review deck?")
+      confirm("Are you sure you want to remove all cards from the review deck?")
     ) {
       clearReviewDeck();
     }
   };
 
   return (
-    <div className="h-screen bg-blue-50 overflow-auto flex flex-col scrollbar-blue">
+    <div className="h-screen max-h-screen overflow-hidden flex flex-col bg-purple-50">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+      <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
         <Link
           href="/vocabulary"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+          className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
-        <h1 className="text-xl md:text-2xl font-bold text-blue-900">
-          Review Deck ({reviewWords.length} cards)
-        </h1>
-        <div className="w-20" />
-      </div>
 
-      <div className="flex gap-2">
+        <div className="text-center flex-1 px-4">
+          <h1 className="text-xl md:text-2xl font-bold text-purple-900">
+            Review Deck ({reviewWords.length} cards)
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">Review your saved words</p>
+        </div>
+
+        <div className="flex gap-2">
           <button
             onClick={handleClearAll}
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold text-sm"
+            disabled={isProcessing}
+            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Clear all cards"
           >
             <Trash2 className="w-4 h-4" />
-            <span className="hidden md:inline">Clear All</span>
+            <span className="hidden md:inline">Clear</span>
           </button>
           <button
             onClick={handleReset}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm"
+            disabled={isProcessing}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RotateCcw className="w-4 h-4" />
             <span className="hidden md:inline">Reset</span>
@@ -166,15 +335,20 @@ export default function ReviewDeckPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-center px-4 md:px-8 py-6 space-y-6 max-w-4xl mx-auto w-full">
-        <FlashcardProgress
-          current={currentIndex}
-          total={reviewWords.length}
-          masteredCount={masteredCount}
-          learningCount={learningCount}
-        />
+      <div className="flex-1 flex flex-col px-4 md:px-8 py-4 md:py-6 gap-3 md:gap-4 max-w-4xl mx-auto w-full min-h-0 overflow-y-auto scrollbar-purple md:overflow-hidden">
+        {/* Progress */}
+        <div className="flex-shrink-0">
+          <FlashcardProgress
+            current={currentIndex}
+            total={reviewWords.length}
+            masteredCount={masteredCount}
+            learningCount={learningCount}
+            wordId={currentWord.lemma_id}
+          />
+        </div>
 
-        <div className="flex justify-center">
+        {/* Flashcard */}
+        <div className="flex-shrink-0 md:flex-1 flex items-center justify-center md:min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -182,7 +356,7 @@ export default function ReviewDeckPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.3 }}
-              className="w-full"
+              className="w-full h-full flex items-center justify-center"
             >
               <Flashcard
                 word={currentWord.word}
@@ -190,31 +364,34 @@ export default function ReviewDeckPage() {
                 example={currentWord.example}
                 isFlipped={isFlipped}
                 onFlip={handleFlip}
-                wordId={currentWord.id}
+                wordId={currentWord.lemma_id}
               />
             </motion.div>
           </AnimatePresence>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-2xl mx-auto w-full">
+        {/* Buttons */}
+        <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-2xl mx-auto w-full">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={!isProcessing ? { scale: 1.05 } : {}}
+            whileTap={!isProcessing ? { scale: 0.95 } : {}}
             onClick={handleStillLearning}
-            className="flex items-center justify-center gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-4 px-8 rounded-xl shadow-lg transition-colors border-2 border-orange-300 flex-1"
+            disabled={isProcessing}
+            className="flex items-center justify-center gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-orange-300 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="w-5 h-5" />
-            <span>Still Learning</span>
+            <span>{isProcessing ? "..." : "Still Learning"}</span>
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={!isProcessing ? { scale: 1.05 } : {}}
+            whileTap={!isProcessing ? { scale: 0.95 } : {}}
             onClick={handleKnowIt}
-            className="flex items-center justify-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 font-bold py-4 px-8 rounded-xl shadow-lg transition-colors border-2 border-green-300 flex-1"
+            disabled={isProcessing}
+            className="flex items-center justify-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-green-300 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <CheckCircle className="w-5 h-5" />
-            <span>Mastered (Remove)</span>
+            <span>{isProcessing ? "..." : "Mastered (Remove)"}</span>
           </motion.button>
         </div>
       </div>

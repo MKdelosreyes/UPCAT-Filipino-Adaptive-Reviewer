@@ -185,6 +185,14 @@ export function useVocabularyProgress() {
     };
   };
 
+  const getQuizProgress = (exercise: "quiz" | "antonym"): QuizProgress => {
+    return progress.vocabulary[exercise];
+  };
+
+  const getLessonProgress = (exercise: "flashcards"): LessonProgress => {
+    return progress.vocabulary[exercise];
+  };
+
   const getExerciseProgress = (
     exercise: VocabularyExercise
   ): LessonProgress | QuizProgress => {
@@ -217,8 +225,10 @@ export function useVocabularyProgress() {
     canAccessExercise: (exercise: VocabularyExercise) =>
       canAccessExercise("vocabulary", exercise),
     getVocabularyMastery,
-    getExerciseMastery, // ✅ Now properly typed for QuizProgress only
+    getExerciseMastery,
     getExerciseProgress,
+    getQuizProgress,
+    getLessonProgress,
     isLessonExercise: (exercise: VocabularyExercise) =>
       isLessonExercise("vocabulary", exercise),
   };

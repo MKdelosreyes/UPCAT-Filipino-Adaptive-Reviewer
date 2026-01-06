@@ -13,7 +13,7 @@ interface SentenceConstructionCardProps {
   imagePath: string;
   color: string;
   url: string;
-  exerciseType: "sentence-ordering" | "fill-missing" | "create-sentence";
+  exerciseType: "sentence-ordering" | "complete-sentence";
 }
 
 export default function SentenceConstructionCard({

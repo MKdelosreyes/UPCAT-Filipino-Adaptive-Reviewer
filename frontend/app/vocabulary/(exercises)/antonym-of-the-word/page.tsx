@@ -9,6 +9,7 @@ import AntonymProgress from "@/components/vocabulary/antonym-exercise/AntonymPro
 import AntonymCompletionModal from "@/components/vocabulary/antonym-exercise/AntonymCompletionModal";
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import type { QuizProgress } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getVocabularyExercisesAdaptive,
@@ -174,9 +175,11 @@ async function generateAntonymQuestionsFromService(
 
 export default function AntonymExercisePage() {
   const { updateProgress, getExerciseProgress } = useVocabularyProgress();
+  // const { getQuizProgress } = useVocabularyProgress();
+  // const exerciseProgress = getQuizProgress("quiz");
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
 
   const [questions, setQuestions] = useState<AntonymItem[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -219,7 +222,12 @@ export default function AntonymExercisePage() {
             evaluation.tags
           );
         } else {
-          targetDifficulty = exerciseProgress.lastDifficulty || "easy";
+          if ("lastDifficulty" in exerciseProgress) {
+            targetDifficulty =
+              (exerciseProgress as QuizProgress).lastDifficulty || "easy";
+          } else {
+            targetDifficulty = "easy";
+          }
           console.log("🆕 First Session - Using difficulty:", targetDifficulty);
         }
 
@@ -235,7 +243,6 @@ export default function AntonymExercisePage() {
             userId: user?.id,
             targetDifficulty,
             limit: 15,
-            accessToken: tokens?.access,
           }),
           getLexiconData(),
         ]);
@@ -266,7 +273,7 @@ export default function AntonymExercisePage() {
       }
     }
     loadQuestions();
-  }, [user?.id, tokens?.access]);
+  }, [user?.id]);
 
   if (authLoading) {
     return (
@@ -473,7 +480,6 @@ export default function AntonymExercisePage() {
           userId: user?.id,
           targetDifficulty: currentDifficulty,
           limit: 15,
-          accessToken: tokens?.access,
         }),
         getLexiconData(),
       ]);

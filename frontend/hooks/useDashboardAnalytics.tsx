@@ -445,15 +445,30 @@ export function useDashboardAnalytics() {
     if (averageAccuracy < 60) commonMistakes.push("Core concepts");
 
     const strongAreas: string[] = [];
+    // adding optional chaining to safely check strength
     if (
-      skillAreas.find((s) => s.skill === "Word Recognition")?.strength >= 75
+      (skillAreas.find((s) => s.skill === "Word Recognition")?.strength ?? 0) >=
+      75
     ) {
       strongAreas.push("Vocabulary");
     }
     if (
-      skillAreas.find((s) => s.skill === "Grammar Accuracy")?.strength >= 75
+      (skillAreas.find((s) => s.skill === "Grammar Accuracy")?.strength ?? 0) >=
+      75
     ) {
       strongAreas.push("Grammar");
+    }
+    if (
+      (skillAreas.find((s) => s.skill === "Sentence Building")?.strength ??
+        0) >= 75
+    ) {
+      strongAreas.push("Sentence Construction");
+    }
+    if (
+      (skillAreas.find((s) => s.skill === "Reading Understanding")?.strength ??
+        0) >= 75
+    ) {
+      strongAreas.push("Reading Comprehension");
     }
 
     // Count total attempts from quiz exercises only
@@ -466,6 +481,17 @@ export function useDashboardAnalytics() {
       totalAttempts += progress.grammar["error-identification"].attempts;
     if (progress.grammar["fill-blanks"])
       totalAttempts += progress.grammar["fill-blanks"].attempts;
+    if (progress["sentence-construction"]["complete-sentence"])
+      totalAttempts +=
+        progress["sentence-construction"]["complete-sentence"].attempts;
+    if (progress["sentence-construction"]["sentence-ordering"])
+      totalAttempts +=
+        progress["sentence-construction"]["sentence-ordering"].attempts;
+    if (progress["reading-comprehension"]["passage-questions"])
+      totalAttempts +=
+        progress["reading-comprehension"]["passage-questions"].attempts;
+    if (progress["reading-comprehension"].comprehension)
+      totalAttempts += progress["reading-comprehension"].comprehension.attempts;
 
     const daysSinceStart = 30;
     let studyFrequency: "daily" | "frequent" | "occasional" | "rare" = "rare";
