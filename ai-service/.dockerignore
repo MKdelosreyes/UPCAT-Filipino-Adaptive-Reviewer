@@ -1,7 +1,43 @@
-venv/
-virtenv/
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+virtenv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files (secrets shouldn't be in image)
 .env
-.git
+.env.local
+.env.*.local
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Git
+.git/
 .gitignore
-*.pyc
+
+# Documentation
+*.md
+README.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

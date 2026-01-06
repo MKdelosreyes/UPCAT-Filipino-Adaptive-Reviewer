@@ -29,10 +29,11 @@ except ImportError as e:
 
 # Verify OpenAI API key exists
 api_key = os.getenv("OPENAI_API_KEY")
-if not api_key or api_key == "your_openai_api_key_here":
+if not api_key or api_key == "your-api-key-here":
     print("❌ ERROR: OPENAI_API_KEY not set in .env file")
     print("Please edit ai-service/.env and add your OpenAI API key")
-    sys.exit(1)
+    raise RuntimeError(
+        "OPENAI_API_KEY environment variable is required but not set")
 
 # Import OpenAI after env check
 try:
@@ -74,8 +75,11 @@ app = FastAPI(
 )
 
 # CORS Configuration
-allowed_origins = os.getenv(
-    "ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+
+print(f"🔒 CORS allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -748,7 +752,19 @@ async def startup_event():
     print("\n" + "="*60)
     print("🚀 UPCAT Filipino AI Service Starting...")
     print("="*60)
-    print(f"✅ OpenAI API Key: {'Configured' if api_key else 'Missing'}")
+
+    # ✅ Production-safe environment check
+    env = os.getenv("ENVIRONMENT", "development")
+    print(f"🌍 Environment: {env}")
+    print(f"✅ OpenAI API Key: {'Configured' if api_key else '❌ MISSING'}")
+
+    # ✅ Fail fast if critical config missing
+    if not api_key:
+        print("❌ CRITICAL: OpenAI API key not configured!")
+        if env == "production":
+            raise RuntimeError(
+                "Cannot start: OPENAI_API_KEY is required in production")
+
     print(f"✅ Vocabulary Data: {len(vocabulary_data)} words loaded")
     print(f"✅ Lexicon Data: {len(lexicon_data)} entries loaded")
     print(f"✅ Grammar Data: {len(grammar_data)} exercises loaded")
@@ -756,9 +772,12 @@ async def startup_event():
         f"✅ Explain Handler: {'Loaded' if handle_explain else 'Not Available'}")
     print(
         f"✅ Redefine Handler: {'Loaded' if handle_redefine else 'Not Available'}")
+    print(f"✅ Tips Handler: {'Loaded' if handle_tips else 'Not Available'}")
+
+    port = int(os.getenv("PORT", 8000))
     print("="*60)
-    print(f"🌐 Server running on http://localhost:8001")
-    print(f"📚 API Docs: http://localhost:8001/docs")
+    print(f"🌐 Server will run on port: {port}")
+    print(f"📚 API Docs: http://localhost:{port}/docs")
     print("="*60 + "\n")
 
 
