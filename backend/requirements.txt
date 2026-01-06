@@ -12,3 +12,6 @@ google-auth-oauthlib>=1.0.0
 pyjwt[crypto] 
 cryptography 
 requests
+dj_database_url
+gunicorn
+whitenoise
