@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib. auth import authenticate, get_user_model
+from django.http import JsonResponse
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.conf import settings
@@ -16,6 +17,17 @@ from . serializers import (
 )
 
 User = get_user_model()
+
+
+@api_view(['GET', 'OPTIONS'])
+@permission_classes([AllowAny])
+def cors_test(request):
+    """Test endpoint to verify CORS is working"""
+    return JsonResponse({
+        'message': 'CORS is working!',
+        'origin': request.META.get('HTTP_ORIGIN', 'No origin header'),
+        'method': request.method,
+    })
 
 
 def get_tokens_for_user(user):

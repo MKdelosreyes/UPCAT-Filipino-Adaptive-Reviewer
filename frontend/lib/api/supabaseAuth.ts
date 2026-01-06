@@ -3,21 +3,32 @@ import { supabase } from "@/lib/supabase";
 export interface SignUpData {
   email: string;
   password: string;
-  first_name: string; 
-  last_name: string; 
+  first_name: string;
+  last_name: string;
 }
 
-// Email/Password Sign Up (with email confirmation)
+// Helper to get correct redirect URL
+const getRedirectURL = () => {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/auth/callback`;
+  }
+
+  return process.env.NEXT_PUBLIC_SITE_URL 
+    ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+    : 'http://localhost:3000/auth/callback';
+};
+
+// Email/Password Sign Up
 export async function signUp(data: SignUpData) {
   const { data: authData, error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
     options: {
       data: {
-        first_name: data.first_name || "", // Provide default empty string
-        last_name: data.last_name || "", // Provide default empty string
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
       },
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
+      emailRedirectTo: getRedirectURL(),
     },
   });
 
@@ -38,10 +49,18 @@ export async function signIn(email: string, password: string) {
 
 // Google Sign In
 export async function signInWithGoogle() {
+  const redirectURL = getRedirectURL();
+  
+  console.log('🔗 OAuth Redirect URL:', redirectURL); 
+  
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: redirectURL, 
+      queryParams: {
+        access_type: "offline",
+        prompt: "consent",
+      },
     },
   });
 
