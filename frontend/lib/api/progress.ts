@@ -17,9 +17,9 @@ export interface ExerciseProgress {
   status: string;
   
   // Lesson-specific fields
-  time_spent: number; // ✅ ADD: in seconds
-  cards_reviewed: number | null; // ✅ ADD: for flashcards
-  lessons_viewed: number | null; // ✅ ADD: for lesson cards
+  time_spent: number; 
+  cards_reviewed: number | null;
+  lessons_viewed: number | null; 
   
   // Quiz-specific fields
   attempts: number;
@@ -252,6 +252,14 @@ export interface LexicalPerformanceEvent {
 export async function recordLexicalPerformance(
   event: LexicalPerformanceEvent
 ): Promise<{ message: string }> {
-  const response = await apiClient.post('/api/progress/performance-event/', event);
-  return response.data;
+  try {
+    const response = await apiClient.post("/progress/performance-event/", event); // ✅ Uses apiClient
+    console.log("✅ Lexical performance recorded successfully");
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Failed to record lexical performance:", error);
+    console.error("❌ Error response:", error.response?.data);
+    console.error("❌ Error status:", error.response?.status);
+    throw error;
+  }
 }
