@@ -85,12 +85,12 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
 // API Functions
 export async function getAllProgress(): Promise<ModuleProgress[]> {
-  const response = await apiClient.get('/progress/all/');
+  const response = await apiClient.get('/api/progress/all/');
   return response.data;
 }
 
 export async function getModuleProgress(module: string): Promise<ModuleProgress> {
-  const response = await apiClient.get(`/progress/${module}/`);
+  const response = await apiClient.get(`/api/progress/${module}/`);
   return response.data;
 }
 
@@ -115,7 +115,7 @@ export async function updateExerciseProgress(
     };
   }
 ): Promise<ExerciseProgress> {
-  const response = await apiClient.post(`/progress/${module}/${exercise}/update/`, data);
+  const response = await apiClient.post(`/api/progress/${module}/${exercise}/update/`, data);
   return response.data;
 }
 
@@ -123,12 +123,12 @@ export async function getPerformanceHistory(
   module: string,
   exercise: string
 ): Promise<PerformanceMetrics[]> {
-  const response = await apiClient.get(`/progress/${module}/${exercise}/history/`);
+  const response = await apiClient.get(`/api/progress/${module}/${exercise}/history/`);
   return response.data;
 }
 
 export async function resetProgress(module?: string): Promise<{ message: string }> {
-  const url = module ? `/progress/${module}/reset/` : `/progress/reset/all/`;
+  const url = module ? `/api/progress/${module}/reset/` : `/api/progress/reset/all/`;
   const response = await apiClient.delete(url);
   return response.data;
 }
@@ -154,7 +154,7 @@ export async function getAllSRSCards(): Promise<{
   due_count: number;
   total_count: number;
 }> {
-  const response = await apiClient.get('/progress/srs/all/');
+  const response = await apiClient.get('/api/progress/srs/all/');
   return response.data;
 }
 
@@ -162,7 +162,7 @@ export async function getDueSRSCards(): Promise<{
   cards: SRSCard[];
   count: number;
 }> {
-  const response = await apiClient.get('/progress/srs/due/');
+  const response = await apiClient.get('/api/progress/srs/due/');
   return response.data;
 }
 
@@ -170,12 +170,12 @@ export async function updateSRSCard(
   wordId: number,
   grade: number
 ): Promise<SRSCard> {
-  const response = await apiClient.post(`/progress/srs/${wordId}/update/`, { grade });
+  const response = await apiClient.post(`/api/progress/srs/${wordId}/update/`, { grade });
   return response.data;
 }
 
 export async function resetSRSCard(wordId: number): Promise<{ message: string }> {
-  const response = await apiClient.delete(`/progress/srs/${wordId}/reset/`);
+  const response = await apiClient.delete(`/api/progress/srs/${wordId}/reset/`);
   return response.data;
 }
 
@@ -195,7 +195,7 @@ export async function getReviewDeck(): Promise<{
   cards: ReviewDeckCard[];
   count: number;
 }> {
-  const response = await apiClient.get('/progress/review-deck/');
+  const response = await apiClient.get('/api/progress/review-deck/');
   return response.data;
 }
 
@@ -203,7 +203,7 @@ export async function addToReviewDeck(wordId: number): Promise<{
   card: ReviewDeckCard;
   created: boolean;
 }> {
-  const response = await apiClient.post(`/progress/review-deck/${wordId}/add/`);
+  const response = await apiClient.post(`/api/progress/review-deck/${wordId}/add/`);
   return response.data;
 }
 
@@ -211,14 +211,14 @@ export async function removeFromReviewDeck(wordId: number): Promise<{
   message: string;
   deleted: boolean;
 }> {
-  const response = await apiClient.delete(`/progress/review-deck/${wordId}/remove/`);
+  const response = await apiClient.delete(`/api/progress/review-deck/${wordId}/remove/`);
   return response.data;
 }
 
 export async function updateReviewDeckItem(
   wordId: number
 ): Promise<ReviewDeckCard> {
-  const response = await apiClient.post(`/progress/review-deck/${wordId}/update/`);
+  const response = await apiClient.post(`/api/progress/review-deck/${wordId}/update/`);
   return response.data;
 }
 
@@ -226,7 +226,7 @@ export async function clearReviewDeck(): Promise<{
   message: string;
   deleted_count: number;
 }> {
-  const response = await apiClient.delete('/progress/review-deck/clear/');
+  const response = await apiClient.delete('/api/progress/review-deck/clear/');
   return response.data;
 }
 
@@ -252,6 +252,6 @@ export interface LexicalPerformanceEvent {
 export async function recordLexicalPerformance(
   event: LexicalPerformanceEvent
 ): Promise<{ message: string }> {
-  const response = await apiClient.post('/progress/performance-event/', event);
+  const response = await apiClient.post('/api/progress/performance-event/', event);
   return response.data;
 }
