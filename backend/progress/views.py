@@ -25,6 +25,15 @@ from .services.difficulty import update_lexical_difficulty_for_event
 from .difficulty_serializers import LexicalDifficultySerializer
 
 
+def is_lesson_exercise(module, exercise_type):
+    """Check if an exercise is a lesson (not a quiz)"""
+    lesson_exercises = {
+        'vocabulary': ['flashcards'],
+        'grammar': ['lesson-cards'],
+    }
+    return exercise_type in lesson_exercises.get(module, [])
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def record_lexical_performance(request):
@@ -91,32 +100,32 @@ def record_lexical_performance(request):
         exercise_type=exercise_type,
     )
 
-    exercise_progress.attempts += 1
-    if score is not None:
-        exercise_progress.last_score = score
-        if (
-            exercise_progress.best_score is None
-            or score > exercise_progress.best_score
-        ):
-            exercise_progress.best_score = score
+    if not is_lesson_exercise(module, exercise_type):
+        exercise_progress.attempts += 1
+        if score is not None:
+            exercise_progress.last_score = score
+            if (
+                exercise_progress.best_score is None
+                or score > exercise_progress.best_score
+            ):
+                exercise_progress.best_score = score
 
-    if difficulty_shown is not None:
-        exercise_progress.last_difficulty = difficulty_shown
+        if difficulty_shown is not None:
+            exercise_progress.last_difficulty = difficulty_shown
 
-    # Simple heuristic: mark completed if score >= 80
-    if score is not None and score >= 80:
-        exercise_progress.status = "completed"
+        if score is not None and score >= 80:
+            exercise_progress.status = "completed"
 
-    exercise_progress.save()
+        exercise_progress.save()
 
-    PerformanceMetrics.objects.create(
-        exercise_progress=exercise_progress,
-        difficulty=difficulty_shown or "easy",
-        score=score or (100 if correct else 0),
-        missed_low_freq=0,           # you can start using these later
-        similar_choice_errors=1 if is_confusable_error else 0,
-        error_tags=[],               # can be filled via your rule engine
-    )
+        PerformanceMetrics.objects.create(
+            exercise_progress=exercise_progress,
+            difficulty=difficulty_shown or "easy",
+            score=score or (100 if correct else 0),
+            missed_low_freq=0,
+            similar_choice_errors=1 if is_confusable_error else 0,
+            error_tags=[],
+        )
 
     return Response({"message": "Performance recorded"}, status=status.HTTP_201_CREATED)
 
@@ -220,17 +229,27 @@ def update_exercise_progress(request, module_name, exercise_type):
         # Update exercise progress
         data = request.data
         exercise_progress.status = data.get('status', exercise_progress.status)
-        exercise_progress.attempts = data.get(
-            'attempts', exercise_progress.attempts)
+        is_lesson = is_lesson_exercise(module_name, exercise_type)
 
-        if data.get('score') is not None:
-            exercise_progress.last_score = data['score']
-            # Update best score
-            if exercise_progress.best_score is None or data['score'] > exercise_progress.best_score:
-                exercise_progress.best_score = data['score']
+        if not is_lesson:
+            # For quizzes: increment attempts and update scores
+            if 'score' in data:
+                exercise_progress.attempts += 1
+                exercise_progress.last_score = data['score']
 
-        exercise_progress.last_difficulty = data.get(
-            'lastDifficulty', exercise_progress.last_difficulty)
+                if exercise_progress.best_score is None or data['score'] > exercise_progress.best_score:
+                    exercise_progress.best_score = data['score']
+
+            exercise_progress.last_difficulty = data.get(
+                'lastDifficulty', exercise_progress.last_difficulty)
+        else:
+            # For lessons: track time spent and items reviewed
+            if 'timeSpent' in data:
+                exercise_progress.time_spent = data.get('timeSpent', 0)
+            if 'cardsReviewed' in data:
+                exercise_progress.cards_reviewed = data.get('cardsReviewed', 0)
+            if 'lessonsViewed' in data:
+                exercise_progress.lessons_viewed = data.get('lessonsViewed', 0)
 
         if data.get('completedAt'):
             exercise_progress.last_completed_at = data['completedAt']
@@ -239,8 +258,7 @@ def update_exercise_progress(request, module_name, exercise_type):
 
         exercise_progress.save()
 
-        # Add performance metrics if provided
-        if 'performanceMetrics' in data:
+        if not is_lesson and 'performanceMetrics' in data:
             metrics = data['performanceMetrics']
             PerformanceMetrics.objects.create(
                 exercise_progress=exercise_progress,
@@ -255,12 +273,19 @@ def update_exercise_progress(request, module_name, exercise_type):
         module_progress.last_accessed_at = timezone.now()
 
         # Calculate completion percentage
-        exercises = ExerciseProgress.objects.filter(
+        all_exercises = ExerciseProgress.objects.filter(
             module_progress=module_progress)
-        completed = exercises.filter(status='completed').count()
-        total = exercises.count()
+
+        # Only count quiz exercises for completion
+        quiz_exercises = [ex for ex in all_exercises if not is_lesson_exercise(
+            module_name, ex.exercise_type)]
+        completed_quizzes = [
+            ex for ex in quiz_exercises if ex.status == 'completed']
+
+        # Avoid division by zero
+        total_quizzes = len(quiz_exercises) if quiz_exercises else 1
         module_progress.completion_percentage = int(
-            (completed / total * 100)) if total > 0 else 0
+            (len(completed_quizzes) / total_quizzes * 100))
 
         module_progress.save()
 

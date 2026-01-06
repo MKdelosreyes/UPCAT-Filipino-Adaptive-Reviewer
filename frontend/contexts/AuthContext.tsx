@@ -7,66 +7,88 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { User, AuthTokens, getProfile } from "@/lib/api/auth";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+
+interface User {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  avatar_url?: string;
+  email_confirmed: boolean;
+}
 
 interface AuthContextType {
   user: User | null;
-  tokens: AuthTokens | null;
-  setAuth: (user: User, tokens: AuthTokens) => void;
-  logout: () => void;
+  supabaseUser: SupabaseUser | null;
+  logout: () => Promise<void>;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [tokens, setTokens] = useState<AuthTokens | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedTokens = localStorage.getItem("tokens");
-    const storedUser = localStorage.getItem("user");
+  const mapSupabaseUser = (sbUser: SupabaseUser | null): User | null => {
+    if (!sbUser) return null;
 
-    if (storedTokens && storedUser) {
-      const parsedTokens = JSON.parse(storedTokens);
-      setTokens(parsedTokens);
-      setUser(JSON.parse(storedUser));
-
-      // Verify token validity
-      getProfile(parsedTokens.access)
-        .then(setUser)
-        .catch(() => {
-          // Token expired or invalid - clear auth
-          console.log("Token expired, clearing auth");
-          localStorage.removeItem("tokens");
-          localStorage.removeItem("user");
-          setTokens(null);
-          setUser(null);
-        });
-    }
-
-    setIsLoading(false);
-  }, []);
-
-  const setAuth = (user: User, tokens: AuthTokens) => {
-    setUser(user);
-    setTokens(tokens);
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("tokens", JSON.stringify(tokens));
+    const metadata = sbUser.user_metadata || {};
+    return {
+      id: sbUser.id,
+      email: sbUser.email!,
+      first_name:
+        metadata.first_name || metadata.full_name?.split(" ")[0] || "",
+      last_name:
+        metadata.last_name ||
+        metadata.full_name?.split(" ").slice(1).join(" ") ||
+        "",
+      avatar_url: metadata.avatar_url || sbUser.user_metadata?.picture,
+      email_confirmed: sbUser.email_confirmed_at !== null,
+    };
   };
 
-  const logoutUser = () => {
+  const refreshUser = async () => {
+    const {
+      data: { user: sbUser },
+    } = await supabase.auth.getUser();
+    setSupabaseUser(sbUser);
+    setUser(mapSupabaseUser(sbUser));
+  };
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSupabaseUser(session?.user || null);
+      setUser(mapSupabaseUser(session?.user || null));
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSupabaseUser(session?.user || null);
+      setUser(mapSupabaseUser(session?.user || null));
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    setTokens(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("tokens");
+    setSupabaseUser(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, tokens, setAuth, logout: logoutUser, isLoading }}
+      value={{ user, supabaseUser, logout, isLoading, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

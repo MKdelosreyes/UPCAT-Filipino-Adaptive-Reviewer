@@ -33,29 +33,6 @@ export default function ProgressOverview() {
         <p className="text-xs text-gray-600">Track your learning journey</p>
       </div>
 
-      {/* Overall Progress Card */}
-      {/* <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-xs text-gray-600 font-medium">
-              Overall Completion
-            </p>
-            <p className="text-3xl font-bold text-blue-900">
-              {overallProgress}%
-            </p>
-          </div>
-          <div className="p-3 bg-white rounded-full">
-            <Target className="w-8 h-8 text-blue-600" />
-          </div>
-        </div>
-        <div className="w-full bg-white rounded-full h-3 overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
-            style={{ width: `${overallProgress}%` }}
-          />
-        </div>
-      </div> */}
-
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3">
         {/* Study Streak */}

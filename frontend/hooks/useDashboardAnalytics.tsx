@@ -6,6 +6,9 @@ import type {
   ExerciseType,
   VocabularyProgress,
   GrammarProgress,
+  SentenceProgress,
+  ReadingProgress,
+  QuizProgress,
 } from "@/contexts/LearningProgressContext";
 import { useMemo } from "react";
 
@@ -27,7 +30,7 @@ interface ModuleInsight {
 interface SkillArea {
   skill: string;
   icon: string;
-  strength: number; // 0-100
+  strength: number;
   category: "strength" | "developing" | "needs-attention";
   insights: string[];
   exerciseCount: number;
@@ -55,6 +58,7 @@ export function useDashboardAnalytics() {
     getModuleProgress,
     getPerformanceHistory,
     getModuleExercises,
+    isLessonExercise,
   } = useLearningProgress();
 
   // Calculate module insights
@@ -72,36 +76,54 @@ export function useDashboardAnalytics() {
 
       const exercises = getModuleExercises(module);
 
-      // Count completed exercises
-      let completed = 0;
-      exercises.forEach((ex) => {
-        if (module === "vocabulary" && (ex === "quiz" || ex === "antonym")) {
-          if ((moduleData as VocabularyProgress)[ex].status === "completed")
-            completed++;
-        } else if (
-          module === "grammar" &&
-          (ex === "error-identification" || ex === "fill-blanks")
-        ) {
-          if ((moduleData as GrammarProgress)[ex].status === "completed")
-            completed++;
-        }
-        // similar checks for other modules
-      });
+      // Only count QUIZ exercises (exclude lessons)
+      const quizExercises = exercises.filter(
+        (ex) => !isLessonExercise(module, ex)
+      );
 
-      // Calculate average score
+      // Count completed QUIZ exercises only
+      let completedQuizzes = 0;
       const scores: number[] = [];
-      exercises.forEach((ex) => {
-        if (module === "vocabulary" && (ex === "quiz" || ex === "antonym")) {
-          const score = (moduleData as VocabularyProgress)[ex].score;
-          if (score !== null) scores.push(score);
-        } else if (
-          module === "grammar" &&
-          (ex === "error-identification" || ex === "fill-blanks")
-        ) {
-          const score = (moduleData as GrammarProgress)[ex].score;
-          if (score !== null) scores.push(score);
-        }
-      });
+
+      if (module === "vocabulary") {
+        const vocab = moduleData as VocabularyProgress;
+        if (vocab.quiz.status === "completed") completedQuizzes++;
+        if (vocab.antonym.status === "completed") completedQuizzes++;
+
+        if (vocab.quiz.score !== null) scores.push(vocab.quiz.score);
+        if (vocab.antonym.score !== null) scores.push(vocab.antonym.score);
+      } else if (module === "grammar") {
+        const grammar = moduleData as GrammarProgress;
+        if (grammar["error-identification"].status === "completed")
+          completedQuizzes++;
+        if (grammar["fill-blanks"].status === "completed") completedQuizzes++;
+
+        if (grammar["error-identification"].score !== null)
+          scores.push(grammar["error-identification"].score);
+        if (grammar["fill-blanks"].score !== null)
+          scores.push(grammar["fill-blanks"].score);
+      } else if (module === "sentence-construction") {
+        const sentence = moduleData as SentenceProgress;
+        if (sentence["complete-sentence"].status === "completed")
+          completedQuizzes++;
+        if (sentence["sentence-ordering"].status === "completed")
+          completedQuizzes++;
+
+        if (sentence["complete-sentence"].score !== null)
+          scores.push(sentence["complete-sentence"].score);
+        if (sentence["sentence-ordering"].score !== null)
+          scores.push(sentence["sentence-ordering"].score);
+      } else if (module === "reading-comprehension") {
+        const reading = moduleData as ReadingProgress;
+        if (reading["passage-questions"].status === "completed")
+          completedQuizzes++;
+        if (reading.comprehension.status === "completed") completedQuizzes++;
+
+        if (reading["passage-questions"].score !== null)
+          scores.push(reading["passage-questions"].score);
+        if (reading.comprehension.score !== null)
+          scores.push(reading.comprehension.score);
+      }
 
       const averageScore =
         scores.length > 0
@@ -117,6 +139,7 @@ export function useDashboardAnalytics() {
 
       // Calculate trend (compare recent vs older performance)
       const allHistory = exercises
+        .filter((ex) => !isLessonExercise(module, ex))
         .flatMap((ex) => getPerformanceHistory(module, ex))
         .sort(
           (a, b) =>
@@ -152,7 +175,6 @@ export function useDashboardAnalytics() {
         recommendation = "Completed! Review regularly to maintain mastery";
       }
 
-      // Module names and colors
       const moduleInfo: Record<ModuleType, { name: string; color: string }> = {
         vocabulary: { name: "Vocabulary", color: "yellow" },
         grammar: { name: "Grammar", color: "green" },
@@ -174,20 +196,26 @@ export function useDashboardAnalytics() {
         mastery,
         trend,
         trendValue,
-        completedExercises: completed,
-        totalExercises: exercises.length,
+        completedExercises: completedQuizzes,
+        totalExercises: quizExercises.length,
         averageScore,
         lastActivity: moduleData.lastAccessedAt,
         recommendation,
       };
     });
-  }, [progress, getModuleProgress, getPerformanceHistory, getModuleExercises]);
+  }, [
+    progress,
+    getModuleProgress,
+    getPerformanceHistory,
+    getModuleExercises,
+    isLessonExercise,
+  ]);
 
-  // Analyze skill areas
+  // Analyze skill areas - only use quiz exercises
   const skillAreas = useMemo((): SkillArea[] => {
     const skills: SkillArea[] = [];
 
-    // Vocabulary skills
+    // Vocabulary skills - only count quiz exercises
     const vocabData = progress.vocabulary;
     const vocabScores = [vocabData.quiz.score, vocabData.antonym.score].filter(
       (s): s is number => s !== null
@@ -197,9 +225,13 @@ export function useDashboardAnalytics() {
         ? vocabScores.reduce((a, b) => a + b, 0) / vocabScores.length
         : 0;
 
+    const vocabCompleted = [vocabData.quiz, vocabData.antonym].filter(
+      (ex) => ex.status === "completed"
+    ).length;
+
     skills.push({
       skill: "Word Recognition",
-      icon: "", //📚
+      icon: "📚",
       strength: vocabAvg,
       category:
         vocabAvg >= 75
@@ -211,17 +243,13 @@ export function useDashboardAnalytics() {
         vocabAvg >= 75
           ? "Strong vocabulary foundation"
           : "Practice more with vocabulary exercises",
-        `${
-          vocabData.quiz.attempts + vocabData.antonym.attempts
-        } attempts completed`,
+        `${vocabCompleted}/2 quiz exercises completed`,
       ],
-      exerciseCount: [vocabData.quiz, vocabData.antonym].filter(
-        (ex) => ex.status === "completed"
-      ).length,
+      exerciseCount: vocabCompleted,
       recentScore: vocabScores[vocabScores.length - 1] || null,
     });
 
-    // Grammar skills
+    // Grammar skills - only count quiz exercises
     const grammarData = progress.grammar;
     const grammarScores = [
       grammarData["error-identification"].score,
@@ -232,9 +260,14 @@ export function useDashboardAnalytics() {
         ? grammarScores.reduce((a, b) => a + b, 0) / grammarScores.length
         : 0;
 
+    const grammarCompleted = [
+      grammarData["error-identification"],
+      grammarData["fill-blanks"],
+    ].filter((ex) => ex.status === "completed").length;
+
     skills.push({
       skill: "Grammar Accuracy",
-      icon: "", // ✍️
+      icon: "✍️",
       strength: grammarAvg,
       category:
         grammarAvg >= 75
@@ -246,32 +279,31 @@ export function useDashboardAnalytics() {
         grammarAvg >= 75
           ? "Excellent grammar understanding"
           : "Focus on grammar rules",
-        `${
-          grammarData["error-identification"].attempts +
-          grammarData["fill-blanks"].attempts
-        } attempts completed`,
+        `${grammarCompleted}/2 quiz exercises completed`,
       ],
-      exerciseCount: [
-        grammarData["error-identification"],
-        grammarData["fill-blanks"],
-      ].filter((ex) => ex.status === "completed").length,
+      exerciseCount: grammarCompleted,
       recentScore: grammarScores[grammarScores.length - 1] || null,
     });
 
     // Sentence construction skills
     const sentenceData = progress["sentence-construction"];
     const sentenceScores = [
-      sentenceData.flashcards?.score,
-      sentenceData.quiz?.score,
+      sentenceData["complete-sentence"].score,
+      sentenceData["sentence-ordering"].score,
     ].filter((s): s is number => s !== null);
     const sentenceAvg =
       sentenceScores.length > 0
         ? sentenceScores.reduce((a, b) => a + b, 0) / sentenceScores.length
         : 0;
 
+    const sentenceCompleted = [
+      sentenceData["complete-sentence"],
+      sentenceData["sentence-ordering"],
+    ].filter((ex) => ex.status === "completed").length;
+
     skills.push({
       skill: "Sentence Building",
-      icon: "", // 🔧
+      icon: "🔧",
       strength: sentenceAvg,
       category:
         sentenceAvg >= 75
@@ -283,28 +315,31 @@ export function useDashboardAnalytics() {
         sentenceAvg >= 75
           ? "Great sentence construction skills"
           : "Practice building sentences",
-        `Progress: ${getModuleProgress("sentence-construction")}%`,
+        `${sentenceCompleted}/2 quiz exercises completed`,
       ],
-      exerciseCount: [sentenceData.flashcards, sentenceData.quiz].filter(
-        (ex) => ex?.status === "completed"
-      ).length,
+      exerciseCount: sentenceCompleted,
       recentScore: sentenceScores[sentenceScores.length - 1] || null,
     });
 
     // Reading comprehension
     const readingData = progress["reading-comprehension"];
     const readingScores = [
-      readingData.flashcards?.score,
-      readingData.quiz?.score,
+      readingData["passage-questions"].score,
+      readingData.comprehension.score,
     ].filter((s): s is number => s !== null);
     const readingAvg =
       readingScores.length > 0
         ? readingScores.reduce((a, b) => a + b, 0) / readingScores.length
         : 0;
 
+    const readingCompleted = [
+      readingData["passage-questions"],
+      readingData.comprehension,
+    ].filter((ex) => ex.status === "completed").length;
+
     skills.push({
       skill: "Reading Understanding",
-      icon: "", //📖
+      icon: "📖",
       strength: readingAvg,
       category:
         readingAvg >= 75
@@ -316,16 +351,14 @@ export function useDashboardAnalytics() {
         readingAvg >= 75
           ? "Excellent comprehension skills"
           : "Practice reading more passages",
-        `Progress: ${getModuleProgress("reading-comprehension")}%`,
+        `${readingCompleted}/2 quiz exercises completed`,
       ],
-      exerciseCount: [readingData.flashcards, readingData.quiz].filter(
-        (ex) => ex?.status === "completed"
-      ).length,
+      exerciseCount: readingCompleted,
       recentScore: readingScores[readingScores.length - 1] || null,
     });
 
     return skills.sort((a, b) => b.strength - a.strength);
-  }, [progress, getModuleProgress]);
+  }, [progress]);
 
   // Calculate study streak
   const studyStreak = useMemo((): StudyStreak => {
@@ -356,13 +389,13 @@ export function useDashboardAnalytics() {
     );
 
     return {
-      current: daysDiff === 0 ? 1 : 0, // Simplified - you can implement full streak tracking
-      longest: 1, // Would need to track in backend
+      current: daysDiff === 0 ? 1 : 0,
+      longest: 1,
       lastStudyDate: allDates[0].toISOString(),
     };
   }, [progress]);
 
-  // Analyze learning patterns
+  // Analyze learning patterns - only from quiz exercises
   const learningPatterns = useMemo((): LearningPattern => {
     const modules: ModuleType[] = [
       "vocabulary",
@@ -370,14 +403,15 @@ export function useDashboardAnalytics() {
       "sentence-construction",
       "reading-comprehension",
     ];
+
+    // Only get history from quiz exercises
     const allHistory = modules.flatMap((module) => {
-      const exercises = Object.keys(progress[module]).filter(
-        (key) => key !== "lastAccessedAt"
-      ) as ExerciseType[];
+      const exercises = getModuleExercises(module).filter(
+        (ex) => !isLessonExercise(module, ex)
+      );
       return exercises.flatMap((ex) => getPerformanceHistory(module, ex));
     });
 
-    // Calculate average accuracy
     const averageAccuracy =
       allHistory.length > 0
         ? Math.round(
@@ -385,7 +419,6 @@ export function useDashboardAnalytics() {
           )
         : 0;
 
-    // Determine preferred difficulty
     const difficultyCount = {
       easy: allHistory.filter((h) => h.difficulty === "easy").length,
       medium: allHistory.filter((h) => h.difficulty === "medium").length,
@@ -397,7 +430,6 @@ export function useDashboardAnalytics() {
         | "medium"
         | "hard") || "easy";
 
-    // Identify common mistakes (from performance metrics)
     const totalMissedLowFreq = allHistory.reduce(
       (sum, h) => sum + h.missedLowFreq,
       0
@@ -412,7 +444,6 @@ export function useDashboardAnalytics() {
     if (totalSimilarErrors > 5) commonMistakes.push("Similar-looking words");
     if (averageAccuracy < 60) commonMistakes.push("Core concepts");
 
-    // Identify strong areas
     const strongAreas: string[] = [];
     if (
       skillAreas.find((s) => s.skill === "Word Recognition")?.strength >= 75
@@ -425,18 +456,18 @@ export function useDashboardAnalytics() {
       strongAreas.push("Grammar");
     }
 
-    // Study frequency
-    const daysSinceStart = 30; // You can calculate from first attempt
-    const totalAttempts = modules.reduce((sum, module) => {
-      const exercises = Object.keys(progress[module]).filter(
-        (key) => key !== "lastAccessedAt"
-      ) as ExerciseType[];
-      return (
-        sum +
-        exercises.reduce((s, ex) => s + (progress[module][ex].attempts || 0), 0)
-      );
-    }, 0);
+    // Count total attempts from quiz exercises only
+    let totalAttempts = 0;
+    if (progress.vocabulary.quiz)
+      totalAttempts += progress.vocabulary.quiz.attempts;
+    if (progress.vocabulary.antonym)
+      totalAttempts += progress.vocabulary.antonym.attempts;
+    if (progress.grammar["error-identification"])
+      totalAttempts += progress.grammar["error-identification"].attempts;
+    if (progress.grammar["fill-blanks"])
+      totalAttempts += progress.grammar["fill-blanks"].attempts;
 
+    const daysSinceStart = 30;
     let studyFrequency: "daily" | "frequent" | "occasional" | "rare" = "rare";
     const attemptsPerDay = totalAttempts / daysSinceStart;
     if (attemptsPerDay >= 1) studyFrequency = "daily";
@@ -448,10 +479,16 @@ export function useDashboardAnalytics() {
       averageAccuracy,
       commonMistakes,
       strongAreas,
-      timeOfDay: null, // Would need timestamp tracking
+      timeOfDay: null,
       studyFrequency,
     };
-  }, [progress, getPerformanceHistory, skillAreas]);
+  }, [
+    progress,
+    getPerformanceHistory,
+    skillAreas,
+    getModuleExercises,
+    isLessonExercise,
+  ]);
 
   return {
     moduleInsights,

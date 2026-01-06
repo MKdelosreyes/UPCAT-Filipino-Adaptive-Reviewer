@@ -65,21 +65,21 @@ class ExerciseProgress(models.Model):
     """Track individual exercise progress"""
 
     EXERCISE_TYPES = [
-        # ✅ Vocabulary
+        # Vocabulary
         ('flashcards', 'Flashcards (Lesson)'),           # Lesson type
         ('quiz', 'What is its Closest Meaning'),         # Quiz type
         ('antonym', 'Antonym of the Word'),              # Quiz type
 
-        # ✅ Grammar
+        # Grammar
         ('lesson-cards', 'Grammar Lesson Cards'),        # Lesson type
         ('error-identification', 'Error Identification'),  # Quiz type
         ('fill-blanks', 'Fill the Blanks'),              # Quiz type
 
-        # ✅ Sentence Construction
+        # Sentence Construction
         ('complete-sentence', 'Complete the Sentence'),
         ('sentence-ordering', 'Sentence Ordering'),
 
-        # ✅ Reading Comprehension
+        # Reading Comprehension
         ('passage-questions', 'Passage Questions'),
         ('comprehension', 'Reading Comprehension'),
     ]
@@ -128,6 +128,13 @@ class ExerciseProgress(models.Model):
     last_completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    time_spent = models.IntegerField(
+        default=0, help_text="Time spent in seconds")
+    cards_reviewed = models.IntegerField(
+        null=True, blank=True, help_text="For flashcards")
+    lessons_viewed = models.IntegerField(
+        null=True, blank=True, help_text="For lesson cards")
 
     class Meta:
         db_table = 'exercise_progress'
