@@ -45,6 +45,15 @@ export interface ModuleProgress {
   exercises: ExerciseProgress[];
 }
 
+export interface AllProgressResponse {
+  modules: ModuleProgress[];
+  study_streak: {
+    current: number;
+    longest: number;
+    last_study_date: string | null;
+  };
+}
+
 // Get authentication token
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -84,7 +93,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 }
 
 // API Functions
-export async function getAllProgress(): Promise<ModuleProgress[]> {
+export async function getAllProgress(): Promise<AllProgressResponse> {
   const response = await apiClient.get('/progress/all/');
   return response.data;
 }

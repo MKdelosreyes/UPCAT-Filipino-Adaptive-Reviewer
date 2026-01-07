@@ -59,6 +59,7 @@ export function useDashboardAnalytics() {
     getPerformanceHistory,
     getModuleExercises,
     isLessonExercise,
+    studyStreak: contextStudyStreak,
   } = useLearningProgress();
 
   // Calculate module insights
@@ -389,11 +390,11 @@ export function useDashboardAnalytics() {
     );
 
     return {
-      current: daysDiff === 0 ? 1 : 0,
-      longest: 1,
-      lastStudyDate: allDates[0].toISOString(),
+      current: contextStudyStreak.current,
+      longest: contextStudyStreak.longest,
+      lastStudyDate: contextStudyStreak.last_study_date,
     };
-  }, [progress]);
+  }, [progress, contextStudyStreak]);
 
   // Analyze learning patterns - only from quiz exercises
   const learningPatterns = useMemo((): LearningPattern => {

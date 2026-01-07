@@ -25,6 +25,39 @@ export default function ProgressOverview() {
     pink: "bg-pink-100 text-pink-800 border-pink-300",
   };
 
+  const getColorClasses = (color: string) => {
+    const colorMap: Record<
+      string,
+      { bg: string; border: string; text: string; progress: string }
+    > = {
+      yellow: {
+        bg: "bg-yellow-100",
+        border: "border-yellow-300",
+        text: "text-yellow-800",
+        progress: "bg-yellow-500",
+      },
+      green: {
+        bg: "bg-green-100",
+        border: "border-green-300",
+        text: "text-green-800",
+        progress: "bg-green-500",
+      },
+      blue: {
+        bg: "bg-blue-100",
+        border: "border-blue-300",
+        text: "text-blue-800",
+        progress: "bg-blue-500",
+      },
+      pink: {
+        bg: "bg-pink-100",
+        border: "border-pink-300",
+        text: "text-pink-800",
+        progress: "bg-pink-500",
+      },
+    };
+    return colorMap[color] || colorMap.blue;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4 w-full">
@@ -101,59 +134,87 @@ export default function ProgressOverview() {
       {/* Module Progress */}
       <div className="space-y-3">
         <h4 className="font-semibold text-sm text-gray-700">Module Progress</h4>
-        {moduleInsights.map((module) => (
-          <div
-            key={module.module}
-            className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
+        {moduleInsights.map((module) => {
+          const colors = getColorClasses(module.color);
+
+          return (
+            <div
+              key={module.module}
+              className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor:
+                        module.color === "yellow"
+                          ? "#eab308"
+                          : module.color === "green"
+                          ? "#22c55e"
+                          : module.color === "blue"
+                          ? "#3b82f6"
+                          : "#ec4899",
+                    }}
+                  />
+                  <span className="text-sm font-semibold text-gray-800">
+                    {module.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {module.trend === "improving" && (
+                    <TrendingUp className="w-4 h-4 text-green-500" />
+                  )}
+                  {module.trend === "declining" && (
+                    <TrendingDown className="w-4 h-4 text-red-500" />
+                  )}
+                  {module.trend === "stable" && (
+                    <Minus className="w-4 h-4 text-gray-400" />
+                  )}
+                  <span className="text-sm font-bold text-gray-700">
+                    {module.progress}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden mb-2">
                 <div
-                  className={`w-2 h-2 rounded-full bg-${module.color}-500`}
+                  className="h-full transition-all duration-500"
+                  style={{
+                    width: `${module.progress}%`,
+                    backgroundColor:
+                      module.color === "yellow"
+                        ? "#eab308"
+                        : module.color === "green"
+                        ? "#22c55e"
+                        : module.color === "blue"
+                        ? "#3b82f6"
+                        : "#ec4899",
+                  }}
                 />
-                <span className="text-sm font-semibold text-gray-800">
-                  {module.name}
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <span>
+                  {module.completedExercises}/{module.totalExercises} exercises
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full font-medium border ${colors.bg} ${colors.border} ${colors.text}`}
+                >
+                  {module.mastery}
                 </span>
               </div>
-              <div className="flex items-center gap-1">
-                {module.trend === "improving" && (
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                )}
-                {module.trend === "declining" && (
-                  <TrendingDown className="w-4 h-4 text-red-500" />
-                )}
-                {module.trend === "stable" && (
-                  <Minus className="w-4 h-4 text-gray-400" />
-                )}
-                <span className="text-sm font-bold text-gray-700">
-                  {module.progress}%
-                </span>
-              </div>
-            </div>
 
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden mb-2">
-              <div
-                className={`h-full bg-${module.color}-500 transition-all duration-500`}
-                style={{ width: `${module.progress}%` }}
-              />
+              {module.averageScore > 0 && (
+                <div className="mt-2 text-xs text-gray-600">
+                  Average Score:{" "}
+                  <span className="font-semibold">{module.averageScore}%</span>
+                </div>
+              )}
             </div>
-
-            {/* Stats */}
-            <div className="flex items-center justify-between text-xs text-gray-600">
-              <span>
-                {module.completedExercises}/{module.totalExercises} exercises
-              </span>
-              <span
-                className={`px-2 py-0.5 rounded-full font-medium ${
-                  colorMap[module.color]
-                }`}
-              >
-                {module.mastery}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

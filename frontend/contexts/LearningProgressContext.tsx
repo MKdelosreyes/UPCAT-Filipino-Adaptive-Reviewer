@@ -103,6 +103,11 @@ interface LearningProgressContextType {
   progress: AllModulesProgress;
   isLoading: boolean;
   error: string | null;
+  studyStreak: {
+    current: number;
+    longest: number;
+    last_study_date: string | null;
+  };
 
   updateLessonProgress: (
     module: ModuleType,
@@ -209,6 +214,11 @@ export function LearningProgressProvider({
   const [progress, setProgress] = useState<AllModulesProgress>(defaultProgress);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [studyStreak, setStudyStreak] = useState({
+    current: 0,
+    longest: 0,
+    last_study_date: null as string | null,
+  });
 
   const isLessonExercise = (
     module: ModuleType,
@@ -519,6 +529,7 @@ export function LearningProgressProvider({
   const syncProgress = async () => {
     if (!user || !tokens) {
       setProgress(defaultProgress);
+      setStudyStreak({ current: 0, longest: 0, last_study_date: null });
       setIsLoading(false);
       return;
     }
@@ -526,13 +537,17 @@ export function LearningProgressProvider({
     try {
       setIsLoading(true);
       setError(null);
-      const backendModules = await ProgressAPI.getAllProgress();
-      const convertedProgress = convertBackendToFrontend(backendModules);
+      const response = await ProgressAPI.getAllProgress();
+      const convertedProgress = convertBackendToFrontend(response.modules);
       setProgress(convertedProgress);
+      setStudyStreak(response.study_streak);
 
       localStorage.setItem(
         "learning-progress-backup",
-        JSON.stringify(convertedProgress)
+        JSON.stringify({
+          progress: convertedProgress,
+          studyStreak: response.study_streak,
+        })
       );
     } catch (err: any) {
       console.error("Failed to load progress from backend:", err);
@@ -541,7 +556,15 @@ export function LearningProgressProvider({
       const backup = localStorage.getItem("learning-progress-backup");
       if (backup) {
         try {
-          setProgress(JSON.parse(backup));
+          const parsed = JSON.parse(backup);
+          setProgress(parsed.progress || defaultProgress);
+          setStudyStreak(
+            parsed.studyStreak || {
+              current: 0,
+              longest: 0,
+              last_study_date: null,
+            }
+          );
         } catch {
           setProgress(defaultProgress);
         }
@@ -862,6 +885,7 @@ export function LearningProgressProvider({
         progress,
         isLoading,
         error,
+        studyStreak,
         updateLessonProgress,
         updateQuizProgress,
         resetProgress,

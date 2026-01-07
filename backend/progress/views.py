@@ -178,10 +178,79 @@ def get_lexical_difficulties(request):
     return Response({"difficulties": serializer.data})
 
 
+def calculate_study_streak(user):
+    """
+    Calculate consecutive study days for a user
+    A study day = any day where at least one quiz exercise was completed
+    """
+    # Get all performance metrics ordered by date
+    all_metrics = PerformanceMetrics.objects.filter(
+        exercise_progress__module_progress__user=user
+    ).order_by('-timestamp')
+
+    if not all_metrics.exists():
+        return {
+            'current': 0,
+            'longest': 0,
+            'last_study_date': None
+        }
+
+    # Get unique study dates (only date part, not time)
+    study_dates = set()
+    for metric in all_metrics:
+        study_dates.add(metric.timestamp.date())
+
+    # Sort dates descending
+    sorted_dates = sorted(study_dates, reverse=True)
+
+    if not sorted_dates:
+        return {
+            'current': 0,
+            'longest': 0,
+            'last_study_date': None
+        }
+
+    # Calculate current streak
+    current_streak = 0
+    today = timezone.now().date()
+    expected_date = today
+
+    for date in sorted_dates:
+        # If there's a gap, break
+        if date < expected_date:
+            days_diff = (expected_date - date).days
+            if days_diff > 1:  # More than 1 day gap
+                break
+
+        current_streak += 1
+        expected_date = date - timedelta(days=1)
+
+    # Calculate longest streak
+    longest_streak = 1
+    temp_streak = 1
+
+    for i in range(1, len(sorted_dates)):
+        prev_date = sorted_dates[i - 1]
+        curr_date = sorted_dates[i]
+        days_diff = (prev_date - curr_date).days
+
+        if days_diff == 1:  # Consecutive days
+            temp_streak += 1
+            longest_streak = max(longest_streak, temp_streak)
+        else:
+            temp_streak = 1
+
+    return {
+        'current': current_streak,
+        'longest': longest_streak,
+        'last_study_date': sorted_dates[0].isoformat()
+    }
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_all_progress(request):
-    """Get all module progress for current user"""
+    """Get all module progress for current user with study streak"""
     modules = ModuleProgress.objects.filter(user=request.user)
 
     # If no progress exists, create default structure
@@ -193,7 +262,14 @@ def get_all_progress(request):
         modules = ModuleProgress.objects.filter(user=request.user)
 
     serializer = ModuleProgressSerializer(modules, many=True)
-    return Response(serializer.data)
+
+    # Calculate study streak
+    study_streak = calculate_study_streak(request.user)
+
+    return Response({
+        'modules': serializer.data,
+        'study_streak': study_streak
+    })
 
 
 @api_view(['GET'])
@@ -279,13 +355,29 @@ def update_exercise_progress(request, module_name, exercise_type):
         # Only count quiz exercises for completion
         quiz_exercises = [ex for ex in all_exercises if not is_lesson_exercise(
             module_name, ex.exercise_type)]
-        completed_quizzes = [
-            ex for ex in quiz_exercises if ex.status == 'completed']
 
-        # Avoid division by zero
-        total_quizzes = len(quiz_exercises) if quiz_exercises else 1
-        module_progress.completion_percentage = int(
-            (len(completed_quizzes) / total_quizzes * 100))
+        if quiz_exercises:
+            # Calculate weighted completion: (average_score * completion_rate)
+            completed_count = sum(
+                1 for ex in quiz_exercises if ex.status == 'completed')
+            completion_rate = completed_count / len(quiz_exercises)
+
+            # Get average score of completed quizzes (80% threshold for "passing")
+            completed_quizzes = [
+                ex for ex in quiz_exercises if ex.status == 'completed' and ex.best_score is not None]
+            if completed_quizzes:
+                avg_score = sum(
+                    ex.best_score for ex in completed_quizzes) / len(completed_quizzes)
+                # Weight: 50% completion rate + 50% score performance
+                module_progress.completion_percentage = int(
+                    (completion_rate * 50) + (min(avg_score, 100) / 100 * 50)
+                )
+            else:
+                # No scores yet, just use completion rate
+                module_progress.completion_percentage = int(
+                    completion_rate * 50)
+        else:
+            module_progress.completion_percentage = 0
 
         module_progress.save()
 
