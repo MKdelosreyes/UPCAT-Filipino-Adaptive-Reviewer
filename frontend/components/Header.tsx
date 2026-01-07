@@ -24,10 +24,10 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  const handleSettings = () => {
-    router.push("/settings");
-    setMenuOpen(false);
-  };
+  // const handleSettings = () => {
+  //   router.push("/settings");
+  //   setMenuOpen(false);
+  // };
 
   return (
     <>
@@ -153,7 +153,7 @@ export default function Header() {
                 </button>
 
                 {/* Settings Option */}
-                <button
+                {/* <button
                   onClick={handleSettings}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors text-left group"
                 >
@@ -163,7 +163,7 @@ export default function Header() {
                   <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
                     Settings
                   </span>
-                </button>
+                </button> */}
 
                 {/* Divider */}
                 <div className="my-2 border-t border-gray-200"></div>
