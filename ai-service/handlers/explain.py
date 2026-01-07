@@ -248,7 +248,6 @@ Using the grammar rules and common mistakes above, magbigay ng 4 na punto:
 1) Bakit may error ang "{correct}" (check if this is a documented common mistake)
 2) Ano ang tamang paraan (correction)
 3) Anong grammar rule ang nilabag (cite from references if available)
-4) Bakit mali ang napiling sagot ng estudyante (kung iba sa tamang sagot)
 
 Gumamit ng mga bullet points. Panatilihing maikli at malinaw ang sagot. Always cite if this matches a known error pattern from the references."""
 
