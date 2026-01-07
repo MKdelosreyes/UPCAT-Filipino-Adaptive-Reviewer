@@ -5,6 +5,7 @@ from django.conf import settings
 import requests
 from functools import lru_cache
 from jwt.algorithms import ECAlgorithm
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -75,12 +76,12 @@ class SupabaseAuthentication(authentication.BaseAuthentication):
                 raise exceptions.AuthenticationFailed(
                     'No matching key found in JWKS')
 
-            # Verify token
             payload = jwt.decode(
                 token,
                 public_key,
-                algorithms=[alg],  # Use algorithm from token header
+                algorithms=[alg],
                 audience='authenticated',
+                leeway=timedelta(seconds=60),
                 options={
                     "verify_signature": True,
                     "verify_exp": True,
@@ -125,6 +126,10 @@ class SupabaseAuthentication(authentication.BaseAuthentication):
         except jwt.ExpiredSignatureError:
             print("❌ Token has expired")
             raise exceptions.AuthenticationFailed('Token has expired')
+        except jwt.InvalidIssuedAtError:
+            print("❌ Token issued at time (iat) is invalid - clock skew detected")
+            raise exceptions.AuthenticationFailed(
+                'Token timing is invalid (clock skew)')
         except jwt.InvalidTokenError as e:
             print(f"❌ Invalid token: {str(e)}")
             raise exceptions.AuthenticationFailed(f'Invalid token: {str(e)}')
