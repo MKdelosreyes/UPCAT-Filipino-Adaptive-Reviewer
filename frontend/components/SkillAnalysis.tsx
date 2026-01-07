@@ -2,9 +2,11 @@
 
 import { useDashboardAnalytics } from "@/hooks/useDashboardAnalytics";
 import { TrendingUp, AlertCircle, CheckCircle2, Target } from "lucide-react";
+import { useLearningProgress } from "@/contexts/LearningProgressContext";
 
 export default function SkillAnalysis() {
   const { skillAreas, learningPatterns } = useDashboardAnalytics();
+  const { isLoading } = useLearningProgress();
 
   const strengths = skillAreas.filter((s) => s.category === "strength");
   const developing = skillAreas.filter((s) => s.category === "developing");
@@ -24,6 +26,61 @@ export default function SkillAnalysis() {
         return <Target className="w-5 h-5" />;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 w-full pb-5">
+        {/* Skeleton Header */}
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+        </div>
+
+        {/* Skeleton Insights Card */}
+        <div className="bg-gray-100 rounded-xl p-4 animate-pulse">
+          <div className="h-5 bg-gray-200 rounded w-1/2 mb-3"></div>
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-4 bg-gray-200 rounded w-full"></div>
+            ))}
+          </div>
+        </div>
+
+        {/* Skeleton Skill Categories */}
+        <div className="space-y-4">
+          {[1, 2, 3].map((category) => (
+            <div key={category}>
+              <div className="h-5 bg-gray-200 rounded w-1/3 mb-2 animate-pulse"></div>
+              <div className="space-y-2">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-gray-50 border border-gray-200 rounded-lg p-3 animate-pulse"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex gap-2 flex-1">
+                        <div className="w-6 h-6 bg-gray-200 rounded"></div>
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 rounded w-2/3 mb-1"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                      <div className="w-12 h-6 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded w-full mb-2"></div>
+                    <div className="space-y-1">
+                      <div className="h-3 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 w-full pb-5">

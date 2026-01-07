@@ -19,6 +19,7 @@ import {
   Trophy,
   Lock,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 
 const moduleNames = {
@@ -43,6 +44,7 @@ export default function RecommendedPathIndicator() {
     getNextRecommended,
     getModuleExercises,
     isLessonExercise,
+    isLoading,
   } = useLearningProgress();
   const { getModuleMastery } = useDashboardInsights();
 
@@ -55,7 +57,6 @@ export default function RecommendedPathIndicator() {
     "reading-comprehension",
   ];
 
-  // ✅ Helper function to get exercise progress with proper typing
   const getExerciseProgress = (
     module: ModuleType,
     exercise: ExerciseType
@@ -98,7 +99,6 @@ export default function RecommendedPathIndicator() {
     return null;
   };
 
-  // Helper to get module status
   const getModuleStatus = (module: ModuleType) => {
     const isCompleted = isModuleCompleted(module);
     const isRecommended = recommended === module;
@@ -142,6 +142,21 @@ export default function RecommendedPathIndicator() {
         : false,
     };
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 shadow-md border border-blue-200">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
+            <p className="text-sm text-gray-600 font-medium">
+              Loading your path...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 shadow-md border border-blue-200">

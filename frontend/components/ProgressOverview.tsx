@@ -14,7 +14,7 @@ import { useLearningProgress } from "@/contexts/LearningProgressContext";
 export default function ProgressOverview() {
   const { moduleInsights, studyStreak, learningPatterns } =
     useDashboardAnalytics();
-  const { getOverallProgress } = useLearningProgress();
+  const { getOverallProgress, isLoading } = useLearningProgress();
 
   const overallProgress = getOverallProgress();
 
@@ -24,6 +24,46 @@ export default function ProgressOverview() {
     blue: "bg-blue-100 text-blue-800 border-blue-300",
     pink: "bg-pink-100 text-pink-800 border-pink-300",
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 w-full">
+        {/* Skeleton Header */}
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+        </div>
+
+        {/* Skeleton Stats */}
+        <div className="grid grid-cols-2 gap-3">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-gray-100 rounded-lg p-3 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Skeleton Module Progress */}
+        <div className="space-y-3">
+          <div className="h-5 bg-gray-200 rounded w-1/4 animate-pulse"></div>
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-gray-50 border border-gray-200 rounded-lg p-3 animate-pulse"
+            >
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-2 bg-gray-200 rounded w-full mb-2"></div>
+              <div className="flex justify-between">
+                <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 w-full">

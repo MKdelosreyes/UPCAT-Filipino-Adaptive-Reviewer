@@ -3,13 +3,14 @@
 import Header from "@/components/Header";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import CardCarousel from "@/components/CardCarousel";
 import { ModuleType } from "@/contexts/LearningProgressContext";
 import RecommendedPathIndicator from "@/components/RecommendedPathIndicator";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import ProgressOverview from "@/components/ProgressOverview";
 import SkillAnalysis from "@/components/SkillAnalysis";
+import { useLearningProgress } from "@/contexts/LearningProgressContext";
 
 interface Card {
   title: string;
@@ -69,6 +70,7 @@ export default function Dashboard() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const { user, isLoading: authLoading } = useAuthGuard();
+  const { isLoading: progressLoading } = useLearningProgress();
 
   useEffect(() => {
     const handleResize = () => {
@@ -100,10 +102,23 @@ export default function Dashboard() {
             isPanelOpen ? "hidden lg:flex" : "flex"
           } flex-col flex-[2] h-full bg-white rounded-2xl overflow-hidden border-7 border-blue-300`}
         >
-          <div className="w-auto z-30 bg-white md:mx-3 md:mt-3 px-3 pt-3">
-            <RecommendedPathIndicator />
-          </div>
-          <CardCarousel skill_cards={cards} />
+          {progressLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+                <p className="text-gray-600 font-medium">
+                  Loading your learning path...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="w-auto z-30 bg-white md:mx-3 md:mt-3 px-3 pt-3">
+                <RecommendedPathIndicator />
+              </div>
+              <CardCarousel skill_cards={cards} />
+            </>
+          )}
         </div>
 
         {/* Toggle Button for Mobile */}
@@ -162,31 +177,42 @@ export default function Dashboard() {
 
                 {/* Tab Content */}
                 <div className="flex w-full flex-1 bg-white rounded-b-2xl p-5 overflow-y-auto border-b border-x border-gray-300 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                  <AnimatePresence mode="wait">
-                    {activeTab === "progress" ? (
-                      <motion.div
-                        key="progress"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="w-full"
-                      >
-                        <ProgressOverview />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="skills"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="w-full"
-                      >
-                        <SkillAnalysis />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {progressLoading ? (
+                    <div className="flex items-center justify-center w-full h-full">
+                      <div className="text-center">
+                        <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-3" />
+                        <p className="text-gray-600 text-sm font-medium">
+                          Loading analytics...
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <AnimatePresence mode="wait">
+                      {activeTab === "progress" ? (
+                        <motion.div
+                          key="progress"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="w-full"
+                        >
+                          <ProgressOverview />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="skills"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="w-full"
+                        >
+                          <SkillAnalysis />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
                 </div>
               </div>
             </motion.div>
