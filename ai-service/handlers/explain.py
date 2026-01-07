@@ -319,7 +319,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
         completion = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.2,
-            max_tokens=200,
+            max_tokens=300,
             messages=[
                 {
                     "role": "system",
