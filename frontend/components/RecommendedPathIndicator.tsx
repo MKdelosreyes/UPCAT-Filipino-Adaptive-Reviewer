@@ -195,7 +195,7 @@ export default function RecommendedPathIndicator() {
               >
                 {/* Module Circle */}
                 <div
-                  className={`relative w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 z-10 ${
+                  className={`relative w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 z-10 ${
                     status.isCompleted
                       ? "bg-green-500 text-white shadow-lg"
                       : status.isRecommended
@@ -206,9 +206,9 @@ export default function RecommendedPathIndicator() {
                   }`}
                 >
                   {status.isCompleted ? (
-                    <Check size={20} />
+                    <Check size={18} />
                   ) : status.isRecommended ? (
-                    <Sparkles size={20} />
+                    <Sparkles size={18} />
                   ) : status.completedCount === 0 ? (
                     <Lock size={16} />
                   ) : (
@@ -298,7 +298,7 @@ export default function RecommendedPathIndicator() {
                     !status.isRecommended &&
                     status.mastery.level !== "beginner" && (
                       <div className="mt-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 bg-blue-50 text-blue-700 border border-blue-200">
-                        <span>{status.mastery.icon}</span>
+                        {/* <span>{status.mastery.icon}</span> */}
                         <span className="capitalize">
                           {status.mastery.level}
                         </span>

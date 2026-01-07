@@ -216,7 +216,7 @@ function SkillCard({ skill }: { skill: any }) {
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-xl">{skill.icon}</span>
+          {/* <span className="text-xl">{skill.icon}</span> */}
           <div>
             <p className="font-semibold text-sm text-gray-800">{skill.skill}</p>
             <p className="text-xs text-gray-600">

@@ -8,7 +8,7 @@ type DashboardCardProps = {
   skill: string;
   description: string;
   color: string;
-  href?: string; // Optional link for the card
+  href?: string;
 };
 
 const cardVariants: Variants = {
@@ -38,28 +38,28 @@ const DashboardCard = ({
   color,
 }: DashboardCardProps) => {
   return (
-    <div className="flex flex-col p-4 border border-gray-200 bg-white shadow-xl rounded-3xl">
+    <div className="flex flex-col p-3 md:p-4 border border-gray-200 bg-white shadow-lg md:shadow-xl rounded-2xl md:rounded-3xl w-full">
       <motion.div
         initial="hidden"
         animate="visible"
         variants={cardVariants}
         className={`
-        bg-white border-5 border-blue-300 rounded-3xl
-        p-6 flex flex-col h-full
+        bg-white border-4 md:border-5 border-blue-300 rounded-2xl md:rounded-3xl
+        p-4 md:p-6 flex flex-col h-full
         transition-all duration-300
-        hover:bg-blue-50 hover:border-blue-500
+        hover:bg-blue-50 hover:border-blue-500 active:border-blue-600
         ${className}
       `}
       >
         {children}
       </motion.div>
-      <div className="flex flex-col gap-3 p-2">
+      <div className="flex flex-col gap-2 md:gap-3 p-1.5 md:p-2">
         <div
-          className={`py-1 w-fit px-3 text-center text-xs font-semibold text-blue-600 ${color} rounded-4xl`}
+          className={`py-0.5 md:py-1 w-fit px-2 md:px-3 text-center text-xs font-semibold text-blue-600 ${color} rounded-full md:rounded-4xl`}
         >
           {skill}
         </div>
-        <div className="h-15 text-sm">{description}</div>
+        <div className="text-xs md:text-xs leading-relaxed">{description}</div>
       </div>
     </div>
   );

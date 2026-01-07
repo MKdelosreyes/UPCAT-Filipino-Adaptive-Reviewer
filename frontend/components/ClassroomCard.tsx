@@ -63,58 +63,36 @@ const ClassroomCard = ({
     <Link
       href={url}
       onClick={handleClick}
-      className="flex justify-center items-center group w-full"
+      className="flex justify-center items-center group w-full touch-manipulation"
     >
       <DashboardCard
         title={title}
         skill={skill}
         description={description}
         color={color}
-        className={`p-0 overflow-hidden relative justify-end max-w-4xl w-full min-h-[12rem] transition-all duration-300 ${
+        className={`p-0 overflow-hidden relative justify-end w-full h-48 md:h-52 transition-all duration-300 ${
           isRecommended && !completed
-            ? "ring-4 ring-blue-500 ring-offset-4 ring-offset-white shadow-2xl shadow-blue-500/70 scale-105"
+            ? "ring-2 md:ring-4 ring-blue-500 ring-offset-2 md:ring-offset-4 ring-offset-white shadow-xl md:shadow-2xl shadow-blue-500/70 scale-[1.02] md:scale-105"
             : ""
         }`}
       >
         {/* Recommended Badge (Top-Left) */}
         {isRecommended && !completed && (
-          <div className="absolute top-3 left-3 z-30 flex items-center gap-1 bg-gradient-to-r from-blue-700 to-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-2xl animate-pulse border-2 border-white">
-            <Sparkles size={16} className="animate-spin" />
-            <span>RECOMMENDED NEXT</span>
+          <div className="absolute top-2 left-2 md:top-3 md:left-3 z-30 flex items-center gap-1 bg-gradient-to-r from-blue-700 to-blue-600 text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold shadow-xl md:shadow-2xl animate-pulse border border-white md:border-2">
+            <Sparkles size={14} className="animate-spin" />
+            <span className="hidden xs:inline">RECOMMENDED</span>
+            <span className="xs:hidden">NEXT</span>
           </div>
         )}
-
-        {/* Mastery Badges (Top-Right) */}
-        {/* <div className="absolute top-3 right-3 z-20 flex flex-col items-end gap-2">
-          {completed ? (
-            <div className="flex items-center gap-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-              <Check size={14} />
-              <span>Completed</span>
-            </div>
-          ) : mastery.level !== "beginner" ? (
-            <>
-              <div
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border-2 shadow-lg ${mastery.color}`}
-              >
-                <span>{mastery.icon}</span>
-                <span className="capitalize">{mastery.level}</span>
-              </div>
-
-              <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-blue-700 border border-blue-200 shadow-md">
-                {mastery.difficulty}
-              </div>
-            </>
-          ) : (
-            <Circle size={16} className="text-white/70" />
-          )}
-        </div> */}
 
         {/* Image Background */}
         <Image
           src={imagePath}
-          alt="Classroom Artwork"
+          alt={`${title} Artwork`}
           fill
+          sizes="(max-width: 768px) 85vw, 352px"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
+          priority={isRecommended}
         />
         <div
           className={`absolute inset-0 bg-gradient-to-t ${
@@ -125,8 +103,8 @@ const ClassroomCard = ({
         />
 
         {/* Recommendation/Mastery Text (Bottom) */}
-        <div className="relative z-10">
-          <p className="text-sm text-blue-200 mt-2 group-hover:text-blue-100 transition-colors font-medium">
+        <div className="relative z-10 p-2 md:p-0">
+          <p className="text-xs md:text-sm text-blue-200 mt-1 md:mt-2 group-hover:text-blue-100 transition-colors font-medium">
             {getRecommendationText()}
           </p>
         </div>
