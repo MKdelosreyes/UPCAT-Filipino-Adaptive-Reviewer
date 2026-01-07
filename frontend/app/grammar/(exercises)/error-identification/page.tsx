@@ -215,6 +215,10 @@ export default function ErrorIdentificationPage() {
           targetDifficulty
         );
 
+        console.log("🔍 User ID:", user?.id);
+        console.log("🔍 User ID type:", typeof user?.id);
+        console.log("🔍 Target difficulty:", targetDifficulty);
+
         const exercises = await getGrammarExercisesAdaptive({
           userId: user?.id,
           targetDifficulty,

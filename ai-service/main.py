@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import Optional, List, Dict
 import os
 import sys
@@ -96,53 +96,108 @@ BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000/api")
 
 
 class VocabularyExercisesRequest(BaseModel):
+    """Request model for vocabulary exercises endpoint."""
+
     user_id: Optional[int] = None
     target_difficulty: Optional[str] = None
     limit: int = 15
+
+    @validator('user_id', pre=True)
+    def parse_user_id(cls, v):
+        """
+        Parse and validate user_id from various input types.
+
+        Args:
+            v: The user_id value (can be int, str, or None)
+
+        Returns:
+            int or None: Parsed integer user_id or None if invalid/empty
+        """
+        if v is None or v == '':
+            return None
+        try:
+            return int(v)
+        except (ValueError, TypeError):
+            return None
 
 
 class GrammarExercisesRequest(BaseModel):
+    """Request model for grammar exercises endpoint."""
+
     user_id: Optional[int] = None
     target_difficulty: Optional[str] = None
-    # "error_identification" or "fill_in_the_blanks"
     exercise_type: Optional[str] = None
     limit: int = 15
 
+    @validator('user_id', pre=True)
+    def parse_user_id(cls, v):
+        """
+        Parse and validate user_id from various input types.
 
-# class TipsRequest(BaseModel):
-#     score: int
-#     missedLowFreq: int
-#     similarChoiceErrors: int
-#     lastDifficulty: str
-#     module: str
+        Args:
+            v: The user_id value (can be int, str, or None)
 
+        Returns:
+            int or None: Parsed integer user_id or None if invalid/empty
+        """
+        if v is None or v == '':
+            return None
+        try:
+            return int(v)
+        except (ValueError, TypeError):
+            return None
 
-# class TipsResponse(BaseModel):
-#     tips: str
+    @validator('target_difficulty')
+    def validate_difficulty(cls, v):
+        """
+        Validate that target_difficulty is one of the allowed values.
+
+        Args:
+            v: The target_difficulty value
+
+        Returns:
+            str or None: The validated difficulty value
+
+        Raises:
+            ValueError: If difficulty is not in allowed values
+        """
+        if v is not None and v not in ['easy', 'medium', 'hard']:
+            raise ValueError('target_difficulty must be easy, medium, or hard')
+        return v
 
 
 class ConfusablesRequest(BaseModel):
+    """Request model for confusables endpoint."""
+
     word: str
     topK: Optional[int] = 3
 
 
 class ConfusableWord(BaseModel):
+    """Model for a confusable word result."""
+
     word: str
     meaning: str
     example: str
 
 
 class ConfusablesResponse(BaseModel):
+    """Response model for confusables endpoint."""
+
     results: List[ConfusableWord]
 
 
 class HealthResponse(BaseModel):
+    """Basic health check response model."""
+
     status: str
     message: str
     openai_configured: bool
 
 
 class DetailedHealthResponse(BaseModel):
+    """Detailed health check response model."""
+
     service: str
     openai_key_configured: bool
     vocabulary_data_loaded: bool
@@ -150,6 +205,8 @@ class DetailedHealthResponse(BaseModel):
 
 
 class ChatRequest(BaseModel):
+    """Request model for chat endpoint."""
+
     # [{"role": "user", "content": "..."}, ...]
     conversation_history: List[Dict[str, str]]
     word: str
@@ -160,6 +217,8 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
+    """Response model for chat endpoint."""
+
     response: str
 
 
@@ -171,8 +230,14 @@ async def fetch_user_lexical_difficulties(
     user_id: int, token: Optional[str] = None
 ) -> Dict[str, float]:
     """
-    Call backend /api/progress/lexical-difficulties/ for a given user.
-    Returns a mapping lemma_id -> difficulty_score (float or None).
+    Fetch user's lexical difficulty scores from backend API.
+
+    Args:
+        user_id: The user's ID
+        token: Optional authentication token
+
+    Returns:
+        Dict mapping lemma_id to difficulty_score (float or None)
     """
     headers = {}
     if token:
@@ -194,7 +259,13 @@ async def fetch_user_lexical_difficulties(
 
 def bucket_from_score(score: Optional[float]) -> Optional[str]:
     """
-    Map continuous difficulty_score in [0,1] to 'easy' | 'medium' | 'hard'.
+    Map continuous difficulty score [0,1] to discrete difficulty levels.
+
+    Args:
+        score: Difficulty score between 0 and 1, or None
+
+    Returns:
+        'easy' | 'medium' | 'hard' | None
     """
     if score is None:
         return None
@@ -213,7 +284,12 @@ def estimate_grammar_difficulty(item: dict) -> str:
     Factors:
     - Sentence length (longer = harder)
     - Explanation length (longer explanation = more complex)
-    - Error position (errors at end = easier to spot)
+
+    Args:
+        item: Grammar exercise item dictionary
+
+    Returns:
+        'easy' | 'medium' | 'hard'
     """
     try:
         # Get sentence for analysis
@@ -256,14 +332,37 @@ def estimate_grammar_difficulty(item: dict) -> str:
         print(f"⚠️ Error estimating difficulty: {e}")
         return "medium"  # Default fallback
 
+
+def tips_prompt(data: dict) -> str:
+    """
+    Generate prompt for study tips based on performance data.
+
+    Args:
+        data: Dictionary containing score, missedLowFreq, similarChoiceErrors, lastDifficulty
+
+    Returns:
+        Formatted prompt string for AI tips generation
+    """
+    return f"""You are a coach for UPCAT Filipino.
+
+Student summary:
+- Score: {data["score"]}%
+- Missed low-frequency words: {data["missedLowFreq"]}
+- Similar-choice errors: {data["similarChoiceErrors"]}
+- Last difficulty: {data["lastDifficulty"]}
+
+Give:
+- 3 short, actionable tips (bullets)
+- A 15–20 minute plan with concrete steps (bullets)"""
+
+
 # ============================================================
 # ENDPOINTS
 # ============================================================
 
-
 @app.get("/", response_model=HealthResponse)
 async def root():
-    """Health check endpoint"""
+    """Root endpoint - basic health check."""
     return HealthResponse(
         status="running",
         message="UPCAT Filipino AI Service",
@@ -276,6 +375,12 @@ async def chat_with_ai(request: ChatRequest):
     """
     Chat endpoint for conversational help during exercises.
     Maintains context about the current word/question.
+
+    Args:
+        request: ChatRequest containing conversation history and context
+
+    Returns:
+        ChatResponse with AI-generated response
     """
     try:
         # Get RAG context for the word
@@ -345,7 +450,12 @@ Guidelines:
 
 @app.get("/health", response_model=DetailedHealthResponse)
 async def health_check():
-    """Detailed health check"""
+    """
+    Detailed health check endpoint.
+
+    Returns:
+        Detailed status of service components
+    """
     checks = {
         "service": "online",
         "openai_key_configured": bool(api_key),
@@ -363,7 +473,15 @@ async def health_check():
 
 @app.post("/explain", response_model=ExplainResponse)
 async def explain(request: ExplainRequest):
-    """Generate AI explanation for incorrect answers"""
+    """
+    Generate AI explanation for incorrect answers.
+
+    Args:
+        request: ExplainRequest with exercise context
+
+    Returns:
+        ExplainResponse with generated explanation
+    """
     if not handle_explain:
         raise HTTPException(
             status_code=503,
@@ -374,7 +492,15 @@ async def explain(request: ExplainRequest):
 
 @app.post("/redefine", response_model=RedefineResponse)
 async def redefine_word(request: RedefineRequest):
-    """Redefine word with multiple perspectives"""
+    """
+    Redefine word with multiple perspectives.
+
+    Args:
+        request: RedefineRequest with word to redefine
+
+    Returns:
+        RedefineResponse with multiple definitions
+    """
     if not handle_redefine:
         raise HTTPException(
             status_code=503,
@@ -388,14 +514,11 @@ async def generate_tips(request: TipsRequest):
     """
     Generate personalized study tips based on exercise performance.
 
-    Request body:
-    {
-      "score": 75,
-      "missedLowFreq": 3,
-      "similarChoiceErrors": 2,
-      "lastDifficulty": "medium",
-      "module": "vocabulary"
-    }
+    Args:
+        request: TipsRequest containing performance metrics
+
+    Returns:
+        TipsResponse with personalized study tips
     """
     if not handle_tips:
         raise HTTPException(
@@ -413,32 +536,22 @@ async def generate_tips(request: TipsRequest):
         )
 
 
-# ============================================================
-# OTHER ENDPOINTS
-# ============================================================
-
-def tips_prompt(data: dict) -> str:
-    """Generate tips prompt"""
-    return f"""You are a coach for UPCAT Filipino.
-
-Student summary:
-- Score: {data["score"]}%
-- Missed low-frequency words: {data["missedLowFreq"]}
-- Similar-choice errors: {data["similarChoiceErrors"]}
-- Last difficulty: {data["lastDifficulty"]}
-
-Give:
-- 3 short, actionable tips (bullets)
-- A 15–20 minute plan with concrete steps (bullets)"""
-
-
 @app.post("/confusables", response_model=ConfusablesResponse)
 async def find_confusables(request: ConfusablesRequest):
-    """Find similar/confusing words using embeddings"""
+    """
+    Find similar/confusing words using embeddings.
+
+    Args:
+        request: ConfusablesRequest with target word
+
+    Returns:
+        ConfusablesResponse with similar words
+    """
     try:
         import math
 
         def cosine_similarity(a, b):
+            """Calculate cosine similarity between two vectors."""
             dot = sum(x * y for x, y in zip(a, b))
             na = math.sqrt(sum(x * x for x in a))
             nb = math.sqrt(sum(x * x for x in b))
@@ -503,7 +616,16 @@ async def get_vocabulary_exercises_adaptive(
     request: VocabularyExercisesRequest,
     authorization: Optional[str] = Header(None),
 ):
-    """Adaptive vocabulary exercise selection"""
+    """
+    Get adaptive vocabulary exercises based on user performance.
+
+    Args:
+        request: VocabularyExercisesRequest with filters
+        authorization: Optional Bearer token for authenticated requests
+
+    Returns:
+        Dictionary with exercises list
+    """
     user_id = request.user_id
     target_difficulty = request.target_difficulty
     limit = request.limit
@@ -569,19 +691,17 @@ async def get_grammar_exercises_adaptive(
     authorization: Optional[str] = Header(None),
 ):
     """
-    Adaptive grammar exercise selection.
-
-    Request body:
-    {
-      "user_id": 123,                          # optional
-      "target_difficulty": "medium",            # optional: "easy" | "medium" | "hard"
-      "exercise_type": "error_identification",  # optional (ignored - kept for API compatibility)
-      "limit": 15
-    }
+    Get adaptive grammar exercises based on user performance.
 
     Note: exercise_type is kept in the request for API compatibility but is not used for filtering.
     Each grammar item contains data for both error_identification and fill_in_the_blanks exercises.
-    The frontend extracts the relevant fields based on the exercise page.
+
+    Args:
+        request: GrammarExercisesRequest with filters
+        authorization: Optional Bearer token for authenticated requests
+
+    Returns:
+        Dictionary with exercises list
     """
     user_id = request.user_id
     target_difficulty = request.target_difficulty
@@ -596,11 +716,10 @@ async def get_grammar_exercises_adaptive(
 
     if not filtered_items:
         print("⚠️ No grammar items available")
-        # Return empty but valid response
         return {"exercises": []}
 
-    # Define helper function for selection with heuristic
     def select_exercises_with_heuristic():
+        """Select exercises using heuristic difficulty estimation."""
         annotated = []
         for item in filtered_items:
             estimated_diff = estimate_grammar_difficulty(item)
@@ -623,7 +742,7 @@ async def get_grammar_exercises_adaptive(
             remaining = limit - len(selected)
             selected.extend(others[:remaining])
 
-        # Safety fallback - if still empty, return random items
+        # Safety fallback
         if not selected and filtered_items:
             random.shuffle(filtered_items)
             selected = filtered_items[:limit]
@@ -701,6 +820,12 @@ async def get_grammar_exercises_adaptive(
 
 @app.get("/exercises/lexicon")
 async def get_lexicon_exercises():
+    """
+    Get all lexicon data.
+
+    Returns:
+        Dictionary with lexicon exercises and count
+    """
     if not lexicon_data:
         raise HTTPException(status_code=404, detail="Lexicon data not loaded")
     return {"exercises": lexicon_data, "count": len(lexicon_data)}
@@ -708,6 +833,12 @@ async def get_lexicon_exercises():
 
 @app.get("/debug/data-status")
 async def debug_data_status():
+    """
+    Debug endpoint to check data loading status.
+
+    Returns:
+        Dictionary with loading status for all data sources
+    """
     status = {}
 
     try:
@@ -748,7 +879,7 @@ async def debug_data_status():
 
 @app.on_event("startup")
 async def startup_event():
-    """Run on startup"""
+    """Run initialization tasks on application startup."""
     print("\n" + "="*60)
     print("🚀 UPCAT Filipino AI Service Starting...")
     print("="*60)

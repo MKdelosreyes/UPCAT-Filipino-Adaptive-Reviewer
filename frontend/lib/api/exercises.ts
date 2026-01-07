@@ -41,11 +41,15 @@ export async function getVocabularyExercisesAdaptive(params: {
   limit?: number;
   accessToken?: string;
 } = {}): Promise<VocabularyExerciseItem[]> {
+  const userId = params.userId ? parseInt(String(params.userId)) : null;
+  
   const body = {
-    user_id: params.userId ?? null,
-    target_difficulty: params.targetDifficulty ?? null,
-    limit: params.limit ?? 15,
+    user_id: userId,
+    target_difficulty: params.targetDifficulty || null,
+    limit: params.limit || 15,
   };
+
+  console.log('Vocabulary request body:', body);
 
   const response = await aiServiceClient.post('/exercises/vocabulary', body);
   return response.data.exercises || [];
@@ -63,15 +67,25 @@ export async function getGrammarExercisesAdaptive(params: {
   limit?: number;
   accessToken?: string;
 } = {}): Promise<GrammarExerciseItem[]> {
+  const userId = params.userId ? parseInt(String(params.userId)) : null;
+  
   const body = {
-    user_id: params.userId ?? null,
-    target_difficulty: params.targetDifficulty ?? null,
-    exercise_type: params.exerciseType ?? null,
-    limit: params.limit ?? 15,
+    user_id: userId,
+    target_difficulty: params.targetDifficulty || null,
+    exercise_type: params.exerciseType || null,
+    limit: params.limit || 15,
   };
 
-  const response = await aiServiceClient.post('/exercises/grammar', body);
-  return response.data.exercises || [];
+  console.log('Grammar request body:', body);
+
+  try {
+    const response = await aiServiceClient.post('/exercises/grammar', body);
+    console.log('Grammar exercises loaded:', response.data.exercises?.length);
+    return response.data.exercises || [];
+  } catch (error: any) {
+    console.error('Grammar exercises error:', error.response?.data || error.message);
+    throw error;
+  }
 }
 
 export async function getLexiconData(): Promise<LexiconItem[]> {

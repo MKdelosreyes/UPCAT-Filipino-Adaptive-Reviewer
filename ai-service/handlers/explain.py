@@ -170,12 +170,12 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
 
         prompt += f"""
 
-Using the reference materials above (including common mistakes if provided), magbigay ng 3 na punto:
+Using the reference materials above, magbigay ng 3 na punto:
 1) Bakit "{correct}" ang tamang sagot (gamitin ang kahulugan at references)
 2) Bakit mali ang napiling sagot (mention if this is a common mistake pattern)
 3) Maikling talang pangbokabularyo (cite similar words from references if relevant)
 
-Gumamit ng mga bullet points. Panatilihing maikli at malinaw. If this is a common mistake, mention it."""
+Gumamit ng mga bullet points. Panatilihing maikli at malinaw."""
 
         return prompt
 
@@ -202,7 +202,7 @@ Using the reference materials above, magbigay ng 3 na punto:
 2) Bakit mali ang napiling sagot (check if this is a common confusion)
 3) Maikling tala tungkol sa antonyms
 
-Gumamit ng mga bullet points. Panatilihing maikli at malinaw. Mention if the error is a common mistake pattern."""
+Gumamit ng mga bullet points. Panatilihing maikli at malinaw."""
 
         return prompt
 
@@ -221,12 +221,12 @@ Gumamit ng mga bullet points. Panatilihing maikli at malinaw. Mention if the err
 
         prompt += f"""
 
-Using the grammar rules and common mistakes above (if provided), magbigay ng 3 na punto:
+Using the grammar rules and common mistakes above, magbigay ng 3 na punto:
 1) Bakit "{correct}" ang tamang salita para sa puwang
 2) Ano ang grammatical rule (cite specific rules from references, mention if student made a common mistake)
 3) Bakit mali ang napiling sagot (kung may napili)
 
-Gumamit ng mga bullet points. Panatilihing maikli at malinaw ang sagot. Always mention if this is a documented common error."""
+Gumamit ng mga bullet points. Panatilihing maikli at malinaw ang sagot."""
 
         return prompt
 
@@ -244,7 +244,7 @@ Gumamit ng mga bullet points. Panatilihing maikli at malinaw ang sagot. Always m
 
         prompt += f"""
 
-Using the grammar rules and common mistakes above (if provided), magbigay ng 4 na punto:
+Using the grammar rules and common mistakes above, magbigay ng 4 na punto:
 1) Bakit may error ang "{correct}" (check if this is a documented common mistake)
 2) Ano ang tamang paraan (correction)
 3) Anong grammar rule ang nilabag (cite from references if available)
@@ -320,7 +320,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
         completion = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.2,
-            max_tokens=300,
+            max_tokens=200,
             messages=[
                 {
                     "role": "system",

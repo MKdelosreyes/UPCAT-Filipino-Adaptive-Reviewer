@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8001';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
-// ✅ AI Service Client (FastAPI - Port 8001)
+// AI Service Client (FastAPI - Port 8001)
 export const aiServiceClient = axios.create({
   baseURL: AI_SERVICE_URL,
   headers: {
@@ -13,7 +13,7 @@ export const aiServiceClient = axios.create({
   timeout: 30000,
 });
 
-// ✅ Backend API Client (Django - Port 8000)
+// Backend API Client (Django - Port 8000)
 export const apiClient = axios.create({
   baseURL: BACKEND_URL,
   headers: {

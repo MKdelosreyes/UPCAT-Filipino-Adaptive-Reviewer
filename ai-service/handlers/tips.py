@@ -131,7 +131,7 @@ Based on the reference materials above (learning strategies, common mistakes), p
 
 **📊 Analysis** (1-2 sentences on strengths/weaknesses)
 
-**💡 Focus Areas** (3 specific, actionable tips with emojis. Reference the common mistakes and learning strategies provided above)
+**💡 Focus Areas** (2 specific, actionable tips. Reference the common mistakes and learning strategies provided above)
 
 **🎯 Next Steps** (recommended difficulty level + 1 concrete action based on the learning strategies above)
 
@@ -160,7 +160,7 @@ async def handle_tips(request: TipsRequest) -> TipsResponse:
         completion = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.7,
-            max_tokens=500,  # ✅ Increased for more comprehensive tips
+            max_tokens=400,
             messages=[
                 {
                     "role": "system",
