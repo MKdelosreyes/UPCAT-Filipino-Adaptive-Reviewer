@@ -74,7 +74,7 @@ export default function FillMissingQuestion({
             flex: showExplanation ? "0 0 42%" : "1 1 100%",
           }}
           transition={{ duration: 0.3 }}
-          className={`w-full ${showExplanation ? "" : "lg:mx-40"}`}
+          className="w-full"
         >
           <div className="grid grid-cols-1 gap-3">
             {choices.map((choice, index) => {

@@ -436,7 +436,6 @@ export default function ErrorIdentificationPage() {
       status: "in-progress",
       score: sessionScore,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });

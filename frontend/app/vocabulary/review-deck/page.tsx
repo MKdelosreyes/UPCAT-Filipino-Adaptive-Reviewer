@@ -343,7 +343,11 @@ export default function ReviewDeckPage() {
             masteredCount={masteredCount}
             learningCount={learningCount}
             wordId={currentWord.lemma_id}
+<<<<<<< HEAD
         />
+=======
+          />
+>>>>>>> c657bb5 (merged with main)
         </div>
 
         {/* Flashcard */}

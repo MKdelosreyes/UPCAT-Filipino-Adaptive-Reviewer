@@ -1,11 +1,18 @@
 "use client";
 
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
+<<<<<<< HEAD
 import { Circle } from "lucide-react";
 import type {
   VocabularyExercise,
   QuizProgress,
   LessonProgress,
+=======
+import { Lock, Circle, CheckCircle2 } from "lucide-react";
+import type {
+  VocabularyExercise,
+  QuizProgress,
+>>>>>>> c657bb5 (merged with main)
 } from "@/contexts/LearningProgressContext";
 
 const steps: Array<{ id: VocabularyExercise; label: string; number: number }> =
@@ -19,6 +26,10 @@ export default function ProgressStepper() {
   const { progress, getExerciseMastery, isLessonExercise } =
     useVocabularyProgress();
 
+<<<<<<< HEAD
+=======
+  // ✅ FIX: Only count QUIZ exercises for performance history
+>>>>>>> c657bb5 (merged with main)
   const quizExercises = steps.filter((step) => !isLessonExercise(step.id));
   const completedQuizzes = quizExercises.filter(
     (step) => (progress[step.id] as QuizProgress).performanceHistory?.length > 0
@@ -40,11 +51,26 @@ export default function ProgressStepper() {
         {steps.map((step) => {
           const exerciseProgress = progress[step.id];
           const isLesson = isLessonExercise(step.id);
+<<<<<<< HEAD
 
           const hasStarted = isLesson
             ? (exerciseProgress as LessonProgress).timeSpent > 0
             : (exerciseProgress as QuizProgress).performanceHistory?.length > 0;
 
+=======
+
+          // ✅ FIX: Lessons don't have performanceHistory
+          const hasStarted = isLesson
+            ? exerciseProgress.status === "completed"
+            : (exerciseProgress as QuizProgress).performanceHistory?.length > 0;
+
+          const isAvailable =
+            exerciseProgress.status === "not-started" ||
+            exerciseProgress.status === "in-progress" ||
+            exerciseProgress.status === "completed";
+          const isLocked = exerciseProgress.status === "locked";
+
+>>>>>>> c657bb5 (merged with main)
           const mastery =
             !isLesson && hasStarted
               ? getExerciseMastery(exerciseProgress as QuizProgress)
@@ -55,12 +81,16 @@ export default function ProgressStepper() {
               {/* Circle */}
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 ${
-                  hasStarted
+                  exerciseProgress.status === "completed"
+                    ? "bg-green-500 text-white"
+                    : hasStarted
                     ? "bg-blue-600 text-white"
                     : "bg-blue-100 text-blue-600 border-2 border-blue-300"
                 }`}
               >
-                {hasStarted && mastery ? (
+                {exerciseProgress.status === "completed" ? (
+                  <CheckCircle2 size={20} />
+                ) : hasStarted && mastery ? (
                   <span>{mastery.icon}</span>
                 ) : (
                   <Circle size={16} />
@@ -70,13 +100,29 @@ export default function ProgressStepper() {
               {/* Label */}
               <span
                 className={`mt-2 text-xs md:text-sm font-medium text-center max-w-[80px] ${
+<<<<<<< HEAD
                   hasStarted ? "text-blue-900" : "text-gray-600"
+=======
+                  hasStarted || isAvailable ? "text-blue-900" : "text-gray-400"
+>>>>>>> c657bb5 (merged with main)
                 }`}
               >
                 {step.label}
               </span>
 
+<<<<<<< HEAD
               {/* Mastery Badge */}
+=======
+              {/* Lesson Badge or Mastery Badge */}
+              {isLesson && exerciseProgress.status === "completed" && (
+                <div className="mt-1">
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                    ✓ Lesson Done
+                  </span>
+                </div>
+              )}
+
+>>>>>>> c657bb5 (merged with main)
               {!isLesson && hasStarted && mastery && (
                 <div className="mt-1 flex flex-col items-center gap-1">
                   <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold capitalize">
