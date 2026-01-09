@@ -2,7 +2,7 @@
 
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type {
-  ExerciseProgress as BaseExerciseProgress,
+  QuizProgress,
   ExerciseStatus,
 } from "@/contexts/LearningProgressContext";
 
@@ -29,15 +29,16 @@ interface ReadingMastery {
 }
 
 export function useReadingProgress() {
-  const { progress, updateProgress: updateLearningProgress } =
-    useLearningProgress();
+  const { progress, updateQuizProgress } = useLearningProgress();
 
   const getReadingProgress = (): ReadingProgress => {
-    const readingProgress = progress["reading-comprehension"]?.flashcards || {
+    const readingProgress = progress["reading-comprehension"]?.["passage-questions"] || {
       status: "not-started",
       score: null,
       completedAt: null,
       attempts: 0,
+      lastDifficulty: "easy" as const,
+      errorTags: [],
       performanceHistory: [],
     };
 
@@ -50,12 +51,12 @@ export function useReadingProgress() {
     };
   };
 
-  const updateProgress = (data: Partial<BaseExerciseProgress>) => {
-    updateLearningProgress("reading-comprehension", "flashcards", data);
+  const updateProgress = (data: Partial<QuizProgress>) => {
+    updateQuizProgress("reading-comprehension", "passage-questions", data);
   };
 
   const getReadingMastery = (): ReadingMastery => {
-    const reading = progress["reading-comprehension"]?.flashcards;
+    const reading = progress["reading-comprehension"]?.["passage-questions"];
     if (!reading) {
       return {
         level: "beginner",
