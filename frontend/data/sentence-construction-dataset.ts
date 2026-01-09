@@ -32,10 +32,23 @@ export interface CreateSentenceItem {
   subskill: string;
 }
 
+export interface CompleteSentenceItem {
+  id: string;
+  skill: string;
+  exerciseType: "complete_sentence";
+  difficulty: "easy" | "medium" | "hard";
+  incompletePhrase: string;
+  completion: string;
+  correctCompletions: string[];
+  explanation: string;
+  subskill: string;
+}
+
 export type SentenceConstructionItem = 
   | SentenceOrderingItem 
   | FillMissingWordsItem 
-  | CreateSentenceItem;
+  | CreateSentenceItem
+  | CompleteSentenceItem;
 
 export const sentenceConstructionData: SentenceConstructionItem[] = [
   {
@@ -140,5 +153,60 @@ export const sentenceConstructionData: SentenceConstructionItem[] = [
     "targetConcepts": ["sugnay", "pang-ugnay", "kaayusan"],
     "exampleAnswer": "Bagaman mahirap ang pagsusulit, nagsikap siyang tapusin ito.",
     "subskill": "kompleks_na_pangungusap"
+  },
+  {
+    "id": "SC-COMPL-001",
+    "skill": "sentence_construction",
+    "exerciseType": "complete_sentence",
+    "difficulty": "easy",
+    "incompletePhrase": "Ang araw ay napakaganda kaya...",
+    "completion": "pumunta kami sa park.",
+    "correctCompletions": ["pumunta kami sa park", "lumabas kami", "mag-enjoy kami"],
+    "explanation": "Ang pangungusap ay kumpleto kung ang ikalawang bahagi ay nagpapatuloy ng ideya at may kahulugang kumpleto.",
+    "subskill": "pagkakaugnay_ng_ideya"
+  },
+  {
+    "id": "SC-COMPL-002",
+    "skill": "sentence_construction",
+    "exerciseType": "complete_sentence",
+    "difficulty": "easy",
+    "incompletePhrase": "Mahirap ang pagsusulit dahil...",
+    "completion": "maraming leksyon ang dapat pag-aralan.",
+    "correctCompletions": ["maraming leksyon ang dapat pag-aralan", "kailangan ng maraming oras", "kailangan ng sipag at tiyaga"],
+    "explanation": "Ang 'dahil' ay nagpapakita ng sanhi, kaya ang pagkumpleto ay dapat magbigay ng dahilan.",
+    "subskill": "kasugnayan_ng_pangangahulugan"
+  },
+  {
+    "id": "SC-COMPL-003",
+    "skill": "sentence_construction",
+    "exerciseType": "complete_sentence",
+    "difficulty": "medium",
+    "incompletePhrase": "Bagaman matanda na siya, patuloy pa rin siyang...",
+    "completion": "nag-aaral at nag-iimprove.",
+    "correctCompletions": ["nag-aaral at nag-iimprove", "nag-trabaho", "aktibo pa rin"],
+    "explanation": "Ang 'bagaman' ay nagpapakita ng kontra o pagkakataon, kaya ang pagkumpleto ay dapat magbigay ng aksyon na kontra sa inaasahan.",
+    "subskill": "pagkakaugnay_ng_ideya"
+  },
+  {
+    "id": "SC-COMPL-004",
+    "skill": "sentence_construction",
+    "exerciseType": "complete_sentence",
+    "difficulty": "medium",
+    "incompletePhrase": "Sumusunod sa mahabang oras ng pag-aaral, ang resulta...",
+    "completion": "ay nagpakita ng kanyang pagsisikap.",
+    "correctCompletions": ["ay nagpakita ng kanyang pagsisikap", "ay mas mahusay na nakaambag", "ay nagbunga ng magandang pagbabago"],
+    "explanation": "Ang pangungusap ay dapat kumpleto sa pamamagitan ng resulta o sanaysay ng epekto.",
+    "subskill": "kasugnayan_ng_pangangahulugan"
+  },
+  {
+    "id": "SC-COMPL-005",
+    "skill": "sentence_construction",
+    "exerciseType": "complete_sentence",
+    "difficulty": "hard",
+    "incompletePhrase": "Kung hindi ninyo susundin ang mga tagubilin, ang...",
+    "completion": "pagkakaiba-iba ng resulta ay maaaring mangyari.",
+    "correctCompletions": ["pagkakaiba-iba ng resulta ay maaaring mangyari", "hindi ninyo maaabot ang layunin", "magiging mahirap ang gawain"],
+    "explanation": "Ang 'kung' ay nagpapakita ng kondisyon, kaya ang pagkumpleto ay dapat magbigay ng posibleng resulta o epekto.",
+    "subskill": "kondisyonal_na_pagpapahayag"
   }
 ] as const;
