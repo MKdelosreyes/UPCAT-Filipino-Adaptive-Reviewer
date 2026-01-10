@@ -288,7 +288,7 @@ async def root():
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_ai(request: ChatRequest):
     """
-    Chat endpoint using Gemini API
+    Chat endpoint using Groq API
     """
     try:
         from rag.RAGOrchestrator import get_rag_orchestrator
@@ -309,7 +309,6 @@ async def chat_with_ai(request: ChatRequest):
             include_mistakes=True
         )
 
-        # ✅ Build system instruction as part of prompt for Gemini
         system_instruction = f"""You are a helpful Filipino language tutor for UPCAT preparation.
 
 Current Context:
@@ -329,8 +328,7 @@ Guidelines:
 - Use examples from Filipino culture and daily life
 """
 
-        # ✅ Build conversation history into single prompt
-        messages = [{"role": "system", "content": system_message}]
+        messages = [{"role": "system", "content": system_instruction}]
 
         # Add conversation history (last 6 messages)
         for msg in request.conversation_history[-6:]:
@@ -339,14 +337,13 @@ Guidelines:
                 "content": msg["content"]
             })
 
-        # ✅ Call Groq API
         completion = groq_client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=messages,
             temperature=0.7,
             max_tokens=200,
             top_p=1,
-            stream=False  # Non-streaming for simpler response handling
+            stream=False
         )
 
         ai_response = completion.choices[0].message.content or "I couldn't generate a response. Please try again."
@@ -418,8 +415,6 @@ async def generate_tips(request: TipsRequest):
 async def find_confusables(request: ConfusablesRequest):
     """
     ✅ NOTE: This endpoint still uses embeddings for similarity.
-    Gemini doesn't have a direct embedding API in google.genai yet.
-    Consider using sentence-transformers for this instead (free, local).
     """
     raise HTTPException(
         status_code=501,
