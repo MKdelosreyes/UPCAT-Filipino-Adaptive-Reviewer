@@ -1,517 +1,1004 @@
-from typing import List, Dict, Optional, Literal
-import os
-import sys
 import json
+import os
+import numpy as np
+from typing import List, Dict, Optional, Tuple
+from dataclasses import dataclass, field
+from enum import Enum
 
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from .grammar_rag import get_grammar_rag, GrammarRAG
+from .vocabulary_rag import get_vocabulary_rag, VocabularyRAG
+from .common_mistakes_rag import get_common_mistakes_rag, CommonMistakesRAG
+from .embeddings import LocalEmbeddingModel, HybridSearcher
 
-try:
-    from rag.grammar_rag import get_grammar_rag
-    from rag.vocabulary_rag import get_vocabulary_rag
-except ImportError as e:
-    print(f"⚠️ Error importing RAG modules in orchestrator: {e}")
-    get_grammar_rag = None
-    get_vocabulary_rag = None
+
+class ContextType(Enum):
+    """Supported context types for retrieval"""
+    VOCABULARY = "vocabulary"
+    GRAMMAR = "grammar"
+    GENERAL = "general"
+    QUIZ = "quiz"
+    ANTONYM = "antonym"
+    FILL_BLANKS = "fill-blanks"
+    ERROR_IDENTIFICATION = "error-identification"
+
+
+@dataclass
+class RetrievalConfig:
+    """Configuration for retrieval behavior"""
+    top_k: int = 3
+    min_similarity: float = 0.3
+    use_hybrid: bool = True
+    include_mistakes: bool = True
+    include_strategies: bool = False
+    boost_exact_match: bool = True
+    include_examples: bool = True
+    include_sources: bool = True
+    max_context_length: int = 4000  # Character limit for context
+
+
+@dataclass
+class RetrievalResult:
+    """Structured result from retrieval"""
+    source_type: str  # "vocabulary", "grammar", "mistakes", "strategies"
+    results: List[Dict]
+    query: str
+    relevance_scores: List[float] = field(default_factory=list)
 
 
 class RAGOrchestrator:
-    """Unified RAG interface for all handlers with common mistakes and learning strategies"""
+    """
+    Unified RAG interface that combines grammar, vocabulary, and common mistakes
+    retrieval with intelligent context merging, ranking, and deduplication.
+    """
 
     def __init__(self):
-        """Initialize RAG components"""
+        print("🚀 Initializing Enhanced RAG Orchestrator...")
+
+        self.grammar_rag: GrammarRAG = get_grammar_rag()
+        self.vocabulary_rag: VocabularyRAG = get_vocabulary_rag()
+        self.common_mistakes_rag: CommonMistakesRAG = get_common_mistakes_rag()
+
+        # Learning strategies
+        self.learning_strategies: List[Dict] = []
+        self.strategy_embeddings: List[List[float]] = []
+        self.embedder = LocalEmbeddingModel()
+        self.hybrid_searcher = HybridSearcher(self.embedder)
+
+        # Context type to retrieval strategy mapping
+        self._context_strategies = {
+            ContextType. VOCABULARY: self._strategy_vocabulary,
+            ContextType.GRAMMAR: self._strategy_grammar,
+            ContextType. GENERAL: self._strategy_general,
+            ContextType. QUIZ: self._strategy_quiz,
+            ContextType.ANTONYM: self._strategy_antonym,
+            ContextType. FILL_BLANKS: self._strategy_fill_blanks,
+            ContextType.ERROR_IDENTIFICATION: self._strategy_error_identification,
+        }
+
+        self._load_learning_strategies()
+
+        print("✅ Enhanced RAG Orchestrator initialized successfully")
+
+    def _load_learning_strategies(self) -> None:
+        """Load learning strategies reference with embeddings"""
         try:
-            self.grammar_rag = None
-            self.vocab_rag = None
-
-            if get_grammar_rag:
-                try:
-                    print("🔄 Attempting to initialize Grammar RAG...")
-                    self.grammar_rag = get_grammar_rag()
-
-                    # ✅ Verify it's not None
-                    if self.grammar_rag is None:
-                        print("❌ Grammar RAG returned None")
-                    elif hasattr(self.grammar_rag, 'references'):
-                        print(
-                            f"✅ Grammar RAG initialized with {len(self.grammar_rag.references)} references")
-                    else:
-                        print("✅ Grammar RAG initialized (no references attribute)")
-
-                except Exception as e:
-                    print(f"❌ Grammar RAG initialization failed: {e}")
-                    import traceback
-                    traceback.print_exc()
-            else:
-                print("❌ get_grammar_rag function not available")
-
-            if get_vocabulary_rag:
-                try:
-                    print("🔄 Attempting to initialize Vocabulary RAG...")
-                    self.vocab_rag = get_vocabulary_rag()
-
-                    # ✅ Verify it's not None
-                    if self.vocab_rag is None:
-                        print("❌ Vocabulary RAG returned None")
-                    elif hasattr(self.vocab_rag, 'references'):
-                        print(
-                            f"✅ Vocabulary RAG initialized with {len(self.vocab_rag.references)} references")
-                    elif hasattr(self.vocab_rag, 'documents'):
-                        print(
-                            f"✅ Vocabulary RAG initialized with {len(self.vocab_rag.documents)} documents")
-                    else:
-                        print(
-                            "✅ Vocabulary RAG initialized (no references/documents attribute)")
-
-                except Exception as e:
-                    print(f"❌ Vocabulary RAG initialization failed: {e}")
-                    import traceback
-                    traceback.print_exc()
-            else:
-                print("❌ get_vocabulary_rag function not available")
-
-            # Load common mistakes and learning strategies
-            self._load_supplementary_references()
-
-        except Exception as e:
-            print(f"❌ Error initializing RAG orchestrator: {e}")
-            import traceback
-            traceback.print_exc()
-            self.grammar_rag = None
-            self.vocab_rag = None
-            self.common_mistakes = []
-            self.learning_strategies = []
-
-    def _load_supplementary_references(self):
-        """Load common mistakes and learning strategies"""
-        try:
-            # Load common mistakes
-            mistakes_path = os.path.join(
-                os.path.dirname(__file__),
+            strategies_path = os.path. join(
+                os.path. dirname(__file__),
                 "references",
-                "common_mistakes.json"
+                "learning_strategies. json"
             )
-            with open(mistakes_path, 'r', encoding='utf-8') as f:
-                self.common_mistakes = json.load(f)
-            print(
-                f"✅ Loaded {len(self.common_mistakes)} common mistake patterns")
 
-            # Load learning strategies
-            strategies_path = os.path.join(
-                os.path.dirname(__file__),
-                "references",
-                "learning_strategies.json"
-            )
-            with open(strategies_path, 'r', encoding='utf-8') as f:
-                self.learning_strategies = json.load(f)
-            print(
-                f"✅ Loaded {len(self.learning_strategies)} learning strategies")
+            if os.path.exists(strategies_path):
+                with open(strategies_path, "r", encoding="utf-8") as f:
+                    data = json. load(f)
 
+                for entry in data:
+                    # Create enriched searchable text
+                    text_parts = [
+                        f"Learning strategy: {entry.get('strategy_name', '')}",
+                        f"Category: {entry.get('strategy_category', '')}",
+                        f"Description: {entry.get('description', '')}",
+                        f"Target skills: {', '.join(entry.get('target_skills', []))}",
+                        f"Steps: {'; '.join(entry.get('step_by_step', []))}",
+                        f"Difficulty: {entry.get('difficulty_level', '')}",
+                    ]
+                    entry["text"] = " | ".join(p for p in text_parts if p)
+                    entry["searchable_text"] = " ". join([
+                        entry.get("strategy_name", ""),
+                        entry.get("description", ""),
+                        " ".join(entry.get("target_skills", [])),
+                        " ".join(entry.get("step_by_step", [])),
+                    ])
+                    self.learning_strategies.append(entry)
+
+                if self. learning_strategies:
+                    texts = [s["text"] for s in self.learning_strategies]
+                    self.strategy_embeddings = self.embedder.embed_texts(texts)
+
+                print(
+                    f"✓ Loaded {len(self.learning_strategies)} learning strategies")
         except Exception as e:
-            print(f"⚠️ Error loading supplementary references: {e}")
-            self.common_mistakes = []
-            self.learning_strategies = []
+            print(f"⚠️ Error loading learning strategies: {e}")
 
     def get_context(
         self,
-        query: str,
-        context_type: Literal["grammar", "vocabulary", "mixed", "mistakes", "strategies"],
-        top_k: int = 3,
-        min_similarity: float = 0.5,
-        include_mistakes: bool = False,
-        include_strategies: bool = False
+        query:  str,
+        context_type:  str = "general",
+        config:  Optional[RetrievalConfig] = None,
+        word:  Optional[str] = None,
+        sentence: Optional[str] = None,
+        selected_answer: Optional[str] = None,
+        correct_answer:  Optional[str] = None,
+        **kwargs
     ) -> str:
         """
-        Get relevant context for a query with intelligent routing.
+        Main entry point for getting RAG context.
 
         Args:
             query: The search query
-            context_type: Type of context to retrieve
-            top_k: Number of results to return
-            min_similarity: Minimum similarity threshold
-            include_mistakes: Whether to include common mistakes in response
-            include_strategies: Whether to include learning strategies in response
+            context_type:  One of "vocabulary", "grammar", "general", "quiz", "antonym", 
+                         "fill-blanks", "error-identification"
+            config:  Retrieval configuration
+            word:  The specific word being queried (for vocabulary/quiz modes)
+            sentence: The sentence context (for grammar modes)
+            selected_answer: What the student selected (for mistake analysis)
+            correct_answer: The correct answer (for mistake analysis)
+            **kwargs: Additional parameters
 
         Returns:
-            Formatted context string
+            Formatted context string for LLM prompt
         """
+        if config is None:
+            config = RetrievalConfig(
+                top_k=kwargs.get("top_k", 3),
+                min_similarity=kwargs.get("min_similarity", 0.3),
+                use_hybrid=kwargs. get("use_hybrid", True),
+                include_mistakes=kwargs. get("include_mistakes", True),
+                include_strategies=kwargs. get("include_strategies", False),
+                boost_exact_match=kwargs.get("boost_exact_match", True),
+                include_examples=kwargs.get("include_examples", True),
+                include_sources=kwargs.get("include_sources", True),
+                max_context_length=kwargs.get("max_context_length", 4000)
+            )
+
+        # Build enhanced query with additional context
+        enhanced_query = self._build_enhanced_query(
+            query=query,
+            word=word,
+            sentence=sentence,
+            selected_answer=selected_answer,
+            correct_answer=correct_answer
+        )
+
+        # Get context type enum
         try:
-            results = []
+            ctx_type = ContextType(context_type. lower())
+        except ValueError:
+            ctx_type = ContextType. GENERAL
 
-            print(f"🔍 RAG Context Request:")
-            print(f"   Query: {query[:50]}...")
-            print(f"   Context Type: {context_type}")
-            print(f"   Grammar RAG Available: {self.grammar_rag is not None}")
-            print(f"   Vocab RAG Available: {self.vocab_rag is not None}")
+        # Execute retrieval strategy
+        strategy_fn = self._context_strategies.get(
+            ctx_type, self._strategy_general)
+        retrieval_results = strategy_fn(
+            enhanced_query, config, word, sentence, selected_answer, correct_answer)
 
-            # ✅ ENHANCED: Handle new context types
-            if context_type == "mistakes":
-                results = self._search_common_mistakes(query, top_k)
+        # Merge, deduplicate, and rank results
+        merged_results = self._merge_and_rank_results(
+            retrieval_results, config)
 
-            elif context_type == "strategies":
-                results = self._search_learning_strategies(query, top_k)
+        # Format final context
+        context = self._format_final_context(merged_results, config)
 
-            elif context_type == "grammar":
-                if self.grammar_rag:
-                    try:
-                        results = self.grammar_rag.search(query, top_k=top_k)
-                        print(
-                            f"✅ Grammar search returned {len(results)} results")
-                    except Exception as e:
-                        print(f"❌ Grammar search error: {e}")
-                        results = []
-                else:
-                    print("⚠️ Grammar RAG not available")
-            elif context_type == "vocabulary":
-                if self.vocab_rag:
-                    try:
-                        results = self.vocab_rag.search(query, top_k=top_k)
-                        print(
-                            f"✅ Vocabulary search returned {len(results)} results")
-                    except Exception as e:
-                        print(f"❌ Vocabulary search error: {e}")
-                        import traceback
-                        traceback.print_exc()
-                        results = []
-                else:
-                    print("⚠️ Vocabulary RAG not available")
-                    print(f"   vocab_rag object: {self.vocab_rag}")
-                    print(
-                        f"   get_vocabulary_rag function: {get_vocabulary_rag}")
+        # Truncate if necessary
+        if len(context) > config.max_context_length:
+            context = self._truncate_context(
+                context, config. max_context_length)
 
-            elif context_type == "mixed":
-                # Hybrid search
-                if self.grammar_rag:
-                    try:
-                        grammar_results = self.grammar_rag.search(
-                            query, top_k=max(1, top_k//2))
-                        results.extend(grammar_results)
-                        print(
-                            f"✅ Grammar search: {len(grammar_results)} results")
-                    except Exception as e:
-                        print(f"⚠️ Grammar search in mixed mode failed: {e}")
+        return context
 
-                if self.vocab_rag:
-                    try:
-                        vocab_results = self.vocab_rag.search(
-                            query, top_k=max(1, top_k//2))
-                        results.extend(vocab_results)
-                        print(f"✅ Vocab search: {len(vocab_results)} results")
-                    except Exception as e:
-                        print(f"⚠️ Vocab search in mixed mode failed: {e}")
+    def _build_enhanced_query(
+        self,
+        query: str,
+        word: Optional[str] = None,
+        sentence:  Optional[str] = None,
+        selected_answer: Optional[str] = None,
+        correct_answer: Optional[str] = None
+    ) -> str:
+        """Build an enhanced query with additional context"""
+        parts = [query]
 
-                if results:
-                    results = self._merge_and_rank(results)
-            else:
-                print(f"❌ Unknown context_type: {context_type}")
-                return ""
+        if word:
+            parts.append(f"Filipino word: {word}")
+        if sentence:
+            parts.append(f"Sentence: {sentence}")
+        if selected_answer:
+            parts.append(f"Student selected: {selected_answer}")
+        if correct_answer:
+            parts.append(f"Correct answer: {correct_answer}")
 
-            # Optionally append common mistakes
-            if include_mistakes and context_type not in ["mistakes", "strategies"]:
-                mistake_results = self._search_common_mistakes(query, 2)
+        return " | ".join(parts)
+
+    # ==================== Retrieval Strategies ====================
+
+    def _strategy_vocabulary(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected:  Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for vocabulary-focused retrieval"""
+        results = []
+
+        # Primary:  Vocabulary search
+        vocab_results = self.vocabulary_rag.search(
+            query=word or query,
+            top_k=config.top_k,
+            min_similarity=config.min_similarity,
+            use_hybrid=config.use_hybrid,
+            boost_exact_match=config.boost_exact_match
+        )
+        if vocab_results:
+            results. append(RetrievalResult(
+                source_type="vocabulary",
+                results=vocab_results,
+                query=query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in vocab_results]
+            ))
+
+        # Secondary: Common mistakes related to vocabulary
+        if config.include_mistakes:
+            mistake_results = self.common_mistakes_rag.search(
+                query=query,
+                top_k=2,
+                min_similarity=config.min_similarity,
+                filter_category="vocabulary"
+            )
+            if mistake_results:
+                results.append(RetrievalResult(
+                    source_type="mistakes",
+                    results=mistake_results,
+                    query=query,
+                    relevance_scores=[r.get("similarity_score", 0)
+                                      for r in mistake_results]
+                ))
+
+        return results
+
+    def _strategy_grammar(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected: Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for grammar-focused retrieval"""
+        results = []
+
+        # Build grammar-specific query
+        grammar_query = query
+        if sentence:
+            grammar_query = f"Filipino grammar: {sentence}.  Focus:  {word or query}"
+
+        # Primary:  Grammar rules
+        grammar_results = self. grammar_rag.search(
+            query=grammar_query,
+            top_k=config.top_k,
+            min_similarity=config.min_similarity,
+            use_hybrid=config.use_hybrid
+        )
+        if grammar_results:
+            results. append(RetrievalResult(
+                source_type="grammar",
+                results=grammar_results,
+                query=grammar_query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in grammar_results]
+            ))
+
+        # Secondary: Common grammar mistakes
+        if config.include_mistakes:
+            mistake_results = self.common_mistakes_rag.search(
+                query=grammar_query,
+                top_k=2,
+                min_similarity=config.min_similarity,
+                filter_category="grammar"
+            )
+            if mistake_results:
+                results.append(RetrievalResult(
+                    source_type="mistakes",
+                    results=mistake_results,
+                    query=grammar_query,
+                    relevance_scores=[r.get("similarity_score", 0)
+                                      for r in mistake_results]
+                ))
+
+        return results
+
+    def _strategy_general(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected: Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for general retrieval (combines vocabulary and grammar)"""
+        results = []
+
+        # Vocabulary
+        vocab_results = self.vocabulary_rag.search(
+            query=query,
+            top_k=2,
+            min_similarity=config.min_similarity,
+            use_hybrid=config.use_hybrid
+        )
+        if vocab_results:
+            results.append(RetrievalResult(
+                source_type="vocabulary",
+                results=vocab_results,
+                query=query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in vocab_results]
+            ))
+
+        # Grammar
+        grammar_results = self.grammar_rag.search(
+            query=query,
+            top_k=2,
+            min_similarity=config.min_similarity,
+            use_hybrid=config.use_hybrid
+        )
+        if grammar_results:
+            results. append(RetrievalResult(
+                source_type="grammar",
+                results=grammar_results,
+                query=query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in grammar_results]
+            ))
+
+        # Mistakes
+        if config.include_mistakes:
+            mistake_results = self.common_mistakes_rag.search(
+                query=query,
+                top_k=1,
+                min_similarity=config.min_similarity
+            )
+            if mistake_results:
+                results.append(RetrievalResult(
+                    source_type="mistakes",
+                    results=mistake_results,
+                    query=query,
+                    relevance_scores=[r. get("similarity_score", 0)
+                                      for r in mistake_results]
+                ))
+
+        return results
+
+    def _strategy_quiz(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected: Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for quiz mode (vocabulary definition questions)"""
+        results = []
+
+        # Primary: Direct vocabulary lookup
+        if word:
+            # Try exact match first
+            exact_match = self.vocabulary_rag.get_by_lemma(word)
+            if exact_match:
+                exact_match["similarity_score"] = 1.0
+                exact_match["match_type"] = "exact"
+                results.append(RetrievalResult(
+                    source_type="vocabulary",
+                    results=[exact_match],
+                    query=word,
+                    relevance_scores=[1.0]
+                ))
+
+        # Semantic search for related vocabulary
+        vocab_results = self.vocabulary_rag.search(
+            query=query,
+            top_k=config.top_k,
+            min_similarity=config.min_similarity,
+            use_hybrid=config.use_hybrid
+        )
+        # Filter out duplicates from exact match
+        existing_lemmas = {r.get("lemma", "").lower()
+                           for rr in results for r in rr.results}
+        vocab_results = [r for r in vocab_results if r.get(
+            "lemma", "").lower() not in existing_lemmas]
+
+        if vocab_results:
+            results.append(RetrievalResult(
+                source_type="vocabulary",
+                results=vocab_results,
+                query=query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in vocab_results]
+            ))
+
+        # Check if selected answer matches a common confusion pattern
+        if config.include_mistakes and selected and selected != correct:
+            confusion_query = f"confusion between {word} and {selected}" if word else query
+            mistake_results = self.common_mistakes_rag.search(
+                query=confusion_query,
+                top_k=2,
+                min_similarity=0.25  # Lower threshold for mistake patterns
+            )
+            if mistake_results:
+                results.append(RetrievalResult(
+                    source_type="mistakes",
+                    results=mistake_results,
+                    query=confusion_query,
+                    relevance_scores=[r.get("similarity_score", 0)
+                                      for r in mistake_results]
+                ))
+
+        return results
+
+    def _strategy_antonym(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected: Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for antonym questions"""
+        results = []
+
+        if word:
+            # Get the word's entry
+            word_entry = self.vocabulary_rag.get_by_lemma(word)
+            if word_entry:
+                word_entry["similarity_score"] = 1.0
+                results.append(RetrievalResult(
+                    source_type="vocabulary",
+                    results=[word_entry],
+                    query=word,
+                    relevance_scores=[1.0]
+                ))
+
+            # Get words that have this as an antonym
+            related_antonyms = self.vocabulary_rag.get_antonyms_of(word)
+            if related_antonyms:
+                for r in related_antonyms:
+                    r["similarity_score"] = 0.9
+                    r["relationship"] = "has_as_antonym"
+                results.append(RetrievalResult(
+                    source_type="vocabulary",
+                    results=related_antonyms[: 2],
+                    query=f"antonym of {word}",
+                    relevance_scores=[0.9] * len(related_antonyms[:2])
+                ))
+
+            # If correct answer provided, get its entry too
+            if correct:
+                correct_entry = self.vocabulary_rag.get_by_lemma(correct)
+                if correct_entry:
+                    correct_entry["similarity_score"] = 0.95
+                    correct_entry["relationship"] = "correct_antonym"
+                    results.append(RetrievalResult(
+                        source_type="vocabulary",
+                        results=[correct_entry],
+                        query=correct,
+                        relevance_scores=[0.95]
+                    ))
+
+        # Check for synonym/antonym confusion mistakes
+        if config.include_mistakes and selected:
+            mistake_results = self.common_mistakes_rag.search(
+                query=f"antonym synonym confusion {word} {selected}",
+                top_k=1,
+                min_similarity=0.2
+            )
+            if mistake_results:
+                results.append(RetrievalResult(
+                    source_type="mistakes",
+                    results=mistake_results,
+                    query=query,
+                    relevance_scores=[r.get("similarity_score", 0)
+                                      for r in mistake_results]
+                ))
+
+        return results
+
+    def _strategy_fill_blanks(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected: Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for fill-in-the-blanks grammar questions"""
+        results = []
+
+        # Build context-aware query
+        grammar_query = f"Filipino grammar fill blank:  {sentence}" if sentence else query
+        if word:
+            grammar_query += f" correct word: {word}"
+
+        # Primary: Grammar rules
+        grammar_results = self. grammar_rag.search(
+            query=grammar_query,
+            top_k=config.top_k,
+            min_similarity=config.min_similarity,
+            use_hybrid=config.use_hybrid
+        )
+        if grammar_results:
+            results. append(RetrievalResult(
+                source_type="grammar",
+                results=grammar_results,
+                query=grammar_query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in grammar_results]
+            ))
+
+        # Check for specific word-related mistakes (e.g., ng vs nang)
+        if config.include_mistakes:
+            # Search by linguistic focus if word is provided
+            if word:
+                focus_mistakes = self.common_mistakes_rag.get_by_linguistic_focus(
+                    word)
+                if focus_mistakes:
+                    for m in focus_mistakes:
+                        m["similarity_score"] = 0.95
+                        m["match_type"] = "linguistic_focus"
+                    results.append(RetrievalResult(
+                        source_type="mistakes",
+                        results=focus_mistakes[: 2],
+                        query=word,
+                        relevance_scores=[0.95] * len(focus_mistakes[:2])
+                    ))
+
+            # Also search for general grammar mistakes
+            if selected and selected != correct:
+                mistake_query = f"grammar error:  used {selected} instead of {correct}"
+                mistake_results = self. common_mistakes_rag.search(
+                    query=mistake_query,
+                    top_k=2,
+                    min_similarity=0.25,
+                    filter_category="grammar"
+                )
                 if mistake_results:
-                    results.extend(mistake_results)
-                    print(f"✅ Added {len(mistake_results)} common mistakes")
+                    results. append(RetrievalResult(
+                        source_type="mistakes",
+                        results=mistake_results,
+                        query=mistake_query,
+                        relevance_scores=[r.get("similarity_score", 0)
+                                          for r in mistake_results]
+                    ))
 
-            # Optionally append learning strategies
-            if include_strategies and context_type not in ["mistakes", "strategies"]:
-                strategy_results = self._search_learning_strategies(query, 2)
-                if strategy_results:
-                    results.extend(strategy_results)
-                    print(
-                        f"✅ Added {len(strategy_results)} learning strategies")
+        return results
 
-            # Filter by similarity threshold
-            if results:
-                before_filter = len(results)
-                results = [r for r in results if r.get(
-                    "similarity_score", 0) >= min_similarity]
-                print(
-                    f"✅ Filtered {before_filter} → {len(results)} results (min similarity: {min_similarity})")
+    def _strategy_error_identification(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected: Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for error identification questions"""
+        results = []
 
-            if not results:
-                print(
-                    f"⚠️ No relevant context found for query: {query[:50]}...")
-                return ""
+        # Build error-focused query
+        error_query = f"Filipino grammar error in:  {sentence}" if sentence else query
+        if correct:
+            error_query += f" error part:  {correct}"
 
-            print(f"✅ Found {len(results)} relevant context items")
-            return self._format_context(results, context_type)
+        # Primary: Common mistakes (most relevant for this mode)
+        if config.include_mistakes:
+            # Direct linguistic focus search
+            if correct:
+                focus_mistakes = self.common_mistakes_rag.get_by_linguistic_focus(
+                    correct)
+                if focus_mistakes:
+                    for m in focus_mistakes:
+                        m["similarity_score"] = 0.98
+                        m["match_type"] = "direct_error_match"
+                    results.append(RetrievalResult(
+                        source_type="mistakes",
+                        results=focus_mistakes[: 2],
+                        query=correct,
+                        relevance_scores=[0.98] * len(focus_mistakes[:2])
+                    ))
 
-        except Exception as e:
-            print(f"❌ Error in get_context: {e}")
-            import traceback
-            traceback.print_exc()
+            # Semantic search for error patterns
+            mistake_results = self.common_mistakes_rag. search(
+                query=error_query,
+                top_k=config.top_k,
+                min_similarity=config.min_similarity,
+                use_hybrid=config.use_hybrid
+            )
+            # Filter duplicates
+            existing_ids = {r.get("error_id")
+                            for rr in results for r in rr.results}
+            mistake_results = [r for r in mistake_results if r.get(
+                "error_id") not in existing_ids]
+
+            if mistake_results:
+                results.append(RetrievalResult(
+                    source_type="mistakes",
+                    results=mistake_results,
+                    query=error_query,
+                    relevance_scores=[r.get("similarity_score", 0)
+                                      for r in mistake_results]
+                ))
+
+        # Secondary: Grammar rules that explain the error
+        grammar_results = self.grammar_rag.search(
+            query=error_query,
+            top_k=2,
+            min_similarity=config.min_similarity,
+            use_hybrid=config.use_hybrid
+        )
+        if grammar_results:
+            results.append(RetrievalResult(
+                source_type="grammar",
+                results=grammar_results,
+                query=error_query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in grammar_results]
+            ))
+
+        return results
+
+    # ==================== Result Processing ====================
+
+    def _merge_and_rank_results(
+        self,
+        retrieval_results: List[RetrievalResult],
+        config:  RetrievalConfig
+    ) -> List[Tuple[str, Dict, float]]:
+        """
+        Merge results from multiple sources, deduplicate, and rank by relevance.
+
+        Returns:  List of (source_type, result_dict, final_score)
+        """
+        all_results:  List[Tuple[str, Dict, float]] = []
+
+        # Source type weights (prioritize based on typical usefulness)
+        source_weights = {
+            "vocabulary": 1.0,
+            "grammar":  1.0,
+            "mistakes":  1.1,  # Slightly boost mistakes as they're directly educational
+            "strategies": 0.8
+        }
+
+        # Match type boosts
+        match_boosts = {
+            "exact":  0.2,
+            "exact_lemma": 0.2,
+            "linguistic_focus": 0.15,
+            "direct_error_match": 0.15,
+            "keyword_lemma": 0.1,
+            "hybrid": 0.0,
+            "semantic": -0.05
+        }
+
+        for rr in retrieval_results:
+            source_weight = source_weights.get(rr.source_type, 1.0)
+
+            for result in rr.results:
+                base_score = result.get("similarity_score", 0.5)
+                match_type = result.get("match_type", "semantic")
+                match_boost = match_boosts. get(match_type, 0.0)
+
+                final_score = (base_score + match_boost) * source_weight
+                final_score = min(1.0, max(0.0, final_score)
+                                  )  # Clamp to [0, 1]
+
+                all_results.append((rr.source_type, result, final_score))
+
+        # Sort by final score descending
+        all_results.sort(key=lambda x: x[2], reverse=True)
+
+        # Deduplicate (keep highest scored version)
+        seen_ids = set()
+        deduplicated = []
+
+        for source_type, result, score in all_results:
+            # Generate unique ID based on content
+            if source_type == "vocabulary":
+                unique_id = f"vocab_{result. get('lemma', '')}"
+            elif source_type == "grammar":
+                unique_id = f"grammar_{result.get('rule_name', '')}"
+            elif source_type == "mistakes":
+                unique_id = f"mistake_{result.get('error_id', '')}"
+            else:
+                unique_id = f"{source_type}_{result.get('chunk_id', id(result))}"
+
+            if unique_id not in seen_ids:
+                seen_ids. add(unique_id)
+                deduplicated.append((source_type, result, score))
+
+        return deduplicated
+
+    def _format_final_context(
+        self,
+        merged_results: List[Tuple[str, Dict, float]],
+        config: RetrievalConfig
+    ) -> str:
+        """Format merged results into a structured context string"""
+        if not merged_results:
             return ""
 
-    def _search_common_mistakes(self, query: str, top_k: int) -> List[Dict]:
-        """Search common mistakes using keyword matching"""
-        try:
-            query_lower = query.lower()
-            scored_results = []
+        sections = {
+            "vocabulary": [],
+            "grammar": [],
+            "mistakes": [],
+            "strategies": []
+        }
 
-            for mistake in self.common_mistakes:
-                score = 0.0
+        # Group by source type
+        for source_type, result, score in merged_results:
+            sections[source_type].append((result, score))
 
-                # Check error name
-                if mistake.get("error_name", "").lower() in query_lower:
-                    score += 0.5
+        context_parts = []
 
-                # Check linguistic focus
-                linguistic_focus = mistake.get("linguistic_focus", [])
-                for focus in linguistic_focus:
-                    if focus.lower() in query_lower:
-                        score += 0.3
+        # Format vocabulary section
+        if sections["vocabulary"]:
+            vocab_context = self._format_vocabulary_section(
+                sections["vocabulary"], config
+            )
+            if vocab_context:
+                context_parts.append(vocab_context)
 
-                # Check description
-                if any(word in mistake.get("description", "").lower()
-                       for word in query_lower.split()):
-                    score += 0.2
+        # Format grammar section
+        if sections["grammar"]:
+            grammar_context = self._format_grammar_section(
+                sections["grammar"], config
+            )
+            if grammar_context:
+                context_parts.append(grammar_context)
 
-                if score > 0:
-                    result = mistake.copy()
-                    result["similarity_score"] = min(score, 1.0)
-                    result["type"] = "common_mistake"
-                    scored_results.append(result)
+        # Format mistakes section
+        if sections["mistakes"]:
+            mistakes_context = self._format_mistakes_section(
+                sections["mistakes"], config
+            )
+            if mistakes_context:
+                context_parts.append(mistakes_context)
 
-            # Sort by score and return top_k
-            scored_results.sort(
-                key=lambda x: x["similarity_score"], reverse=True)
-            return scored_results[:top_k]
+        # Format strategies section
+        if sections["strategies"]:
+            strategies_context = self._format_strategies_section(
+                sections["strategies"], config
+            )
+            if strategies_context:
+                context_parts.append(strategies_context)
 
-        except Exception as e:
-            print(f"❌ Error searching common mistakes: {e}")
-            return []
+        return "\n\n".join(context_parts)
 
-    def _search_learning_strategies(self, query: str, top_k: int) -> List[Dict]:
-        """Search learning strategies using keyword matching"""
-        try:
-            query_lower = query.lower()
-            scored_results = []
-
-            for strategy in self.learning_strategies:
-                score = 0.0
-
-                # Check strategy name
-                if strategy.get("strategy_name", "").lower() in query_lower:
-                    score += 0.5
-
-                # Check target skills
-                target_skills = strategy.get("target_skills", [])
-                for skill in target_skills:
-                    if skill.lower() in query_lower:
-                        score += 0.3
-
-                # Check description
-                if any(word in strategy.get("description", "").lower()
-                       for word in query_lower.split()):
-                    score += 0.2
-
-                # Check embedding tags
-                rag_metadata = strategy.get("rag_metadata", {})
-                embedding_tags = rag_metadata.get("embedding_tags", [])
-                for tag in embedding_tags:
-                    if tag.lower() in query_lower:
-                        score += 0.2
-
-                if score > 0:
-                    result = strategy.copy()
-                    result["similarity_score"] = min(score, 1.0)
-                    result["type"] = "learning_strategy"
-                    scored_results.append(result)
-
-            # Sort by score and return top_k
-            scored_results.sort(
-                key=lambda x: x["similarity_score"], reverse=True)
-            return scored_results[:top_k]
-
-        except Exception as e:
-            print(f"❌ Error searching learning strategies: {e}")
-            return []
-
-    def _merge_and_rank(self, results: List[Dict]) -> List[Dict]:
-        """Merge and rank results from multiple sources"""
-        try:
-            combined = [r for r in results if r]  # Filter out None
-            combined.sort(key=lambda x: x.get(
-                "similarity_score", 0), reverse=True)
-            return combined
-        except Exception as e:
-            print(f"❌ Error merging results: {e}")
-            return results
-
-    def _format_context(self, results: List[Dict], context_type: str) -> str:
-        """Format results into readable context"""
-        try:
-            # Determine what type of results we have
-            has_grammar = any("rule_name" in r for r in results)
-            has_vocab = any("lemma" in r for r in results)
-            has_mistakes = any(
-                r.get("type") == "common_mistake" for r in results)
-            has_strategies = any(
-                r.get("type") == "learning_strategy" for r in results)
-
-            context = ""
-
-            if has_grammar:
-                grammar_results = [r for r in results if "rule_name" in r]
-                context += self._format_grammar_context(grammar_results)
-
-            if has_vocab:
-                vocab_results = [r for r in results if "lemma" in r]
-                if context:
-                    context += "\n"
-                context += self._format_vocab_context(vocab_results)
-
-            if has_mistakes:
-                mistake_results = [r for r in results if r.get(
-                    "type") == "common_mistake"]
-                if context:
-                    context += "\n"
-                context += self._format_mistakes_context(mistake_results)
-
-            if has_strategies:
-                strategy_results = [r for r in results if r.get(
-                    "type") == "learning_strategy"]
-                if context:
-                    context += "\n"
-                context += self._format_strategies_context(strategy_results)
-
-            return context
-        except Exception as e:
-            print(f"❌ Error formatting context: {e}")
+    def _format_vocabulary_section(
+        self,
+        results: List[Tuple[Dict, float]],
+        config:  RetrievalConfig
+    ) -> str:
+        """Format vocabulary results into context"""
+        if not results:
             return ""
 
-    def _format_grammar_context(self, results: List[Dict]) -> str:
-        """Format grammar results"""
-        try:
-            context = "📚 **Relevant Grammar Rules:**\n\n"
-            for i, result in enumerate(results[:3], 1):
-                rule_name = result.get('rule_name', 'Grammar Rule')
-                description = result.get('description', '')
+        lines = ["📚 **VOCABULARY REFERENCE:**"]
 
-                context += f"**{i}. {rule_name}**\n"
-                context += f"   {description}\n"
+        for i, (r, score) in enumerate(results[: config.top_k], 1):
+            match_indicator = "🎯" if r.get("match_type") in [
+                "exact", "exact_lemma"] else "📝"
+            lines.append(
+                f"\n**{i}. {match_indicator} {r.get('lemma', 'N/A')}** ({r.get('part_of_speech', '')})")
+            lines.append(f"   Kahulugan: {r.get('definition', 'N/A')}")
 
-                examples = result.get('examples', [])
-                if examples:
-                    if isinstance(examples, list):
-                        examples_str = ', '.join(str(ex)
-                                                 for ex in examples[:2])
+            if r.get("usage"):
+                lines.append(f"   Paggamit: {r['usage']}")
+
+            if config.include_examples and r.get("example"):
+                gloss = f" ({r. get('example_gloss', '')})" if r.get(
+                    'example_gloss') else ""
+                lines.append(f"   Halimbawa: \"{r['example']}\"{gloss}")
+
+            if r.get("synonyms"):
+                lines.append(
+                    f"   Kasingkahulugan: {', '. join(r['synonyms'][:5])}")
+
+            if r.get("antonyms"):
+                lines.append(f"   Kasalungat: {', '.join(r['antonyms'][:5])}")
+
+            if r.get("exam_tips"):
+                lines.append(f"   💡 Exam tip: {r['exam_tips']}")
+
+            if config.include_sources:
+                lines.append(f"   [Relevance:  {score:.2f}]")
+
+        return "\n".join(lines)
+
+    def _format_grammar_section(
+        self,
+        results: List[Tuple[Dict, float]],
+        config:  RetrievalConfig
+    ) -> str:
+        """Format grammar results into context"""
+        if not results:
+            return ""
+
+        lines = ["📖 **GRAMMAR RULES:**"]
+
+        for i, (r, score) in enumerate(results[:config.top_k], 1):
+            lines. append(
+                f"\n**{i}. {r.get('rule_name', 'N/A')}** ({r.get('section', '')})")
+            lines.append(f"   {r.get('description', 'N/A')}")
+
+            if r.get("common_errors"):
+                lines.append(f"   ⚠️ Common error: {r['common_errors']}")
+
+            if config. include_examples and r.get("examples"):
+                lines.append("   Mga halimbawa:")
+                for ex in r["examples"][:2]:
+                    if isinstance(ex, dict):
+                        ex_str = " → ".join(f"{k}: {v}" for k, v in ex.items())
+                        lines.append(f"      • {ex_str}")
                     else:
-                        examples_str = str(examples)[:100]
-                    context += f"   **Halimbawa:** {examples_str}\n"
+                        lines.append(f"      • {ex}")
 
-                context += "\n"
+            if config.include_sources:
+                lines.append(
+                    f"   [Source: {r. get('source', 'N/A')} | Relevance: {score:. 2f}]")
 
+        return "\n".join(lines)
+
+    def _format_mistakes_section(
+        self,
+        results: List[Tuple[Dict, float]],
+        config: RetrievalConfig
+    ) -> str:
+        """Format common mistakes into context"""
+        if not results:
+            return ""
+
+        lines = ["⚠️ **COMMON MISTAKE PATTERNS:**"]
+
+        for i, (r, score) in enumerate(results[:config.top_k], 1):
+            match_type = r.get("match_type", "")
+            indicator = "🎯" if "direct" in match_type or "focus" in match_type else "⚠️"
+
+            lines.append(
+                f"\n**{i}. {indicator} {r.get('error_name', 'N/A')}**")
+            lines.append(
+                f"   Category: {r.get('error_category', '')} - {r.get('sub_category', '')}")
+            lines.append(f"   {r.get('description', 'N/A')}")
+
+            if r.get("why_it_occurs"):
+                lines.append("   Bakit nangyayari:")
+                for reason in r["why_it_occurs"][:2]:
+                    lines.append(f"      • {reason}")
+
+            examples = r.get("examples", {})
+            if config.include_examples:
+                if examples. get("incorrect"):
+                    lines.append(f"   ❌ Mali: {examples['incorrect'][0]}")
+                if examples. get("correct"):
+                    lines.append(f"   ✅ Tama: {examples['correct'][0]}")
+                if examples.get("explanation"):
+                    lines.append(f"   💡 {examples['explanation']}")
+
+            rule = r.get("grammar_rule", {})
+            if rule.get("rule_statement"):
+                lines.append(f"   📚 Rule: {rule['rule_statement']}")
+
+            if rule.get("decision_guide"):
+                lines.append("   🎯 Paano magdesisyon:")
+                for guide in rule["decision_guide"][: 2]:
+                    lines.append(f"      • {guide}")
+
+            feedback = r.get("feedback_templates", {})
+            if feedback. get("detailed_feedback"):
+                lines.append(f"   💬 Feedback: {feedback['detailed_feedback']}")
+
+            if config.include_sources:
+                lines.append(f"   [Relevance: {score:.2f}]")
+
+        return "\n".join(lines)
+
+    def _format_strategies_section(
+        self,
+        results: List[Tuple[Dict, float]],
+        config: RetrievalConfig
+    ) -> str:
+        """Format learning strategies into context"""
+        if not results:
+            return ""
+
+        lines = ["📚 **LEARNING STRATEGIES:**"]
+
+        for i, (r, score) in enumerate(results[:2], 1):  # Limit strategies
+            lines.append(f"\n**{i}. {r. get('strategy_name', 'N/A')}**")
+            lines.append(f"   {r.get('description', 'N/A')}")
+
+            if r.get("step_by_step"):
+                lines.append("   Steps:")
+                for step in r["step_by_step"][:3]:
+                    lines.append(f"      • {step}")
+
+            if r.get("benefits"):
+                lines.append(f"   Benefits: {'; '.join(r['benefits'][: 2])}")
+
+        return "\n".join(lines)
+
+    def _truncate_context(self, context: str, max_length: int) -> str:
+        """Intelligently truncate context to fit within limit"""
+        if len(context) <= max_length:
             return context
-        except Exception as e:
-            print(f"❌ Error formatting grammar context: {e}")
-            return "📚 **Grammar rules found but formatting failed**\n\n"
 
-    def _format_vocab_context(self, results: List[Dict]) -> str:
-        """Format vocabulary results"""
-        try:
-            context = "📖 **Relevant Vocabulary:**\n\n"
-            for i, result in enumerate(results[:3], 1):
-                lemma = result.get('lemma', 'Word')
-                definition = result.get('definition', '')
+        # Try to truncate at section boundaries
+        sections = context.split("\n\n")
+        truncated = []
+        current_length = 0
 
-                context += f"**{i}. {lemma}**\n"
-                context += f"   **Kahulugan:** {definition}\n"
+        for section in sections:
+            # Leave room for truncation note
+            if current_length + len(section) + 2 <= max_length - 50:
+                truncated.append(section)
+                current_length += len(section) + 2
+            else:
+                break
 
-                usage = result.get('usage', '')
-                if usage:
-                    context += f"   **Paggamit:** {usage}\n"
+        result = "\n\n".join(truncated)
+        if len(result) < len(context):
+            result += "\n\n[...  truncated for length ...]"
 
-                example = result.get('example', '')
-                if example:
-                    gloss = result.get('example_gloss', '')
-                    gloss_text = f" ({gloss})" if gloss else ""
-                    context += f"   **Halimbawa:** \"{example}\"{gloss_text}\n"
+        return result
 
-                synonyms = result.get('synonyms', [])
-                if synonyms and isinstance(synonyms, list):
-                    syn_text = ', '.join(synonyms[:3])
-                    context += f"   **Kasingkahulugan:** {syn_text}\n"
+    # ==================== Utility Methods ====================
 
-                context += "\n"
+    def search_strategies(
+        self,
+        query: str,
+        top_k: int = 3,
+        min_similarity: float = 0.3
+    ) -> List[Dict]:
+        """Search learning strategies"""
+        if not self.strategy_embeddings:
+            return []
 
-            return context
-        except Exception as e:
-            print(f"❌ Error formatting vocab context: {e}")
-            return "📖 **Vocabulary found but formatting failed**\n\n"
+        docs = [{"text": s. get("searchable_text", ""), "data": s}
+                for s in self. learning_strategies]
 
-    def _format_mistakes_context(self, results: List[Dict]) -> str:
-        """Format common mistakes context"""
-        try:
-            context = "⚠️ **Common Mistakes to Avoid:**\n\n"
-            for i, result in enumerate(results[:2], 1):
-                error_name = result.get('error_name', 'Common Error')
-                description = result.get('description', '')
+        results = self.hybrid_searcher.hybrid_search(
+            query=query,
+            documents=docs,
+            embeddings=self.strategy_embeddings,
+            text_field="text",
+            top_k=top_k
+        )
 
-                context += f"**{i}. {error_name}**\n"
-                context += f"   {description}\n"
+        output = []
+        for doc, score, _, _ in results:
+            if score >= min_similarity:
+                result = doc["data"]. copy()
+                result["similarity_score"] = score
+                output.append(result)
 
-                # Add examples
-                examples = result.get('examples', {})
-                if examples:
-                    incorrect = examples.get('incorrect', [])
-                    correct = examples.get('correct', [])
+        return output
 
-                    if incorrect and correct:
-                        context += f"   ❌ Mali: {incorrect[0]}\n"
-                        context += f"   ✅ Tama: {correct[0]}\n"
-
-                # Add why it occurs
-                why_it_occurs = result.get('why_it_occurs', [])
-                if why_it_occurs:
-                    context += f"   **Bakit nangyayari:** {why_it_occurs[0]}\n"
-
-                context += "\n"
-
-            return context
-        except Exception as e:
-            print(f"❌ Error formatting mistakes context: {e}")
-            return "⚠️ **Common mistakes found but formatting failed**\n\n"
-
-    def _format_strategies_context(self, results: List[Dict]) -> str:
-        """Format learning strategies context"""
-        try:
-            context = "💡 **Recommended Learning Strategies:**\n\n"
-            for i, result in enumerate(results[:2], 1):
-                strategy_name = result.get(
-                    'strategy_name', 'Learning Strategy')
-                description = result.get('description', '')
-
-                context += f"**{i}. {strategy_name}**\n"
-                context += f"   {description}\n"
-
-                # Add step by step
-                steps = result.get('step_by_step', [])
-                if steps:
-                    context += "   **Mga Hakbang:**\n"
-                    for j, step in enumerate(steps[:3], 1):
-                        context += f"   {j}. {step}\n"
-
-                # Add benefits
-                benefits = result.get('benefits', [])
-                if benefits:
-                    context += f"   **Benepisyo:** {benefits[0]}\n"
-
-                context += "\n"
-
-            return context
-        except Exception as e:
-            print(f"❌ Error formatting strategies context: {e}")
-            return "💡 **Learning strategies found but formatting failed**\n\n"
+    def get_statistics(self) -> Dict:
+        """Get statistics about loaded references"""
+        return {
+            "vocabulary_count": len(self.vocabulary_rag.chunks),
+            "grammar_rules_count": len(self.grammar_rag.chunks),
+            "common_mistakes_count": len(self.common_mistakes_rag. chunks),
+            "learning_strategies_count": len(self.learning_strategies),
+            "vocabulary_indices": {
+                "lemmas": len(self.vocabulary_rag._lemma_index),
+                "synonyms": len(self.vocabulary_rag._synonym_index),
+                "antonyms": len(self.vocabulary_rag._antonym_index),
+                "tags": len(self.vocabulary_rag._tag_index)
+            },
+            "grammar_indices": {
+                "rules": len(self.grammar_rag._rule_index),
+                "sections": len(self.grammar_rag._section_index)
+            },
+            "mistakes_indices": {
+                "categories": len(self.common_mistakes_rag._category_index),
+                "linguistic_focus": len(self.common_mistakes_rag._linguistic_focus_index)
+            }
+        }
 
 
 # Singleton instance
-_orchestrator = None
+_orchestrator:  Optional[RAGOrchestrator] = None
 
 
 def get_rag_orchestrator() -> RAGOrchestrator:
-    """Get or create RAG orchestrator instance"""
+    """Get or create the RAG orchestrator singleton"""
     global _orchestrator
     if _orchestrator is None:
         _orchestrator = RAGOrchestrator()
