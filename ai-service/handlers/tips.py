@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import os
@@ -8,18 +9,24 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 try:
     from rag.RAGOrchestrator import get_rag_orchestrator
     rag = get_rag_orchestrator()
-    print("✅ RAG orchestrator loaded in tips.py")
+    print("RAG orchestrator loaded in tips.py")
 except ImportError as e:
     print(f"⚠️ Error importing RAG orchestrator in tips.py: {e}")
     rag = None
 
 try:
-    from openai import OpenAI
-    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    print("✅ OpenAI client initialized in tips.py")
+    from groq import Groq
+
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if not groq_api_key:
+        raise ValueError("GROQ_API_KEY not found in environment")
+
+    groq_client = Groq(api_key=groq_api_key)
+
+    print("✅ Groq client initialized in tips.py")
 except Exception as e:
-    print(f"⚠️ Error initializing OpenAI in tips handler: {e}")
-    openai_client = None
+    print(f"⚠️ Error initializing Groq in tips handler: {e}")
+    groq_client = None
 
 
 class TipsRequest(BaseModel):
@@ -35,9 +42,7 @@ class TipsResponse(BaseModel):
 
 
 def tips_prompt_with_rag(data: dict) -> str:
-    """
-    ✅ ENHANCED: Generate tips prompt with RAG context including common mistakes and strategies
-    """
+    """Generate tips prompt with RAG context including common mistakes and strategies"""
     module_map = {
         "vocabulary": "vocab",
         "grammar": "grammar",
@@ -55,12 +60,10 @@ def tips_prompt_with_rag(data: dict) -> str:
 
     if rag:
         try:
-            # ✅ ENHANCED: Determine what kind of help the student needs
+            # If student struggled with low-frequency words
             if missed_low_freq > 2:
-                # Student struggles with uncommon words - get strategies
                 rag_query = f"Filipino {module} learning strategies for uncommon words and rare vocabulary. Memory techniques and study methods"
 
-                # Get both strategies and common mistakes
                 strategies_context = rag.get_context(
                     rag_query,
                     context_type="strategies",
@@ -77,8 +80,8 @@ def tips_prompt_with_rag(data: dict) -> str:
 
                 rag_context = strategies_context + "\n" + mistakes_context
 
+            # If student made many similar choice errors
             elif similar_errors > 2:
-                # Student confuses similar options - get common mistakes
                 rag_query = f"Filipino {module} common mistakes and confusion points"
 
                 mistakes_context = rag.get_context(
@@ -97,130 +100,111 @@ def tips_prompt_with_rag(data: dict) -> str:
 
                 rag_context = mistakes_context + "\n" + strategies_context
 
+            # General tips based on score
             else:
-                # General improvement - mixed approach
-                content_context = rag.get_context(
-                    f"Filipino {module} study tips",
-                    context_type="vocabulary" if module == "vocab" else "grammar",
-                    top_k=1,
-                    min_similarity=0.3,
-                    include_strategies=True  # ✅ NEW parameter
+                rag_query = f"Filipino {module} study strategies and learning tips for UPCAT preparation"
+
+                strategies_context = rag.get_context(
+                    rag_query,
+                    context_type="strategies",
+                    top_k=2,
+                    min_similarity=0.3
                 )
 
-                rag_context = content_context
+                rag_context = strategies_context
 
-            print(
-                f"✅ Retrieved RAG context for tips ({len(rag_context)} chars)")
+            if rag_context:
+                print(
+                    f"Retrieved RAG context for tips ({len(rag_context)} chars)")
+            else:
+                print("⚠️ No RAG context found for tips")
+
         except Exception as e:
             print(f"⚠️ Error getting RAG context for tips: {e}")
+            import traceback
+            traceback.print_exc()
             rag_context = ""
     else:
         print("⚠️ RAG not available for tips")
 
-    prompt = f"""Filipino {module} tutor for UPCAT prep.
+    # System instruction for Groq
+    system_instruction = """You are a Filipino language tutor specializing in UPCAT preparation. Use the provided learning strategies and common mistakes data to give personalized, actionable study tips. Be encouraging but honest. Respond in Filipino."""
 
-{rag_context}
+    # Build the prompt
+    prompt = f"""{system_instruction}
 
-**Student Stats:**
-- Score: {score}%
-- Missed rare words: {missed_low_freq}
-- Confused similar options: {similar_errors}
-- Current level: {difficulty}
+{rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide helpful tips based on your knowledge."}
 
-Based on the reference materials above (learning strategies, common mistakes), provide:
+**Student Performance Data:**
+- Module: {module}
+- Current Score: {score}%
+- Low-frequency words missed: {missed_low_freq}
+- Similar choice errors: {similar_errors}
+- Last difficulty level: {difficulty}
 
-**📊 Analysis** (1-2 sentences on strengths/weaknesses)
+Based on the performance data and reference materials above, provide 3-4 personalized study tips:
 
-**💡 Focus Areas** (2 specific, actionable tips. Reference the common mistakes and learning strategies provided above)
+1. **Main weakness identification** - What specific area needs improvement based on their errors?
+2. **Targeted strategy** - Specific learning technique to address their main weakness (cite relevant strategies from references if available)
+3. **Practice recommendation** - What type of exercises should they focus on?
+4. **Motivation/encouragement** - Brief encouraging note
 
-**🎯 Next Steps** (recommended difficulty level + 1 concrete action based on the learning strategies above)
+Keep each tip concise (1-2 sentences). Use bullet points. Be specific and actionable."""
 
-Keep concise, practical, and encouraging. Cite specific strategies and mistakes from the references."""
-
-    return prompt
+    return (system_instruction, prompt)
 
 
 async def handle_tips(request: TipsRequest) -> TipsResponse:
     """
-    ✅ ENHANCED: Generate tips with RAG integration including mistakes and strategies
+    Generate personalized study tips using Groq API with RAG context
     """
     try:
         print(
-            f"📝 Tips request - Module: {request.module}, Score: {request.score}")
+            f"💡 Tips request - Module: {request.module}, Score: {request.score}%")
 
-        if not openai_client:
-            print("⚠️ OpenAI not available, using fallback tips")
-            fallback_tips = generate_fallback_tips(request.dict())
-            return TipsResponse(tips=fallback_tips)
+        if not groq_client:
+            raise HTTPException(
+                status_code=503,
+                detail="Groq service not available"
+            )
 
-        prompt = tips_prompt_with_rag(request.dict())
+        prompt_data = {
+            "module": request.module,
+            "score": request.score,
+            "missedLowFreq": request.missedLowFreq,
+            "similarChoiceErrors": request.similarChoiceErrors,
+            "lastDifficulty": request.lastDifficulty
+        }
 
-        print(f"🤖 Calling OpenAI with enhanced RAG prompt for tips...")
+        # Build prompt with RAG context
+        system_instruction, user_prompt = tips_prompt_with_rag(prompt_data)
 
-        completion = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            temperature=0.7,
+        messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": user_prompt}
+        ]
+
+        print(f"🤖 Calling Groq for tips...")
+
+        # ✅ Call Groq API
+        completion = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=messages,
+            temperature=0.3,
             max_tokens=400,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a Filipino tutor. Use reference materials (common mistakes and learning strategies) to give evidence-based, practical study tips. Always cite specific strategies or common mistakes when available from references."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
+            top_p=1,
+            stream=False
         )
 
-        tips = completion.choices[0].message.content or "Unable to generate tips."
-        print(f"✅ Generated enhanced tips ({len(tips)} chars)")
+        tips = completion.choices[0].message.content or ""
+        print(f"✅ Generated tips ({len(tips)} chars)")
 
         return TipsResponse(tips=tips)
 
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"❌ Error generating tips: {e}")
+        print(f"❌ Error in handle_tips: {e}")
         import traceback
         traceback.print_exc()
-
-        fallback_tips = generate_fallback_tips(request.dict())
-        return TipsResponse(tips=fallback_tips)
-
-
-def generate_fallback_tips(data: dict) -> str:
-    """Generate basic tips when AI service fails"""
-    score = data["score"]
-    missed_low_freq = data["missedLowFreq"]
-    similar_errors = data["similarChoiceErrors"]
-
-    tips = "📊 **Analysis**\n"
-    tips += "Good effort! " if score >= 60 else "Keep practicing! "
-    tips += f"You scored {score}%.\n"
-
-    tips += "\n💡 **Focus Areas**\n"
-
-    if missed_low_freq > 2:
-        tips += "• 📚 Study uncommon words - create flashcards for rare vocabulary\n"
-        tips += "• 🔄 Use spaced repetition - review words at increasing intervals\n"
-    if similar_errors > 2:
-        tips += "• 🔍 Practice distinguishing similar options - compare definitions side-by-side\n"
-        tips += "• ⚠️ Learn common mistake patterns - avoid typical confusion points\n"
-    if score < 70:
-        tips += "• 📖 Review fundamentals - strengthen your foundation\n"
-
-    if not (missed_low_freq > 2 or similar_errors > 2 or score < 70):
-        tips += "• ✅ Keep up the good work - focus on consistency\n"
-        tips += "• 📈 Challenge yourself with harder difficulty levels\n"
-        tips += "• 🎯 Review mistakes to prevent patterns\n"
-
-    tips += f"\n📅 **15-Min Daily Plan**\n"
-    tips += "• 0-5 min: Review mistakes from previous exercises\n"
-    tips += "• 5-10 min: Practice new exercises\n"
-    tips += "• 10-15 min: Read example sentences and usage notes\n"
-
-    tips += f"\n🎯 **Next Steps:** Continue at {data['lastDifficulty']} level"
-
-    if score >= 80:
-        tips += " or try the next difficulty"
-
-    return tips
+        raise HTTPException(status_code=500, detail=str(e))

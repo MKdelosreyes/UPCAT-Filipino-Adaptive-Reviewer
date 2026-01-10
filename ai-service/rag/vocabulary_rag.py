@@ -1,20 +1,19 @@
 import json
 import os
-from typing import List, Dict, Optional
 import numpy as np
-from openai import OpenAI
+from typing import List, Dict, Optional
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from .embeddings import LocalEmbeddingModel
 
 
 class VocabularyRAG:
     def __init__(self):
         self.references: List[Dict] = []
         self.embeddings: List[List[float]] = []
+        self.embedder = LocalEmbeddingModel()
         self.load_references()
 
     def load_references(self) -> None:
-        """Load vocabulary references from JSON (new schema)."""
         references_path = os.path.join(
             os.path.dirname(__file__),
             "references",
@@ -25,133 +24,102 @@ class VocabularyRAG:
             data = json.load(f)
 
         for entry in data:
-            lemma = entry.get("lemma", "")
-            definition = entry.get("definition", "")
-            usage = entry.get("usage", "")
-            example = entry.get("example", "")
-            example_gloss = entry.get("example_gloss", "")
-            extra_examples = entry.get("extra_examples", []) or []
-            synonyms = entry.get("synonyms", []) or []
-            antonyms = entry.get("antonyms", []) or []
-            tags = entry.get("tags", []) or []
-            exam_tips = entry.get("exam_tips", "")
-            difficulty = entry.get("difficulty", "")
-
             text_parts = [
-                lemma,
-                definition,
-                usage,
-                example,
-                example_gloss,
-                " ".join(extra_examples),
-                " ".join(synonyms),
-                " ".join(antonyms),
-                " ".join(tags),
-                exam_tips,
-                difficulty,
+                entry.get("lemma", ""),
+                entry.get("definition", ""),
+                entry.get("usage", ""),
+                entry.get("example", ""),
+                entry.get("example_gloss", ""),
+                " ".join(entry.get("extra_examples", []) or []),
+                " ".join(entry.get("synonyms", []) or []),
+                " ".join(entry.get("antonyms", []) or []),
+                " ".join(entry.get("tags", []) or []),
+                entry.get("exam_tips", ""),
+                entry.get("difficulty", ""),
             ]
+
             searchable_text = " ".join(p for p in text_parts if p)
 
-            self.references.append(
-                {
-                    "lemma": lemma,
-                    "part_of_speech": entry.get("part_of_speech"),
-                    "definition": definition,
-                    "usage": usage,
-                    "example": example,
-                    "example_gloss": example_gloss,
-                    "extra_examples": extra_examples,
-                    "synonyms": synonyms,
-                    "antonyms": antonyms,
-                    "tags": tags,
-                    "exam_tips": exam_tips,
-                    "difficulty": difficulty,
-                    "text": searchable_text,
-                }
-            )
+            self.references.append({
+                "lemma": entry.get("lemma"),
+                "part_of_speech": entry.get("part_of_speech"),
+                "definition": entry.get("definition"),
+                "usage": entry.get("usage"),
+                "example": entry.get("example"),
+                "example_gloss": entry.get("example_gloss"),
+                "extra_examples": entry.get("extra_examples", []),
+                "synonyms": entry.get("synonyms", []),
+                "antonyms": entry.get("antonyms", []),
+                "tags": entry.get("tags", []),
+                "exam_tips": entry.get("exam_tips"),
+                "difficulty": entry.get("difficulty"),
+                "text": searchable_text,
+            })
 
         print(f"✓ Loaded {len(self.references)} vocabulary reference chunks")
 
     def embed_references(self) -> None:
         if self.embeddings:
-            print("Embeddings already exist for vocabulary")
             return
 
         texts = [ref["text"] for ref in self.references]
         if not texts:
-            print("⚠️ No vocabulary texts to embed")
             return
 
-        print(f"Creating embeddings for {len(texts)} vocabulary chunks...")
-        response = client.embeddings.create(
-            model="text-embedding-3-small",
-            input=texts,
-        )
-        self.embeddings = [item.embedding for item in response.data]
+        print(
+            f"Creating local embeddings for {len(texts)} vocabulary chunks...")
+        self.embeddings = self.embedder.embed_texts(texts)
         print("✓ Vocabulary embeddings created")
 
     def _cosine_similarity(self, a: List[float], b: List[float]) -> float:
-        a_arr = np.array(a)
-        b_arr = np.array(b)
-        return float(np.dot(a_arr, b_arr) / (np.linalg.norm(a_arr) * np.linalg.norm(b_arr) + 1e-9))
+        return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-9))
 
     def search(self, query: str, top_k: int = 3) -> List[Dict]:
         if not self.embeddings:
             self.embed_references()
-        if not self.references or not self.embeddings:
-            return []
 
-        query_response = client.embeddings.create(
-            model="text-embedding-3-small",
-            input=query,
-        )
-        query_embedding = query_response.data[0].embedding
+        query_embedding = self.embedder.embed_query(query)
 
-        sims = []
-        for i, ref_emb in enumerate(self.embeddings):
-            sims.append((i, self._cosine_similarity(query_embedding, ref_emb)))
-
+        sims = [
+            (i, self._cosine_similarity(query_embedding, emb))
+            for i, emb in enumerate(self.embeddings)
+        ]
         sims.sort(key=lambda x: x[1], reverse=True)
-        top_indices = [i for i, _ in sims[:top_k]]
 
         results = []
-        for idx in top_indices:
+        for idx, score in sims[:top_k]:
             ref = self.references[idx].copy()
-            ref["similarity_score"] = sims[idx][1]
+            ref["similarity_score"] = score
             results.append(ref)
+
         return results
 
     def get_context_for_word(self, word: str, error_reason: Optional[str] = None) -> str:
-        parts = [f"Filipino vocabulary word: {word}"]
+        query_parts = [f"Filipino vocabulary word: {word}"]
         if error_reason:
-            parts.append(f"Context: {error_reason}")
-        query = ". ".join(parts)
+            query_parts.append(f"Context: {error_reason}")
 
-        results = self.search(query, top_k=3)
+        results = self.search(". ".join(query_parts), top_k=3)
+
         if not results:
             return f"Walang natagpuang vocabulary reference para sa salitang '{word}'.\n"
 
         context = "Relevant Vocabulary Entries:\n\n"
-        for i, result in enumerate(results, 1):
-            context += f"{i}. {result.get('lemma')} ({result.get('part_of_speech')})\n"
-            context += f"   Kahulugan: {result.get('definition')}\n"
-            if result.get("usage"):
-                context += f"   Paggamit: {result['usage']}\n"
-            if result.get("example"):
-                gloss = f" ({result['example_gloss']})" if result.get(
+        for i, r in enumerate(results, 1):
+            context += f"{i}. {r['lemma']} ({r['part_of_speech']})\n"
+            context += f"   Kahulugan: {r['definition']}\n"
+            if r.get("usage"):
+                context += f"   Paggamit: {r['usage']}\n"
+            if r.get("example"):
+                gloss = f" ({r['example_gloss']})" if r.get(
                     "example_gloss") else ""
-                context += f"   Halimbawa: \"{result['example']}\"{gloss}\n"
-            extras = result.get("extra_examples") or []
-            if extras:
-                context += f"   Iba pang halimbawa: {extras[0]}\n"
-            syns = result.get("synonyms") or []
-            ants = result.get("antonyms") or []
-            if syns:
-                context += f"   Kasingkahulugan: {', '.join(syns)}\n"
-            if ants:
-                context += f"   Kasalungat: {', '.join(ants)}\n"
-            if result.get("exam_tips"):
-                context += f"   Exam tip: {result['exam_tips']}\n"
+                context += f"   Halimbawa: \"{r['example']}\"{gloss}\n"
+            if r.get("synonyms"):
+                context += f"   Kasingkahulugan: {', '.join(r['synonyms'])}\n"
+            if r.get("antonyms"):
+                context += f"   Kasalungat: {', '.join(r['antonyms'])}\n"
+            if r.get("exam_tips"):
+                context += f"   Exam tip: {r['exam_tips']}\n"
             context += "\n"
 
         return context

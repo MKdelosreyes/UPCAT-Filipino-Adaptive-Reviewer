@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, field_validator
 from typing import Optional, List, Dict
 import os
 import sys
@@ -27,27 +27,29 @@ except ImportError as e:
     grammar_data = []
     sentence_construction_data = []
 
-# Verify OpenAI API key exists
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key or api_key == "your-api-key-here":
-    print("❌ ERROR: OPENAI_API_KEY not set in .env file")
-    print("Please edit ai-service/.env and add your OpenAI API key")
+groq_api_key = os.getenv("GROQ_API_KEY")
+if not groq_api_key or groq_api_key == "your-api-key-here":
+    print("❌ ERROR: GROQ_API_KEY not set in .env file")
+    print("Please edit ai-service/.env and add your Groq API key")
     raise RuntimeError(
-        "OPENAI_API_KEY environment variable is required but not set")
+        "GROQ_API_KEY environment variable is required but not set")
 
-# Import OpenAI after env check
+print(f"🔑 Using Groq API Key: {groq_api_key[:10]}...{groq_api_key[-4:]}")
+
 try:
-    from openai import OpenAI
-    openai_client = OpenAI(api_key=api_key)
-    print("✅ OpenAI client initialized successfully")
+    from groq import Groq
+
+    groq_client = Groq(api_key=groq_api_key)
+
+    print("✅ Groq client initialized successfully")
 except Exception as e:
-    print(f"❌ ERROR initializing OpenAI client: {e}")
-    print("\nTry running: pip install --upgrade openai httpx")
+    print(f"❌ ERROR initializing Groq client: {e}")
+    print("\nTry running: pip install groq")
     sys.exit(1)
 
 # Import handlers
 try:
-    from handlers.explain import handle_explain, ExplainRequest, ExplainResponse
+    from handlers.explain import handle_explain, ExplainRequest, ExplainResponse, build_explanation_prompt_with_rag
     print("✅ Loaded explain handler")
 except ImportError as e:
     print(f"⚠️ Error loading explain handler: {e}")
@@ -66,6 +68,13 @@ try:
 except ImportError as e:
     print(f"⚠️ Error loading tips handler: {e}")
     handle_tips = None
+
+try:
+    from utils.token_counter import get_token_counter
+    token_counter = get_token_counter()
+except ImportError:
+    print("⚠️ Token counter not available")
+    token_counter = None
 
 # Initialize FastAPI
 app = FastAPI(
@@ -97,22 +106,13 @@ BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000/api")
 
 class VocabularyExercisesRequest(BaseModel):
     """Request model for vocabulary exercises endpoint."""
-
     user_id: Optional[int] = None
     target_difficulty: Optional[str] = None
     limit: int = 15
 
-    @validator('user_id', pre=True)
+    @field_validator('user_id', mode='before')
+    @classmethod
     def parse_user_id(cls, v):
-        """
-        Parse and validate user_id from various input types.
-
-        Args:
-            v: The user_id value (can be int, str, or None)
-
-        Returns:
-            int or None: Parsed integer user_id or None if invalid/empty
-        """
         if v is None or v == '':
             return None
         try:
@@ -123,23 +123,14 @@ class VocabularyExercisesRequest(BaseModel):
 
 class GrammarExercisesRequest(BaseModel):
     """Request model for grammar exercises endpoint."""
-
     user_id: Optional[int] = None
     target_difficulty: Optional[str] = None
     exercise_type: Optional[str] = None
     limit: int = 15
 
-    @validator('user_id', pre=True)
+    @field_validator('user_id', mode='before')
+    @classmethod
     def parse_user_id(cls, v):
-        """
-        Parse and validate user_id from various input types.
-
-        Args:
-            v: The user_id value (can be int, str, or None)
-
-        Returns:
-            int or None: Parsed integer user_id or None if invalid/empty
-        """
         if v is None or v == '':
             return None
         try:
@@ -147,20 +138,9 @@ class GrammarExercisesRequest(BaseModel):
         except (ValueError, TypeError):
             return None
 
-    @validator('target_difficulty')
+    @field_validator('target_difficulty')
+    @classmethod
     def validate_difficulty(cls, v):
-        """
-        Validate that target_difficulty is one of the allowed values.
-
-        Args:
-            v: The target_difficulty value
-
-        Returns:
-            str or None: The validated difficulty value
-
-        Raises:
-            ValueError: If difficulty is not in allowed values
-        """
         if v is not None and v not in ['easy', 'medium', 'hard']:
             raise ValueError('target_difficulty must be easy, medium, or hard')
         return v
@@ -168,14 +148,12 @@ class GrammarExercisesRequest(BaseModel):
 
 class ConfusablesRequest(BaseModel):
     """Request model for confusables endpoint."""
-
     word: str
     topK: Optional[int] = 3
 
 
 class ConfusableWord(BaseModel):
     """Model for a confusable word result."""
-
     word: str
     meaning: str
     example: str
@@ -183,42 +161,36 @@ class ConfusableWord(BaseModel):
 
 class ConfusablesResponse(BaseModel):
     """Response model for confusables endpoint."""
-
     results: List[ConfusableWord]
 
 
 class HealthResponse(BaseModel):
     """Basic health check response model."""
-
     status: str
     message: str
-    openai_configured: bool
+    groq_configured: bool
 
 
 class DetailedHealthResponse(BaseModel):
     """Detailed health check response model."""
-
     service: str
-    openai_key_configured: bool
+    groq_configured: bool
     vocabulary_data_loaded: bool
     vocabulary_count: Optional[int] = None
 
 
 class ChatRequest(BaseModel):
     """Request model for chat endpoint."""
-
-    # [{"role": "user", "content": "..."}, ...]
     conversation_history: List[Dict[str, str]]
     word: str
     correct_answer: str
     definition: Optional[str] = None
     example: Optional[str] = None
-    context_type: str = "vocabulary"  # or "grammar"
+    context_type: str = "vocabulary"
 
 
 class ChatResponse(BaseModel):
     """Response model for chat endpoint."""
-
     response: str
 
 
@@ -229,16 +201,7 @@ class ChatResponse(BaseModel):
 async def fetch_user_lexical_difficulties(
     user_id: int, token: Optional[str] = None
 ) -> Dict[str, float]:
-    """
-    Fetch user's lexical difficulty scores from backend API.
-
-    Args:
-        user_id: The user's ID
-        token: Optional authentication token
-
-    Returns:
-        Dict mapping lemma_id to difficulty_score (float or None)
-    """
+    """Fetch user's lexical difficulty scores from backend API."""
     headers = {}
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -258,15 +221,7 @@ async def fetch_user_lexical_difficulties(
 
 
 def bucket_from_score(score: Optional[float]) -> Optional[str]:
-    """
-    Map continuous difficulty score [0,1] to discrete difficulty levels.
-
-    Args:
-        score: Difficulty score between 0 and 1, or None
-
-    Returns:
-        'easy' | 'medium' | 'hard' | None
-    """
+    """Map continuous difficulty score [0,1] to discrete difficulty levels."""
     if score is None:
         return None
     if score < 0.3:
@@ -277,48 +232,31 @@ def bucket_from_score(score: Optional[float]) -> Optional[str]:
 
 
 def estimate_grammar_difficulty(item: dict) -> str:
-    """
-    Estimate difficulty of a grammar item based on its characteristics.
-    This is a heuristic fallback when we don't have user-specific data.
-
-    Factors:
-    - Sentence length (longer = harder)
-    - Explanation length (longer explanation = more complex)
-
-    Args:
-        item: Grammar exercise item dictionary
-
-    Returns:
-        'easy' | 'medium' | 'hard'
-    """
+    """Estimate difficulty of a grammar item based on its characteristics."""
     try:
-        # Get sentence for analysis
         sentence = item.get("error_sentence", "") or item.get(
             "fill_sentence", "")
         explanation = item.get("error_explanation", "") or item.get(
             "fill_explanation", "")
 
-        # Factor 1: Sentence length
         word_count = len(sentence.split())
         length_score = 0
         if word_count <= 10:
-            length_score = 0  # Easy
+            length_score = 0
         elif word_count <= 20:
-            length_score = 1  # Medium
+            length_score = 1
         else:
-            length_score = 2  # Hard
+            length_score = 2
 
-        # Factor 2: Explanation complexity
         exp_word_count = len(explanation.split())
         explanation_score = 0
         if exp_word_count <= 15:
-            explanation_score = 0  # Easy
+            explanation_score = 0
         elif exp_word_count <= 30:
-            explanation_score = 1  # Medium
+            explanation_score = 1
         else:
-            explanation_score = 2  # Hard
+            explanation_score = 2
 
-        # Combine scores
         total_score = length_score + explanation_score
 
         if total_score <= 1:
@@ -330,30 +268,7 @@ def estimate_grammar_difficulty(item: dict) -> str:
 
     except Exception as e:
         print(f"⚠️ Error estimating difficulty: {e}")
-        return "medium"  # Default fallback
-
-
-def tips_prompt(data: dict) -> str:
-    """
-    Generate prompt for study tips based on performance data.
-
-    Args:
-        data: Dictionary containing score, missedLowFreq, similarChoiceErrors, lastDifficulty
-
-    Returns:
-        Formatted prompt string for AI tips generation
-    """
-    return f"""You are a coach for UPCAT Filipino.
-
-Student summary:
-- Score: {data["score"]}%
-- Missed low-frequency words: {data["missedLowFreq"]}
-- Similar-choice errors: {data["similarChoiceErrors"]}
-- Last difficulty: {data["lastDifficulty"]}
-
-Give:
-- 3 short, actionable tips (bullets)
-- A 15–20 minute plan with concrete steps (bullets)"""
+        return "medium"
 
 
 # ============================================================
@@ -366,28 +281,19 @@ async def root():
     return HealthResponse(
         status="running",
         message="UPCAT Filipino AI Service",
-        openai_configured=bool(api_key)
+        groq_configured=bool(groq_api_key)
     )
 
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_ai(request: ChatRequest):
     """
-    Chat endpoint for conversational help during exercises.
-    Maintains context about the current word/question.
-
-    Args:
-        request: ChatRequest containing conversation history and context
-
-    Returns:
-        ChatResponse with AI-generated response
+    Chat endpoint using Gemini API
     """
     try:
-        # Get RAG context for the word
         from rag.RAGOrchestrator import get_rag_orchestrator
         rag = get_rag_orchestrator()
 
-        # Build query from user's question and word context
         last_user_message = next(
             (msg["content"] for msg in reversed(request.conversation_history)
              if msg["role"] == "user"),
@@ -403,8 +309,8 @@ async def chat_with_ai(request: ChatRequest):
             include_mistakes=True
         )
 
-        # Build system prompt with context
-        system_prompt = f"""You are a helpful Filipino language tutor for UPCAT preparation.
+        # ✅ Build system instruction as part of prompt for Gemini
+        system_instruction = f"""You are a helpful Filipino language tutor for UPCAT preparation.
 
 Current Context:
 - Word/Topic: {request.word}
@@ -422,26 +328,35 @@ Guidelines:
 - If asked about unrelated topics, politely redirect to the current word/topic
 - Use examples from Filipino culture and daily life
 """
-        # Build messages for OpenAI
-        messages = [{"role": "system", "content": system_prompt}]
 
-        # Add conversation history (last 6 messages to stay within token limits)
-        messages.extend(request.conversation_history[-6:])
+        # ✅ Build conversation history into single prompt
+        messages = [{"role": "system", "content": system_message}]
 
-        # Call OpenAI
-        response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+        # Add conversation history (last 6 messages)
+        for msg in request.conversation_history[-6:]:
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+
+        # ✅ Call Groq API
+        completion = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
             messages=messages,
             temperature=0.7,
-            max_tokens=200  # Keep responses short
+            max_tokens=200,
+            top_p=1,
+            stream=False  # Non-streaming for simpler response handling
         )
 
-        ai_response = response.choices[0].message.content
+        ai_response = completion.choices[0].message.content or "I couldn't generate a response. Please try again."
 
         return ChatResponse(response=ai_response)
 
     except Exception as e:
         print(f"❌ Error in /chat endpoint: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Failed to generate chat response: {str(e)}"
@@ -450,15 +365,10 @@ Guidelines:
 
 @app.get("/health", response_model=DetailedHealthResponse)
 async def health_check():
-    """
-    Detailed health check endpoint.
-
-    Returns:
-        Detailed status of service components
-    """
+    """Detailed health check endpoint."""
     checks = {
         "service": "online",
-        "openai_key_configured": bool(api_key),
+        "groq_key_configured": bool(groq_api_key),
         "vocabulary_data_loaded": False,
     }
 
@@ -473,159 +383,114 @@ async def health_check():
 
 @app.post("/explain", response_model=ExplainResponse)
 async def explain(request: ExplainRequest):
-    """
-    Generate AI explanation for incorrect answers.
-
-    Args:
-        request: ExplainRequest with exercise context
-
-    Returns:
-        ExplainResponse with generated explanation
-    """
+    """Generate AI explanation for incorrect answers."""
     if not handle_explain:
         raise HTTPException(
-            status_code=503,
-            detail="Explain handler not available"
-        )
+            status_code=503, detail="Explain handler not available")
     return await handle_explain(request)
 
 
 @app.post("/redefine", response_model=RedefineResponse)
 async def redefine_word(request: RedefineRequest):
-    """
-    Redefine word with multiple perspectives.
-
-    Args:
-        request: RedefineRequest with word to redefine
-
-    Returns:
-        RedefineResponse with multiple definitions
-    """
+    """Redefine word with multiple perspectives."""
     if not handle_redefine:
         raise HTTPException(
-            status_code=503,
-            detail="Redefine handler not available"
-        )
+            status_code=503, detail="Redefine handler not available")
     return await handle_redefine(request)
 
 
 @app.post("/tips", response_model=TipsResponse)
 async def generate_tips(request: TipsRequest):
-    """
-    Generate personalized study tips based on exercise performance.
-
-    Args:
-        request: TipsRequest containing performance metrics
-
-    Returns:
-        TipsResponse with personalized study tips
-    """
+    """Generate personalized study tips based on exercise performance."""
     if not handle_tips:
         raise HTTPException(
-            status_code=503,
-            detail="Tips generation service not available"
-        )
+            status_code=503, detail="Tips generation service not available")
 
     try:
         return await handle_tips(request)
     except Exception as e:
         print(f"❌ Error in /tips endpoint: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to generate tips: {str(e)}"
-        )
+            status_code=500, detail=f"Failed to generate tips: {str(e)}")
 
 
 @app.post("/confusables", response_model=ConfusablesResponse)
 async def find_confusables(request: ConfusablesRequest):
     """
-    Find similar/confusing words using embeddings.
-
-    Args:
-        request: ConfusablesRequest with target word
-
-    Returns:
-        ConfusablesResponse with similar words
+    ✅ NOTE: This endpoint still uses embeddings for similarity.
+    Gemini doesn't have a direct embedding API in google.genai yet.
+    Consider using sentence-transformers for this instead (free, local).
     """
-    try:
-        import math
+    raise HTTPException(
+        status_code=501,
+        detail="Confusables endpoint requires embeddings. Consider using sentence-transformers instead of OpenAI/Gemini embeddings."
+    )
 
-        def cosine_similarity(a, b):
-            """Calculate cosine similarity between two vectors."""
-            dot = sum(x * y for x, y in zip(a, b))
-            na = math.sqrt(sum(x * x for x in a))
-            nb = math.sqrt(sum(x * x for x in b))
-            return dot / (na * nb + 1e-9)
 
-        candidates = [v.get("lemma", "")
-                      for v in lexicon_data if v.get("lemma")]
+@app.get("/debug/token-usage")
+async def get_token_usage():
+    """Debug endpoint to check token usage and rate limits"""
+    if not token_counter:
+        return {"error": "Token counter not available"}
 
-        target_emb = openai_client.embeddings.create(
-            model="text-embedding-3-small",
-            input=request.word
-        ).data[0].embedding
+    status = token_counter.get_rate_limit_status()
 
-        cand_embs = openai_client.embeddings.create(
-            model="text-embedding-3-small",
-            input=candidates
-        ).data
+    limits = {
+        "free_tier": {
+            "requests_per_minute": 30,
+            "requests_per_day": 14400,
+            "tokens_per_minute": 30_000,
+        }
+    }
 
-        scored = []
-        for i, emb_data in enumerate(cand_embs):
-            if candidates[i] != request.word:
-                score = cosine_similarity(target_emb, emb_data.embedding)
-                scored.append({"word": candidates[i], "score": score})
+    return {
+        "current_status": status,
+        "limits": limits,
+        "warnings": {
+            "approaching_rpm_limit": status['requests_last_1min'] >= 25,
+            "high_token_usage": status['tokens_last_1min'] >= 25_000,
+        },
+        "recent_requests": token_counter.requests[-10:] if len(token_counter.requests) > 0 else []
+    }
 
-        ranked = sorted(scored, key=lambda x: x["score"], reverse=True)[
-            :request.topK]
 
-        results = []
-        for r in ranked:
-            entry = next(
-                (v for v in lexicon_data if v.get("lemma") == r["word"]), None)
-            if entry:
-                vocab_entry = next(
-                    (v for v in vocabulary_data if v.get(
-                        "lemma_id") == entry.get("lemma_id")),
-                    None
-                )
-                example = ""
-                if vocab_entry:
-                    example = vocab_entry.get("sentence_example_1", "") or vocab_entry.get(
-                        "sentence_example_2", "")
+@app.get("/debug/prompt-size/{endpoint}")
+async def check_prompt_size(endpoint: str):
+    """Check how large prompts are for debugging"""
+    if endpoint == "explain":
+        # Simulate an explain request
+        test_prompt = build_explanation_prompt_with_rag({
+            "mode": "quiz",
+            "word": "balakid",
+            "correct": "hadlang",
+            "definition": "sagabal o pumipigil sa isang bagay",
+            "example": "Ang mataas na bakod ay naging balakid sa kanyang paglabas.",
+            "selected": "tulong"
+        })
 
-                results.append(ConfusableWord(
-                    word=r["word"],
-                    meaning=entry.get("base_definition", ""),
-                    example=example
-                ))
+        char_count = len(test_prompt)
+        approx_tokens = char_count // 4
 
-        return ConfusablesResponse(results=results)
+        return {
+            "endpoint": endpoint,
+            "prompt_length": char_count,
+            "estimated_tokens": approx_tokens,
+            "prompt_preview": test_prompt[:500] + "..." if len(test_prompt) > 500 else test_prompt
+        }
 
-    except Exception as e:
-        print(f"Error in /confusables: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+    return {"error": "Unknown endpoint"}
 
 # ============================================================
-# VOCABULARY EXERCISE ENDPOINTS
+# VOCABULARY & GRAMMAR EXERCISE ENDPOINTS
 # ============================================================
+
 
 @app.post("/exercises/vocabulary")
 async def get_vocabulary_exercises_adaptive(
     request: VocabularyExercisesRequest,
     authorization: Optional[str] = Header(None),
 ):
-    """
-    Get adaptive vocabulary exercises based on user performance.
-
-    Args:
-        request: VocabularyExercisesRequest with filters
-        authorization: Optional Bearer token for authenticated requests
-
-    Returns:
-        Dictionary with exercises list
-    """
+    """Get adaptive vocabulary exercises based on user performance."""
     user_id = request.user_id
     target_difficulty = request.target_difficulty
     limit = request.limit
@@ -640,10 +505,7 @@ async def get_vocabulary_exercises_adaptive(
         token = authorization.split(" ", 1)[1].strip()
 
     try:
-        user_difficulties = await fetch_user_lexical_difficulties(
-            user_id=user_id,
-            token=token,
-        )
+        user_difficulties = await fetch_user_lexical_difficulties(user_id=user_id, token=token)
     except Exception as e:
         print("⚠️ Failed to fetch lexical difficulties:", e)
         items = list(vocabulary_data)
@@ -681,37 +543,16 @@ async def get_vocabulary_exercises_adaptive(
     return {"exercises": selected[:limit]}
 
 
-# ============================================================
-# GRAMMAR EXERCISE ENDPOINTS
-# ============================================================
-
 @app.post("/exercises/grammar")
 async def get_grammar_exercises_adaptive(
     request: GrammarExercisesRequest,
     authorization: Optional[str] = Header(None),
 ):
-    """
-    Get adaptive grammar exercises based on user performance.
-
-    Note: exercise_type is kept in the request for API compatibility but is not used for filtering.
-    Each grammar item contains data for both error_identification and fill_in_the_blanks exercises.
-
-    Args:
-        request: GrammarExercisesRequest with filters
-        authorization: Optional Bearer token for authenticated requests
-
-    Returns:
-        Dictionary with exercises list
-    """
+    """Get adaptive grammar exercises based on user performance."""
     user_id = request.user_id
     target_difficulty = request.target_difficulty
-    exercise_type = request.exercise_type  # Keep for logging but don't filter
     limit = request.limit
 
-    print(
-        f"🎯 Grammar request: user_id={user_id}, difficulty={target_difficulty}, type={exercise_type}")
-
-    # ✅ Don't filter by exercise_type - all items support both exercise types
     filtered_items = grammar_data
 
     if not filtered_items:
@@ -719,7 +560,6 @@ async def get_grammar_exercises_adaptive(
         return {"exercises": []}
 
     def select_exercises_with_heuristic():
-        """Select exercises using heuristic difficulty estimation."""
         annotated = []
         for item in filtered_items:
             estimated_diff = estimate_grammar_difficulty(item)
@@ -742,38 +582,27 @@ async def get_grammar_exercises_adaptive(
             remaining = limit - len(selected)
             selected.extend(others[:remaining])
 
-        # Safety fallback
         if not selected and filtered_items:
             random.shuffle(filtered_items)
             selected = filtered_items[:limit]
 
         return selected
 
-    # Case 1: No user or no auth - use heuristic difficulty
     if user_id is None or authorization is None:
-        print("📊 Using heuristic difficulty estimation (no auth)")
         selected = select_exercises_with_heuristic()
-        print(f"✅ Selected {len(selected)} grammar items (heuristic)")
         return {"exercises": selected}
 
-    # Case 2: User + auth - use lexical difficulty data
     token = None
     if authorization and authorization.lower().startswith("bearer "):
         token = authorization.split(" ", 1)[1].strip()
 
     try:
-        user_difficulties = await fetch_user_lexical_difficulties(
-            user_id=user_id,
-            token=token,
-        )
-        print(f"📊 Fetched {len(user_difficulties)} user difficulties")
+        user_difficulties = await fetch_user_lexical_difficulties(user_id=user_id, token=token)
     except Exception as e:
-        print(
-            f"⚠️ Failed to fetch difficulties: {e}, using heuristic fallback")
+        print(f"⚠️ Failed to fetch difficulties: {e}")
         selected = select_exercises_with_heuristic()
         return {"exercises": selected}
 
-    # Annotate grammar items with user's difficulty data
     annotated = []
     for item in filtered_items:
         lemma_id = item.get("lemma_id")
@@ -786,7 +615,6 @@ async def get_grammar_exercises_adaptive(
 
         annotated.append((item, bucket))
 
-    # Selection strategy
     if target_difficulty not in {"easy", "medium", "hard"}:
         target_difficulty = None
 
@@ -808,24 +636,16 @@ async def get_grammar_exercises_adaptive(
         random.shuffle(others)
         selected.extend(others[:remaining])
 
-    # Final safety check
     if not selected and filtered_items:
-        print("⚠️ No exercises matched criteria, returning random selection")
         random.shuffle(filtered_items)
         selected = filtered_items[:limit]
 
-    print(f"✅ Selected {len(selected)} grammar items (adaptive)")
     return {"exercises": selected[:limit]}
 
 
 @app.get("/exercises/lexicon")
 async def get_lexicon_exercises():
-    """
-    Get all lexicon data.
-
-    Returns:
-        Dictionary with lexicon exercises and count
-    """
+    """Get all lexicon data."""
     if not lexicon_data:
         raise HTTPException(status_code=404, detail="Lexicon data not loaded")
     return {"exercises": lexicon_data, "count": len(lexicon_data)}
@@ -833,12 +653,7 @@ async def get_lexicon_exercises():
 
 @app.get("/debug/data-status")
 async def debug_data_status():
-    """
-    Debug endpoint to check data loading status.
-
-    Returns:
-        Dictionary with loading status for all data sources
-    """
+    """Debug endpoint to check data loading status."""
     status = {}
 
     try:
@@ -853,20 +668,6 @@ async def debug_data_status():
 
     try:
         status["grammar"] = {"loaded": True, "count": len(grammar_data)}
-
-        error_id_count = len([
-            item for item in grammar_data
-            if item.get("exercise_type") == "error_identification"
-        ])
-        fill_blanks_count = len([
-            item for item in grammar_data
-            if item.get("exercise_type") == "fill_in_the_blanks"
-        ])
-
-        status["grammar"]["by_type"] = {
-            "error_identification": error_id_count,
-            "fill_in_the_blanks": fill_blanks_count
-        }
     except Exception as e:
         status["grammar"] = {"loaded": False, "error": str(e)}
 
@@ -884,17 +685,15 @@ async def startup_event():
     print("🚀 UPCAT Filipino AI Service Starting...")
     print("="*60)
 
-    # ✅ Production-safe environment check
     env = os.getenv("ENVIRONMENT", "development")
     print(f"🌍 Environment: {env}")
-    print(f"✅ OpenAI API Key: {'Configured' if api_key else '❌ MISSING'}")
+    print(f"✅ Groq API Key: {'Configured' if groq_api_key else '❌ MISSING'}")
 
-    # ✅ Fail fast if critical config missing
-    if not api_key:
-        print("❌ CRITICAL: OpenAI API key not configured!")
+    if not groq_api_key:
+        print("❌ CRITICAL: Groq API key not configured!")
         if env == "production":
             raise RuntimeError(
-                "Cannot start: OPENAI_API_KEY is required in production")
+                "Cannot start: GROQ_API_KEY is required in production")
 
     print(f"✅ Vocabulary Data: {len(vocabulary_data)} words loaded")
     print(f"✅ Lexicon Data: {len(lexicon_data)} entries loaded")
@@ -905,7 +704,7 @@ async def startup_event():
         f"✅ Redefine Handler: {'Loaded' if handle_redefine else 'Not Available'}")
     print(f"✅ Tips Handler: {'Loaded' if handle_tips else 'Not Available'}")
 
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 8001))
     print("="*60)
     print(f"🌐 Server will run on port: {port}")
     print(f"📚 API Docs: http://localhost:{port}/docs")
@@ -922,9 +721,4 @@ if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 8001))
 
-    uvicorn.run(
-        app,
-        host=host,
-        port=port,
-        log_level="info"
-    )
+    uvicorn.run(app, host=host, port=port, log_level="info")

@@ -4,26 +4,30 @@ from typing import Optional
 import os
 import sys
 
-# Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 # Import RAG orchestrator
 try:
-    from rag.orchestrator import get_rag_orchestrator
+    from rag.RAGOrchestrator import get_rag_orchestrator
     rag = get_rag_orchestrator()
     print("✅ RAG orchestrator loaded in redefine.py")
 except ImportError as e:
     print(f"⚠️ Error importing RAG orchestrator in redefine.py: {e}")
     rag = None
 
-# Import OpenAI client
 try:
-    from openai import OpenAI
-    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    print("✅ OpenAI client initialized in redefine.py")
+    from groq import Groq
+
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if not groq_api_key:
+        raise ValueError("GROQ_API_KEY not found in environment")
+
+    groq_client = Groq(api_key=groq_api_key)
+
+    print("✅ Groq client initialized in redefine.py")
 except Exception as e:
-    print(f"⚠️ Error initializing OpenAI in redefine handler: {e}")
-    openai_client = None
+    print(f"⚠️ Error initializing Groq in redefine handler: {e}")
+    groq_client = None
 
 
 # ============================================================
@@ -45,14 +49,11 @@ class RedefineResponse(BaseModel):
 # ============================================================
 
 def build_redefine_prompt_with_rag(data: dict) -> str:
-    """
-    ✅ NEW: Generate redefine prompt with RAG context
-    """
+    """Generate redefine prompt with RAG context"""
     word = data["word"]
     base_meaning = data["baseMeaning"]
     example = data["example"]
 
-    # Get vocabulary context from RAG
     rag_context = ""
 
     if rag:
@@ -72,9 +73,10 @@ def build_redefine_prompt_with_rag(data: dict) -> str:
     else:
         print("⚠️ RAG not available for redefine")
 
-    prompt = f"""You are a Filipino language educator creating multiple learning perspectives for UPCAT students.
+    system_instruction = """You are a Filipino language educator creating multiple learning perspectives for UPCAT students. Be concise and educational."""
+    prompt = f"""{system_instruction}
 
-{rag_context}
+{rag_context if rag_context else ""}
 
 **Word to Redefine:** {word}
 **Base Meaning:** {base_meaning}
@@ -82,14 +84,14 @@ def build_redefine_prompt_with_rag(data: dict) -> str:
 
 Using the reference materials above (if provided), create:
 
-1. **Easy Definition** (casual, conversational tone, in English, for beginners. Make it relatable)
-2. **Formal Definition** (academic, precise, in Filipino, for advanced learners)
-3. **2 New Example Sentences** (Filipino, showing different contexts. Cite similar usage from references if available)
-4. **Usage Notes** (when/how to use, common collocations, mention related words from references)
+1. **Easy Definition** (casual, English, for beginners)
+2. **Formal Definition** (academic, in Filipino)
+3. **2 New Example Sentences** (Filipino, showing different contexts)
+4. **Usage Notes** (when/how to use, common collocations)
 
-Be concise and educational. If you find related words in the references, mention them to help students build vocabulary connections."""
+Be concise and educational."""
 
-    return prompt
+    return (system_instruction, prompt)
 
 
 # ============================================================
@@ -97,45 +99,40 @@ Be concise and educational. If you find related words in the references, mention
 # ============================================================
 
 async def handle_redefine(request: RedefineRequest) -> RedefineResponse:
-    """
-    ✅ ENHANCED: Main handler function with RAG integration
-    """
+    """Main handler function with RAG integration using Gemini API"""
     try:
         print(f"📝 Redefine request - Word: {request.word}")
 
-        if not openai_client:
+        if not groq_client:
             raise HTTPException(
                 status_code=503,
-                detail="OpenAI service not available"
+                detail="Groq service not available"
             )
 
-        # ✅ Use RAG-enhanced prompt builder
-        prompt = build_redefine_prompt_with_rag({
+        system_instruction, user_prompt = build_redefine_prompt_with_rag({
             "word": request.word,
             "baseMeaning": request.baseMeaning,
             "example": request.example
         })
 
-        print(f"🤖 Calling OpenAI with RAG-enhanced prompt for redefinition...")
+        messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": user_prompt}
+        ]
 
-        completion = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+        print(f"🤖 Calling Groq with RAG-enhanced prompt for redefinition...")
+
+        completion = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=messages,
             temperature=0.3,
-            max_tokens=450,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a Filipino language educator. Use reference materials to provide accurate, multi-perspective definitions that help students learn effectively. Cite related words when available."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
+            max_tokens=300,
+            top_p=1,
+            stream=False
         )
 
         content = completion.choices[0].message.content or ""
-        print(f"✅ Generated RAG-enhanced redefinition ({len(content)} chars)")
+        print(f"✅ Generated redefinition ({len(content)} chars)")
 
         return RedefineResponse(content=content)
 

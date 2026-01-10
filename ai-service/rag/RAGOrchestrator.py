@@ -21,25 +21,62 @@ class RAGOrchestrator:
     def __init__(self):
         """Initialize RAG components"""
         try:
+            self.grammar_rag = None
+            self.vocab_rag = None
+
             if get_grammar_rag:
-                self.grammar_rag = get_grammar_rag()
-                print("✅ Grammar RAG initialized in orchestrator")
+                try:
+                    print("🔄 Attempting to initialize Grammar RAG...")
+                    self.grammar_rag = get_grammar_rag()
+
+                    # ✅ Verify it's not None
+                    if self.grammar_rag is None:
+                        print("❌ Grammar RAG returned None")
+                    elif hasattr(self.grammar_rag, 'references'):
+                        print(
+                            f"✅ Grammar RAG initialized with {len(self.grammar_rag.references)} references")
+                    else:
+                        print("✅ Grammar RAG initialized (no references attribute)")
+
+                except Exception as e:
+                    print(f"❌ Grammar RAG initialization failed: {e}")
+                    import traceback
+                    traceback.print_exc()
             else:
-                self.grammar_rag = None
-                print("⚠️ Grammar RAG not available")
+                print("❌ get_grammar_rag function not available")
 
             if get_vocabulary_rag:
-                self.vocab_rag = get_vocabulary_rag()
-                print("✅ Vocabulary RAG initialized in orchestrator")
+                try:
+                    print("🔄 Attempting to initialize Vocabulary RAG...")
+                    self.vocab_rag = get_vocabulary_rag()
+
+                    # ✅ Verify it's not None
+                    if self.vocab_rag is None:
+                        print("❌ Vocabulary RAG returned None")
+                    elif hasattr(self.vocab_rag, 'references'):
+                        print(
+                            f"✅ Vocabulary RAG initialized with {len(self.vocab_rag.references)} references")
+                    elif hasattr(self.vocab_rag, 'documents'):
+                        print(
+                            f"✅ Vocabulary RAG initialized with {len(self.vocab_rag.documents)} documents")
+                    else:
+                        print(
+                            "✅ Vocabulary RAG initialized (no references/documents attribute)")
+
+                except Exception as e:
+                    print(f"❌ Vocabulary RAG initialization failed: {e}")
+                    import traceback
+                    traceback.print_exc()
             else:
-                self.vocab_rag = None
-                print("⚠️ Vocabulary RAG not available")
+                print("❌ get_vocabulary_rag function not available")
 
             # Load common mistakes and learning strategies
             self._load_supplementary_references()
 
         except Exception as e:
             print(f"❌ Error initializing RAG orchestrator: {e}")
+            import traceback
+            traceback.print_exc()
             self.grammar_rag = None
             self.vocab_rag = None
             self.common_mistakes = []
@@ -101,32 +138,72 @@ class RAGOrchestrator:
         try:
             results = []
 
+            print(f"🔍 RAG Context Request:")
+            print(f"   Query: {query[:50]}...")
+            print(f"   Context Type: {context_type}")
+            print(f"   Grammar RAG Available: {self.grammar_rag is not None}")
+            print(f"   Vocab RAG Available: {self.vocab_rag is not None}")
+
             # ✅ ENHANCED: Handle new context types
             if context_type == "mistakes":
-                # Search only common mistakes
                 results = self._search_common_mistakes(query, top_k)
+
             elif context_type == "strategies":
-                # Search only learning strategies
                 results = self._search_learning_strategies(query, top_k)
-            elif context_type == "grammar" and self.grammar_rag:
-                results = self.grammar_rag.search(query, top_k=top_k)
-            elif context_type == "vocabulary" and self.vocab_rag:
-                results = self.vocab_rag.search(query, top_k=top_k)
-            elif context_type == "mixed":
-                # Hybrid search: get from both and merge
+
+            elif context_type == "grammar":
                 if self.grammar_rag:
-                    grammar_results = self.grammar_rag.search(
-                        query, top_k=max(1, top_k//2))
-                    results.extend(grammar_results)
+                    try:
+                        results = self.grammar_rag.search(query, top_k=top_k)
+                        print(
+                            f"✅ Grammar search returned {len(results)} results")
+                    except Exception as e:
+                        print(f"❌ Grammar search error: {e}")
+                        results = []
+                else:
+                    print("⚠️ Grammar RAG not available")
+            elif context_type == "vocabulary":
                 if self.vocab_rag:
-                    vocab_results = self.vocab_rag.search(
-                        query, top_k=max(1, top_k//2))
-                    results.extend(vocab_results)
+                    try:
+                        results = self.vocab_rag.search(query, top_k=top_k)
+                        print(
+                            f"✅ Vocabulary search returned {len(results)} results")
+                    except Exception as e:
+                        print(f"❌ Vocabulary search error: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        results = []
+                else:
+                    print("⚠️ Vocabulary RAG not available")
+                    print(f"   vocab_rag object: {self.vocab_rag}")
+                    print(
+                        f"   get_vocabulary_rag function: {get_vocabulary_rag}")
+
+            elif context_type == "mixed":
+                # Hybrid search
+                if self.grammar_rag:
+                    try:
+                        grammar_results = self.grammar_rag.search(
+                            query, top_k=max(1, top_k//2))
+                        results.extend(grammar_results)
+                        print(
+                            f"✅ Grammar search: {len(grammar_results)} results")
+                    except Exception as e:
+                        print(f"⚠️ Grammar search in mixed mode failed: {e}")
+
+                if self.vocab_rag:
+                    try:
+                        vocab_results = self.vocab_rag.search(
+                            query, top_k=max(1, top_k//2))
+                        results.extend(vocab_results)
+                        print(f"✅ Vocab search: {len(vocab_results)} results")
+                    except Exception as e:
+                        print(f"⚠️ Vocab search in mixed mode failed: {e}")
 
                 if results:
                     results = self._merge_and_rank(results)
             else:
-                print(f"⚠️ RAG not available for context_type: {context_type}")
+                print(f"❌ Unknown context_type: {context_type}")
                 return ""
 
             # Optionally append common mistakes
@@ -134,17 +211,23 @@ class RAGOrchestrator:
                 mistake_results = self._search_common_mistakes(query, 2)
                 if mistake_results:
                     results.extend(mistake_results)
+                    print(f"✅ Added {len(mistake_results)} common mistakes")
 
             # Optionally append learning strategies
             if include_strategies and context_type not in ["mistakes", "strategies"]:
                 strategy_results = self._search_learning_strategies(query, 2)
                 if strategy_results:
                     results.extend(strategy_results)
+                    print(
+                        f"✅ Added {len(strategy_results)} learning strategies")
 
             # Filter by similarity threshold
             if results:
+                before_filter = len(results)
                 results = [r for r in results if r.get(
                     "similarity_score", 0) >= min_similarity]
+                print(
+                    f"✅ Filtered {before_filter} → {len(results)} results (min similarity: {min_similarity})")
 
             if not results:
                 print(
@@ -156,6 +239,8 @@ class RAGOrchestrator:
 
         except Exception as e:
             print(f"❌ Error in get_context: {e}")
+            import traceback
+            traceback.print_exc()
             return ""
 
     def _search_common_mistakes(self, query: str, top_k: int) -> List[Dict]:

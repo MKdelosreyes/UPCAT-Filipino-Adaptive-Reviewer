@@ -1,8 +1,10 @@
 from fastapi import HTTPException
-from typing import Optional
+from typing import Optional, Dict, List
 from pydantic import BaseModel
 import os
 import sys
+import time
+from datetime import datetime, timedelta
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -25,12 +27,25 @@ except ImportError as e:
     grammar_data = []
 
 try:
-    from openai import OpenAI
-    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    print("✅ OpenAI client initialized in explain.py")
+    from groq import Groq
+
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if not groq_api_key:
+        raise ValueError("GROQ_API_KEY not found in environment")
+
+    groq_client = Groq(api_key=groq_api_key)
+
+    print("✅ Groq client initialized in explain.py")
 except Exception as e:
-    print(f"⚠️ Error initializing OpenAI in explain handler: {e}")
-    openai_client = None
+    print(f"⚠️ Error initializing Groq in explain handler: {e}")
+    groq_client = None
+
+try:
+    from utils.token_counter import get_token_counter
+    token_counter = get_token_counter()
+except ImportError:
+    print("⚠️ Token counter not available")
+    token_counter = None
 
 
 class ExplainRequest(BaseModel):
@@ -106,7 +121,7 @@ def get_grammar_explanation(word: str):
 
 def build_explanation_prompt_with_rag(data: dict) -> str:
     """
-    ✅ ENHANCED: Generate explanation prompt with RAG context including common mistakes
+    Generate explanation prompt with RAG context including common mistakes
     """
     mode = data["mode"]
     word = data["word"]
@@ -130,8 +145,11 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
                     min_similarity=0.4,
                     include_mistakes=True
                 )
-                print(
-                    f"✅ Retrieved vocabulary context with mistakes ({len(rag_context)} chars)")
+                if rag_context:
+                    print(
+                        f"✅ Retrieved vocabulary context with mistakes ({len(rag_context)} chars)")
+                else:
+                    print("⚠️ No RAG context found")
 
             elif mode in ["fill-blanks", "error-identification"]:
                 # Grammar context with mistakes
@@ -143,19 +161,27 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
                     min_similarity=0.4,
                     include_mistakes=True
                 )
-                print(
-                    f"✅ Retrieved grammar context with mistakes ({len(rag_context)} chars)")
+                if rag_context:
+                    print(
+                        f"✅ Retrieved grammar context with mistakes ({len(rag_context)} chars)")
+                else:
+                    print("⚠️ No RAG context found")
         except Exception as e:
             print(f"⚠️ Error getting RAG context: {e}")
+            import traceback
+            traceback.print_exc()
             rag_context = ""
     else:
         print("⚠️ RAG not available")
 
+    # System instruction for Groq
+    system_instruction = """You are a Filipino language tutor for UPCAT preparation. Use the provided reference materials to give accurate, evidence-based explanations. Be concise and educational. Respond in Filipino."""
+
     # Build prompts based on mode
     if mode == "quiz":
-        prompt = f"""You are a helpful Filipino language tutor for UPCAT preparation.
+        prompt = f"""{system_instruction}
 
-{rag_context}
+{rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
 
 **Student's Answer:**
 - Salitang tinatalakay: {word}
@@ -170,19 +196,18 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
 
         prompt += f"""
 
-Using the reference materials above, magbigay ng 3 na punto:
-1) Bakit "{correct}" ang tamang sagot (gamitin ang kahulugan at references)
+Using the reference materials above, ipaliwanag ang sumusunod:
+1) Bakit "{correct}" ang tamang sagot
 2) Bakit mali ang napiling sagot (mention if this is a common mistake pattern)
-3) Maikling talang pangbokabularyo (cite similar words from references if relevant)
 
-Gumamit ng mga bullet points. Panatilihing maikli at malinaw."""
+Gumamit ng mga bullet points. 1 paragraph for each point consisting of 1-2 short sentences each."""
 
-        return prompt
+        # return prompt
 
     elif mode == "antonym":
-        prompt = f"""You are a helpful Filipino language tutor for UPCAT preparation.
+        prompt = f"""{system_instruction}
 
-{rag_context}
+{rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
 
 **Student's Answer:**
 - Salitang tinatalakay: {word}
@@ -202,14 +227,14 @@ Using the reference materials above, magbigay ng 3 na punto:
 2) Bakit mali ang napiling sagot (check if this is a common confusion)
 3) Maikling tala tungkol sa antonyms
 
-Gumamit ng mga bullet points. Panatilihing maikli at malinaw."""
+Gumamit ng mga bullet points. Make the explanations short and clear."""
 
-        return prompt
+        # return prompt
 
     elif mode == "fill-blanks":
-        prompt = f"""You are a helpful Filipino grammar tutor for UPCAT preparation.
+        prompt = f"""{system_instruction}
 
-{rag_context}
+{rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
 
 **Student's Answer:**
 - Pangungusap: {sentence}
@@ -222,18 +247,18 @@ Gumamit ng mga bullet points. Panatilihing maikli at malinaw."""
         prompt += f"""
 
 Using the grammar rules and common mistakes above, magbigay ng 3 na punto:
-1) Bakit "{correct}" ang tamang salita para sa puwang
+1) Bakit "{correct}" ang tamang salita
 2) Ano ang grammatical rule (cite specific rules from references, mention if student made a common mistake)
 3) Bakit mali ang napiling sagot (kung may napili)
 
-Gumamit ng mga bullet points. Panatilihing maikli at malinaw ang sagot."""
+Gumamit ng mga bullet points. Make the explanations short and clear."""
 
-        return prompt
+        # return prompt
 
     elif mode == "error-identification":
-        prompt = f"""You are a helpful Filipino grammar tutor for UPCAT preparation.
+        prompt = f"""{system_instruction}
 
-{rag_context}
+{rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
 
 **Student's Answer:**
 - Pangungusap: {sentence}
@@ -245,32 +270,35 @@ Gumamit ng mga bullet points. Panatilihing maikli at malinaw ang sagot."""
         prompt += f"""
 
 Using the grammar rules and common mistakes above, magbigay ng 4 na punto:
-1) Bakit may error ang "{correct}" (check if this is a documented common mistake)
+1) Bakit may error ang "{correct}"
 2) Ano ang tamang paraan (correction)
-3) Anong grammar rule ang nilabag (cite from references if available)
+3) Ano ang grammar rule na nilabag
+4) Bakit mali ang napiling sagot ng estudyante
 
-Gumamit ng mga bullet points. Panatilihing maikli at malinaw ang sagot. Always cite if this matches a known error pattern from the references."""
-
-        return prompt
+Gumamit ng mga bullet points. Make the explanations short and clear."""
 
     else:
-        return f"""Explain why "{correct}" is the correct answer.
+        prompt += f"""{system_instruction}
+
+Explain why "{correct}" is the correct answer.
 The student selected "{selected}".
 Keep it brief and educational in Filipino."""
+
+    return (system_instruction, prompt)
 
 
 async def handle_explain(request: ExplainRequest) -> ExplainResponse:
     """
-    ✅ ENHANCED: Main handler function with RAG integration including common mistakes
+    Main handler function with RAG integration using Gemini API
     """
     try:
         print(
             f"📝 Explain request - Word: {request.word}, Mode: {request.mode}")
 
-        if not openai_client:
+        if not groq_client:
             raise HTTPException(
                 status_code=503,
-                detail="OpenAI service not available"
+                detail="Groq service not available"
             )
 
         # Get word/grammar data
@@ -311,31 +339,78 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "selected": request.selected
             }
 
-        # ✅ Use RAG-enhanced prompt builder
-        prompt = build_explanation_prompt_with_rag(prompt_data)
+        # Use RAG-enhanced prompt builder
+        system_instruction, prompt = build_explanation_prompt_with_rag(
+            prompt_data)
 
-        print(f"🤖 Calling OpenAI with enhanced RAG prompt...")
+        messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt}
+        ]
 
-        completion = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            temperature=0.2,
-            max_tokens=300,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a Filipino language tutor. Use the provided reference materials (including common mistakes) to give accurate, evidence-based explanations. Always cite if the student's error matches a known common mistake pattern. Be concise and educational."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
-        )
+        if token_counter:
+            combined_prompt = f"{system_instruction}\n\n{prompt}"
+            token_counter.log_request(
+                endpoint="/explain",
+                prompt=combined_prompt,
+                response=""
+            )
 
-        explanation = completion.choices[0].message.content or ""
-        print(f"✅ Generated enhanced explanation ({len(explanation)} chars)")
+            # Check rate limits
+            status = token_counter.get_rate_limit_status()
+            if status['requests_last_1min'] >= 15:  # Gemini free tier: 15 RPM
+                print("⚠️ WARNING: Approaching rate limit (15 requests/min)")
+            if status['requests_last_1min'] >= 10:
+                print("⚠️ WARNING: High request rate detected")
 
-        return ExplainResponse(explanation=explanation)
+        print(f"🤖 Calling Gemini with enhanced RAG prompt...")
+        print(f"📏 Prompt length: {len(prompt):,} characters")
+
+        max_retries = 3
+        retry_delay = 2
+
+        for attempt in range(max_retries):
+            try:
+                completion = groq_client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=messages,
+                    temperature=0.2,
+                    max_tokens=300,
+                    top_p=1,
+                    stream=False
+                )
+
+                explanation = completion.choices[0].message.content or ""
+
+                if token_counter:
+                    combined_prompt = f"{system_instruction}\n\n{prompt}"
+                    token_counter.log_request(
+                        endpoint="/explain",
+                        prompt=combined_prompt,
+                        response=explanation
+                    )
+
+                print(f"✅ Generated explanation ({len(explanation)} chars)")
+
+                return ExplainResponse(explanation=explanation)
+
+            except Exception as api_error:
+                error_msg = str(api_error)
+
+                # Handle rate limit errors
+                if "429" in error_msg or "rate_limit" in error_msg.lower():
+                    if attempt < max_retries - 1:
+                        wait_time = retry_delay * (2 ** attempt)
+                        print(f"⚠️ Rate limit hit. Waiting {wait_time}s...")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        raise HTTPException(
+                            status_code=429,
+                            detail="Rate limit exceeded. Please try again in a few seconds."
+                        )
+                else:
+                    raise
 
     except HTTPException:
         raise
