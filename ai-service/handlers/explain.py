@@ -184,23 +184,20 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
 {rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
 
 **Student's Answer:**
-- Salitang tinatalakay: {word}
+- Salita: {word}
 - Tamang kahulugan: {correct}
-- Official na kahulugan: {definition}"""
-
-        if example:
-            prompt += f"\n- Halimbawang pangungusap: {example}"
+- Opisyal na kahulugan: {definition}"""
 
         if selected:
             prompt += f"\n- Napili ng estudyante: {selected}"
 
         prompt += f"""
 
-Using the reference materials above, ipaliwanag ang sumusunod:
+Using the reference materials above, diretsong ipaliwanag ang sumusunod:
 1) Bakit "{correct}" ang tamang sagot
 2) Bakit mali ang napiling sagot (mention if this is a common mistake pattern)
 
-Gumamit ng mga bullet points. 1 paragraph for each point consisting of 1-2 short sentences each."""
+1 paragraph for each point consisting of 1-2 short sentences each."""
 
         # return prompt
 
@@ -214,20 +211,16 @@ Gumamit ng mga bullet points. 1 paragraph for each point consisting of 1-2 short
 - Kahulugan: {definition}
 - Tamang antonym: {correct}"""
 
-        if example:
-            prompt += f"\n- Halimbawang pangungusap: {example}"
-
         if selected:
             prompt += f"\n- Napili ng estudyante: {selected}"
 
         prompt += f"""
 
-Using the reference materials above, magbigay ng 3 na punto:
-1) Bakit "{correct}" ang tamang antonym ng "{word}"
-2) Bakit mali ang napiling sagot (check if this is a common confusion)
-3) Maikling tala tungkol sa antonyms
+Using the reference materials above, diretang ipaliwanag ang sumusunod:
+1) Bakit "{correct}" ang tamang kasalungat ng "{word}"
+2) Bakit mali ang napiling sagot (check if this is a synonym)
 
-Gumamit ng mga bullet points. Make the explanations short and clear."""
+Make the explanations short and clear."""
 
         # return prompt
 
@@ -242,7 +235,7 @@ Gumamit ng mga bullet points. Make the explanations short and clear."""
 - Kahulugan ng salita: {definition}"""
 
         if selected:
-            prompt += f"\n- Isinulat ng estudyante: {selected}"
+            prompt += f"\n- Napili ng estudyante: {selected}"
 
         prompt += f"""
 
@@ -251,7 +244,7 @@ Using the grammar rules and common mistakes above, magbigay ng 3 na punto:
 2) Ano ang grammatical rule (cite specific rules from references, mention if student made a common mistake)
 3) Bakit mali ang napiling sagot (kung may napili)
 
-Gumamit ng mga bullet points. Make the explanations short and clear."""
+Make the explanations short and clear."""
 
         # return prompt
 
@@ -275,7 +268,7 @@ Using the grammar rules and common mistakes above, magbigay ng 4 na punto:
 3) Ano ang grammar rule na nilabag
 4) Bakit mali ang napiling sagot ng estudyante
 
-Gumamit ng mga bullet points. Make the explanations short and clear."""
+Make the explanations short and clear."""
 
     else:
         prompt += f"""{system_instruction}
