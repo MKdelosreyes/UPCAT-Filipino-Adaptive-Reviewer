@@ -4,8 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
-import type { SentenceExercise } from "@/contexts/LearningProgressContext";
-import { CheckCircle, Play, Sparkles } from "lucide-react";
+import type {
+  SentenceExercise,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
+import { Play, TrendingUp, Clock } from "lucide-react";
 
 interface SentenceConstructionCardProps {
   name: string;
@@ -24,19 +27,34 @@ export default function SentenceConstructionCard({
   url,
   exerciseType,
 }: SentenceConstructionCardProps) {
-  const {
-    progress,
-    canAccessExercise,
-    getNextRecommended,
-    getExerciseMastery,
-  } = useSentenceConstructionProgress();
+  const { progress, getExerciseMastery } = useSentenceConstructionProgress();
 
   const exerciseProgress = progress[exerciseType];
-  const isAccessible = canAccessExercise(exerciseType);
-  const isCompleted = exerciseProgress.status === "completed";
-  const isRecommended = getNextRecommended() === exerciseType;
+  const hasStarted = exerciseProgress.attempts > 0;
+  const exerciseMastery = hasStarted
+    ? getExerciseMastery(exerciseProgress)
+    : null;
 
-  const exerciseMastery = getExerciseMastery(exerciseProgress);
+  const getLastAttempted = (): string | null => {
+    if (exerciseProgress.performanceHistory.length === 0) return null;
+
+    const lastTimestamp =
+      exerciseProgress.performanceHistory[
+        exerciseProgress.performanceHistory.length - 1
+      ].timestamp;
+    const date = new Date(lastTimestamp);
+    const now = new Date();
+    const diffDays = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const lastAttempted = getLastAttempted();
 
   return (
     <div className="relative">
@@ -47,32 +65,20 @@ export default function SentenceConstructionCard({
         <Link href={url} className="block">
           <div
             className={`relative rounded-3xl shadow-lg overflow-hidden border-2 transition-all ${
-              isCompleted
-                ? "border-orange-300 bg-orange-50"
-                : isRecommended
-                ? "border-orange-500 ring-4 ring-orange-300"
+              hasStarted
+                ? "border-orange-400 bg-orange-50"
                 : "border-orange-200 hover:border-orange-400"
             } ${color}`}
           >
-            {/* Status Badge */}
-            <div className="absolute top-3 right-3 z-10">
-              {isRecommended ? (
-                <div className="bg-orange-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold shadow-md">
-                  <Sparkles className="w-3 h-3" />
-                  Next
-                </div>
-              ) : isCompleted ? (
+            {/* Mastery Badge */}
+            {exerciseMastery && (
+              <div className="absolute top-3 right-3 z-10">
                 <div className="bg-orange-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
-                  <CheckCircle className="w-3 h-3" />
-                  Completed
+                  <span>{exerciseMastery.icon}</span>
+                  <span className="capitalize">{exerciseMastery.level}</span>
                 </div>
-              ) : (
-                <div className="bg-orange-600 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
-                  <Play className="w-3 h-3" />
-                  Start
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Image */}
             <div className="relative h-40 w-full bg-white/50">
@@ -91,34 +97,39 @@ export default function SentenceConstructionCard({
               <p className="text-sm text-gray-700 mb-3">{description}</p>
 
               {/* Progress Info */}
-              <div className="text-xs">
-                {exerciseMastery && exerciseProgress.attempts > 0 ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{exerciseMastery.icon}</span>
-                      <div>
-                        <p className="font-semibold text-orange-700 capitalize">
-                          {exerciseMastery.level}
-                        </p>
+              <div className="text-xs space-y-2">
+                {hasStarted && exerciseMastery ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-orange-600" />
+                        <div>
+                          <p className="font-semibold text-orange-700">
+                            Avg: {exerciseMastery.avgScore}%
+                          </p>
+                          <p className="text-gray-600 text-xs capitalize">
+                            {exerciseMastery.difficulty} difficulty
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {exerciseProgress.score !== null && (
+                          <p className="font-semibold text-orange-700">
+                            Best: {exerciseProgress.score}%
+                          </p>
+                        )}
                         <p className="text-gray-600">
-                          Avg: {exerciseMastery.avgScore}% •{" "}
-                          <span className="capitalize">
-                            {exerciseMastery.difficulty}
-                          </span>
+                          {exerciseProgress.attempts} attempt
+                          {exerciseProgress.attempts > 1 ? "s" : ""}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-gray-600">
-                        {exerciseProgress.attempts} attempt
-                        {exerciseProgress.attempts > 1 ? "s" : ""}
+                    {lastAttempted && (
+                      <p className="text-gray-500 text-xs flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Last: {lastAttempted}
                       </p>
-                      {exerciseProgress.score !== null && (
-                        <p className="font-semibold text-orange-700">
-                          Best: {exerciseProgress.score}%
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">

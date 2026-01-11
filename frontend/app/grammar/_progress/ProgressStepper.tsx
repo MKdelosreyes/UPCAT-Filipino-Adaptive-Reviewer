@@ -1,11 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Circle } from "lucide-react";
+import { Circle } from "lucide-react";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 import type {
   GrammarExercise,
   QuizProgress,
+  LessonProgress,
 } from "@/contexts/LearningProgressContext";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 
@@ -45,10 +46,9 @@ export default function GrammarProgressStepper() {
         {steps.map((step) => {
           const progress = getExerciseProgress(step.key);
           const isLesson = isLessonExercise("grammar", step.key);
-          const isCompleted = progress.status === "completed";
 
           const hasStarted = isLesson
-            ? isCompleted
+            ? (progress as LessonProgress).timeSpent > 0
             : (progress as QuizProgress).performanceHistory?.length > 0;
 
           const mastery =
@@ -61,16 +61,12 @@ export default function GrammarProgressStepper() {
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
-                  isCompleted
+                  hasStarted
                     ? "bg-green-500 border-green-500 text-white"
-                    : hasStarted
-                    ? "bg-green-100 border-green-500 text-green-700"
                     : "bg-white border-green-300 text-green-600"
                 }`}
               >
-                {isCompleted ? (
-                  <Check className="w-5 h-5" />
-                ) : hasStarted && mastery ? (
+                {hasStarted && mastery ? (
                   <span>{mastery.icon}</span>
                 ) : (
                   <Circle size={16} />
@@ -78,20 +74,16 @@ export default function GrammarProgressStepper() {
               </motion.div>
               <p
                 className={`mt-2 text-xs font-medium ${
-                  isCompleted
-                    ? "text-green-700"
-                    : hasStarted
-                    ? "text-green-600"
-                    : "text-gray-500"
+                  hasStarted ? "text-green-700" : "text-gray-500"
                 }`}
               >
                 {step.name}
               </p>
 
-              {/* Show lesson completion or mastery badge */}
-              {isLesson && isCompleted && (
+              {/* ✅ FIX: Type guard before accessing timeSpent */}
+              {isLesson && hasStarted && (
                 <span className="mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
-                  ✓ Done
+                  {Math.floor((progress as LessonProgress).timeSpent / 60)}m
                 </span>
               )}
 

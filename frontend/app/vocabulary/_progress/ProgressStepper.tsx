@@ -1,10 +1,11 @@
 "use client";
 
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
-import { Lock, Circle, CheckCircle2 } from "lucide-react";
+import { Circle } from "lucide-react";
 import type {
   VocabularyExercise,
   QuizProgress,
+  LessonProgress,
 } from "@/contexts/LearningProgressContext";
 
 const steps: Array<{ id: VocabularyExercise; label: string; number: number }> =
@@ -18,7 +19,6 @@ export default function ProgressStepper() {
   const { progress, getExerciseMastery, isLessonExercise } =
     useVocabularyProgress();
 
-  // ✅ FIX: Only count QUIZ exercises for performance history
   const quizExercises = steps.filter((step) => !isLessonExercise(step.id));
   const completedQuizzes = quizExercises.filter(
     (step) => (progress[step.id] as QuizProgress).performanceHistory?.length > 0
@@ -42,10 +42,8 @@ export default function ProgressStepper() {
           const isLesson = isLessonExercise(step.id);
 
           const hasStarted = isLesson
-            ? exerciseProgress.status === "completed"
+            ? (exerciseProgress as LessonProgress).timeSpent > 0
             : (exerciseProgress as QuizProgress).performanceHistory?.length > 0;
-
-          const isCompleted = exerciseProgress.status === "completed";
 
           const mastery =
             !isLesson && hasStarted
@@ -57,16 +55,12 @@ export default function ProgressStepper() {
               {/* Circle */}
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 ${
-                  isCompleted
-                    ? "bg-green-500 text-white"
-                    : hasStarted
+                  hasStarted
                     ? "bg-blue-600 text-white"
                     : "bg-blue-100 text-blue-600 border-2 border-blue-300"
                 }`}
               >
-                {isCompleted ? (
-                  <CheckCircle2 size={20} />
-                ) : hasStarted && mastery ? (
+                {hasStarted && mastery ? (
                   <span>{mastery.icon}</span>
                 ) : (
                   <Circle size={16} />
@@ -76,21 +70,13 @@ export default function ProgressStepper() {
               {/* Label */}
               <span
                 className={`mt-2 text-xs md:text-sm font-medium text-center max-w-[80px] ${
-                  hasStarted || isCompleted ? "text-blue-900" : "text-gray-600"
+                  hasStarted ? "text-blue-900" : "text-gray-600"
                 }`}
               >
                 {step.label}
               </span>
 
-              {/* Lesson Badge or Mastery Badge */}
-              {isLesson && exerciseProgress.status === "completed" && (
-                <div className="mt-1">
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
-                    ✓ Lesson Done
-                  </span>
-                </div>
-              )}
-
+              {/* Mastery Badge */}
               {!isLesson && hasStarted && mastery && (
                 <div className="mt-1 flex flex-col items-center gap-1">
                   <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold capitalize">
@@ -98,6 +84,18 @@ export default function ProgressStepper() {
                   </span>
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold capitalize">
                     {mastery.difficulty}
+                  </span>
+                </div>
+              )}
+
+              {/* Lesson Badge */}
+              {isLesson && hasStarted && (
+                <div className="mt-1">
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                    {Math.floor(
+                      (exerciseProgress as LessonProgress).timeSpent / 60
+                    )}
+                    m studied
                   </span>
                 </div>
               )}

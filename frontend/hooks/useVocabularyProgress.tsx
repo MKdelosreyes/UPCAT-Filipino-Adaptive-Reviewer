@@ -36,7 +36,7 @@ export function useVocabularyProgress() {
     updateLessonProgress,
     updateQuizProgress,
     getModuleProgress,
-    getNextRecommended,
+    // getNextRecommended,
     canAccessExercise,
     isLessonExercise,
   } = useLearningProgress();
@@ -220,7 +220,7 @@ export function useVocabularyProgress() {
     },
 
     getOverallProgress: () => getModuleProgress("vocabulary"),
-    getNextRecommended: () => getNextRecommended("vocabulary"),
+    // getNextRecommended: () => getNextRecommended("vocabulary"),
     canAccessExercise: (exercise: VocabularyExercise) =>
       canAccessExercise("vocabulary", exercise),
     getVocabularyMastery,

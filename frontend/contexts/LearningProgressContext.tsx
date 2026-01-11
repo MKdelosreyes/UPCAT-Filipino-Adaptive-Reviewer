@@ -33,7 +33,7 @@ export type ModuleType =
   | "sentence-construction"
   | "reading-comprehension";
 
-export type ExerciseStatus = "not-started" | "in-progress" | "completed";
+export type ExerciseStatus = "not-started" | "in-progress";
 
 // Different interfaces for lessons vs quizzes
 export interface LessonProgress {
@@ -98,6 +98,20 @@ export interface AllModulesProgress {
   recommendedModule: ModuleType;
   lastCompletedModule: ModuleType | null;
 }
+
+const isLessonFinished = (lesson: LessonProgress): boolean => {
+  return lesson.timeSpent >= 300;
+};
+
+const hasGoodMastery = (quiz: QuizProgress): boolean => {
+  if (quiz.performanceHistory.length === 0) return false;
+
+  const recentHistory = quiz.performanceHistory.slice(-5); // Last 5 attempts
+  const avgScore =
+    recentHistory.reduce((sum, h) => sum + h.score, 0) / recentHistory.length;
+
+  return avgScore >= 80 && quiz.lastDifficulty === "hard";
+};
 
 interface LearningProgressContextType {
   progress: AllModulesProgress;
@@ -626,12 +640,44 @@ export function LearningProgressProvider({
   const getModuleProgress = (module: ModuleType): number => {
     const exercises = getModuleExercises(module);
 
-    const completed = exercises.filter((ex) => {
-      const exerciseProgress = getExerciseProgressTyped(module, ex);
-      return exerciseProgress?.status === "completed";
-    }).length;
+    let totalMasteryScore = 0;
+    const maxMasteryPerExercise = 5; // master = 5, advanced = 4, etc.
 
-    return Math.round((completed / exercises.length) * 100);
+    exercises.forEach((ex) => {
+      const exerciseProgress = getExerciseProgressTyped(module, ex);
+
+      if (!exerciseProgress) return;
+
+      if (isLessonExercise(module, ex)) {
+        // Lessons: score based on time spent
+        const lesson = exerciseProgress as LessonProgress;
+        if (lesson.timeSpent >= 600) totalMasteryScore += 5; // 10+ min = max
+        else if (lesson.timeSpent >= 300)
+          totalMasteryScore += 3; // 5+ min = mid
+        else if (lesson.timeSpent > 0) totalMasteryScore += 1; // started
+      } else {
+        // Quizzes: score based on mastery level
+        const quiz = exerciseProgress as QuizProgress;
+        if (quiz.performanceHistory.length === 0) return;
+
+        const avgScore =
+          quiz.performanceHistory.reduce((sum, h) => sum + h.score, 0) /
+          quiz.performanceHistory.length;
+        const difficulty = quiz.lastDifficulty;
+
+        if (difficulty === "hard" && avgScore >= 90)
+          totalMasteryScore += 5; // master
+        else if (difficulty === "hard" && avgScore >= 75)
+          totalMasteryScore += 4; // advanced
+        else if (difficulty === "medium" && avgScore >= 75)
+          totalMasteryScore += 3; // proficient
+        else if (avgScore >= 60) totalMasteryScore += 2; // developing
+        else totalMasteryScore += 1; // beginner
+      }
+    });
+
+    const maxPossibleScore = exercises.length * maxMasteryPerExercise;
+    return Math.round((totalMasteryScore / maxPossibleScore) * 100);
   };
 
   const getOverallProgress = (): number => {
@@ -642,91 +688,48 @@ export function LearningProgressProvider({
       "reading-comprehension",
     ];
 
-    let totalCompleted = 0;
-    let totalExercises = 0;
+    const totalProgress = modules.reduce((sum, module) => {
+      return sum + getModuleProgress(module);
+    }, 0);
 
-    modules.forEach((module) => {
-      const exercises = getModuleExercises(module);
-      totalExercises += exercises.length;
-
-      exercises.forEach((ex) => {
-        const exerciseProgress = getExerciseProgressTyped(module, ex);
-        if (exerciseProgress?.status === "completed") {
-          totalCompleted++;
-        }
-      });
-    });
-
-    return Math.round((totalCompleted / totalExercises) * 100);
+    return Math.round(totalProgress / modules.length);
   };
 
   const getNextRecommended = (module: ModuleType): ExerciseType | null => {
     const exercises = getModuleExercises(module);
 
-    for (const ex of exercises) {
-      const exerciseProgress = getExerciseProgressTyped(module, ex);
-      if (exerciseProgress?.status !== "completed") {
-        return ex;
-      }
-    }
+    // Find exercise with least attempts
+    let leastPracticedEx: ExerciseType | null = null;
+    let minAttempts = Infinity;
 
-    return null;
+    exercises.forEach((ex) => {
+      const exerciseProgress = getExerciseProgressTyped(module, ex);
+      if (!exerciseProgress) return;
+
+      const attempts = isLessonExercise(module, ex)
+        ? (exerciseProgress as LessonProgress).timeSpent > 0
+          ? 1
+          : 0
+        : (exerciseProgress as QuizProgress).attempts;
+
+      if (attempts < minAttempts) {
+        minAttempts = attempts;
+        leastPracticedEx = ex;
+      }
+    });
+
+    return leastPracticedEx;
   };
 
   const canAccessExercise = (
     module: ModuleType,
     exercise: ExerciseType
   ): boolean => {
-    // if (isLessonExercise(module, exercise)) {
-    //   return true;
-    // }
-
-    // if (module === "vocabulary") {
-    //   const flashcardsCompleted =
-    //     progress.vocabulary.flashcards.status === "completed";
-    //   if (exercise === "quiz") return flashcardsCompleted;
-    //   if (exercise === "antonym") {
-    //     return (
-    //       flashcardsCompleted && progress.vocabulary.quiz.status === "completed"
-    //     );
-    //   }
-    // } else if (module === "grammar") {
-    //   const lessonCompleted =
-    //     progress.grammar["lesson-cards"].status === "completed";
-    //   if (exercise === "error-identification") return lessonCompleted;
-    //   if (exercise === "fill-blanks") {
-    //     return (
-    //       lessonCompleted &&
-    //       progress.grammar["error-identification"].status === "completed"
-    //     );
-    //   }
-    // } else if (module === "sentence-construction") {
-    //   if (exercise === "complete-sentence") return true;
-    //   if (exercise === "sentence-ordering") {
-    //     return (
-    //       progress["sentence-construction"]["complete-sentence"].status ===
-    //       "completed"
-    //     );
-    //   }
-    // } else if (module === "reading-comprehension") {
-    //   if (exercise === "passage-questions") return true;
-    //   if (exercise === "comprehension") {
-    //     return (
-    //       progress["reading-comprehension"]["passage-questions"].status ===
-    //       "completed"
-    //     );
-    //   }
-    // }
-
     return true;
   };
 
   const isModuleCompleted = (module: ModuleType): boolean => {
-    const exercises = getModuleExercises(module);
-    return exercises.every((ex) => {
-      const exerciseProgress = getExerciseProgressTyped(module, ex);
-      return exerciseProgress?.status === "completed";
-    });
+    return getModuleProgress(module) >= 90; // 90%+ mastery = "completed"
   };
 
   const getRecommendedModule = (): ModuleType => {
@@ -745,26 +748,18 @@ export function LearningProgressProvider({
 
   const getModuleRecommendationReason = (module: ModuleType): string => {
     const moduleProgress = getModuleProgress(module);
-    const isRecommended = progress.recommendedModule === module;
-    const isCompleted = isModuleCompleted(module);
 
-    if (isCompleted) {
-      return "✓ Completed";
+    if (moduleProgress >= 90) {
+      return "✓ Mastered";
+    } else if (moduleProgress >= 70) {
+      return "⭐ Strong Progress";
+    } else if (moduleProgress >= 40) {
+      return "📊 In Progress";
+    } else if (moduleProgress > 0) {
+      return "🔧 Getting Started";
+    } else {
+      return "🌱 Not Started";
     }
-
-    if (isRecommended) {
-      if (moduleProgress === 0) {
-        return "📌 Recommended: Start here";
-      } else {
-        return `📌 Recommended: Continue (${moduleProgress}% complete)`;
-      }
-    }
-
-    if (moduleProgress > 0 && moduleProgress < 100) {
-      return `📊 In Progress: ${moduleProgress}% complete`;
-    }
-
-    return "Available";
   };
 
   const addPerformanceMetrics = async (

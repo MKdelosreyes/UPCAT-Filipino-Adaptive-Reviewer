@@ -36,7 +36,7 @@ export function useGrammarProgress() {
     updateLessonProgress,
     updateQuizProgress,
     getModuleProgress,
-    getNextRecommended,
+    // getNextRecommended,
     canAccessExercise,
     isLessonExercise,
   } = useLearningProgress();
@@ -214,7 +214,7 @@ export function useGrammarProgress() {
     },
 
     getOverallProgress: () => getModuleProgress("grammar"),
-    getNextRecommended: () => getNextRecommended("grammar"),
+    // getNextRecommended: () => getNextRecommended("grammar"),
     canAccessExercise: (exercise: GrammarExercise) =>
       canAccessExercise("grammar", exercise),
     getGrammarMastery,

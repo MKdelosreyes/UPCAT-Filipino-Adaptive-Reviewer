@@ -33,7 +33,7 @@ export function useSentenceConstructionProgress() {
     progress,
     updateQuizProgress,
     getModuleProgress,
-    getNextRecommended,
+    // getNextRecommended,
     canAccessExercise,
   } = useLearningProgress();
 
@@ -179,7 +179,7 @@ export function useSentenceConstructionProgress() {
     updateProgress: (exercise: SentenceExercise, data: Partial<QuizProgress>) =>
       updateQuizProgress("sentence-construction", exercise, data),
     getOverallProgress: () => getModuleProgress("sentence-construction"),
-    getNextRecommended: () => getNextRecommended("sentence-construction"),
+    // getNextRecommended: () => getNextRecommended("sentence-construction"),
     canAccessExercise: (exercise: SentenceExercise) =>
       canAccessExercise("sentence-construction", exercise),
     getSentenceConstructionMastery,

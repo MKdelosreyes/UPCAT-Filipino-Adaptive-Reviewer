@@ -1,7 +1,7 @@
 "use client";
 
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
-import { Circle, CheckCircle2 } from "lucide-react";
+import { Circle } from "lucide-react";
 import type {
   SentenceExercise,
   QuizProgress,
@@ -16,7 +16,6 @@ const steps: Array<{ id: SentenceExercise; label: string; number: number }> = [
 export default function SentenceConstructionProgressStepper() {
   const { progress, getExerciseMastery } = useSentenceConstructionProgress();
 
-  // Calculate completed exercises
   const completedExercises = steps.filter(
     (step) => (progress[step.id] as QuizProgress).performanceHistory?.length > 0
   ).length;
@@ -36,14 +35,9 @@ export default function SentenceConstructionProgressStepper() {
 
         {steps.map((step) => {
           const exerciseProgress = progress[step.id];
-
-          const hasStarted =
-            (exerciseProgress as QuizProgress).performanceHistory?.length > 0;
-
-          const isCompleted = exerciseProgress.status === "completed";
-
+          const hasStarted = exerciseProgress.performanceHistory?.length > 0;
           const mastery = hasStarted
-            ? getExerciseMastery(exerciseProgress as QuizProgress)
+            ? getExerciseMastery(exerciseProgress)
             : null;
 
           return (
@@ -51,16 +45,12 @@ export default function SentenceConstructionProgressStepper() {
               {/* Circle */}
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 ${
-                  isCompleted
-                    ? "bg-green-500 text-white"
-                    : hasStarted
+                  hasStarted
                     ? "bg-orange-600 text-white"
                     : "bg-orange-100 text-orange-600 border-2 border-orange-300"
                 }`}
               >
-                {isCompleted ? (
-                  <CheckCircle2 size={20} />
-                ) : hasStarted && mastery ? (
+                {hasStarted && mastery ? (
                   <span>{mastery.icon}</span>
                 ) : (
                   <Circle size={16} />
@@ -70,9 +60,7 @@ export default function SentenceConstructionProgressStepper() {
               {/* Label */}
               <span
                 className={`mt-2 text-xs md:text-sm font-medium text-center max-w-[80px] ${
-                  hasStarted || isCompleted
-                    ? "text-orange-900"
-                    : "text-gray-600"
+                  hasStarted ? "text-orange-900" : "text-gray-600"
                 }`}
               >
                 {step.label}
