@@ -456,7 +456,7 @@ export default function ClosestMeaningQuizPage() {
     );
 
     updateProgress("quiz", {
-      status: "completed",
+      status: "in-progress",
       score: sessionScore,
       completedAt: new Date().toISOString(),
       attempts: (history.length || 0) + 1,

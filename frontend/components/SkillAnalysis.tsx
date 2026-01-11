@@ -14,19 +14,6 @@ export default function SkillAnalysis() {
     (s) => s.category === "needs-attention"
   );
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "strength":
-        return <CheckCircle2 className="w-5 h-5" />;
-      case "developing":
-        return <TrendingUp className="w-5 h-5" />;
-      case "needs-attention":
-        return <AlertCircle className="w-5 h-5" />;
-      default:
-        return <Target className="w-5 h-5" />;
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-4 w-full pb-5">
@@ -216,11 +203,11 @@ function SkillCard({ skill }: { skill: any }) {
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          {/* <span className="text-xl">{skill.icon}</span> */}
           <div>
             <p className="font-semibold text-sm text-gray-800">{skill.skill}</p>
+
             <p className="text-xs text-gray-600">
-              {skill.exerciseCount} exercises completed
+              {skill.exerciseCount} exercises practiced
             </p>
           </div>
         </div>

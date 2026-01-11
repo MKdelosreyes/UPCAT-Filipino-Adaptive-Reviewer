@@ -375,7 +375,7 @@ export default function GrammarFillBlanksPage() {
     const evaluation = evaluateUserPerformance(allHistory);
 
     updateProgress("fill-blanks", {
-      status: "completed",
+      status: "in-progress",
       score,
       completedAt: new Date().toISOString(),
       attempts: (history.length || 0) + 1,

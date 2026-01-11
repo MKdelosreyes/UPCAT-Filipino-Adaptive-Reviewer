@@ -29,7 +29,6 @@ export function useDashboardInsights() {
   const getModuleMastery = (module: ModuleType): ModuleMastery => {
     const moduleData = progress[module];
 
-    // ✅ FIX: Handle different module types correctly
     let allHistory: Array<{
       difficulty: "easy" | "medium" | "hard";
       score: number;
@@ -52,9 +51,11 @@ export function useDashboardInsights() {
       ];
     } else if (module === "sentence-construction") {
       const sentence = moduleData as SentenceProgress;
+
       allHistory = [
         ...sentence["complete-sentence"].performanceHistory,
         ...sentence["sentence-ordering"].performanceHistory,
+        ...sentence["fill-missing"].performanceHistory,
       ];
     } else if (module === "reading-comprehension") {
       const reading = moduleData as ReadingProgress;
@@ -87,9 +88,11 @@ export function useDashboardInsights() {
       ];
     } else if (module === "sentence-construction") {
       const sentence = moduleData as SentenceProgress;
+
       difficulties = [
         sentence["complete-sentence"].lastDifficulty,
         sentence["sentence-ordering"].lastDifficulty,
+        sentence["fill-missing"].lastDifficulty,
       ];
     } else if (module === "reading-comprehension") {
       const reading = moduleData as ReadingProgress;

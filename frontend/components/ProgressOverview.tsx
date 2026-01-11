@@ -18,13 +18,6 @@ export default function ProgressOverview() {
 
   const overallProgress = getOverallProgress();
 
-  const colorMap: Record<string, string> = {
-    yellow: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    green: "bg-green-100 text-green-800 border-green-300",
-    blue: "bg-blue-100 text-blue-800 border-blue-300",
-    pink: "bg-pink-100 text-pink-800 border-pink-300",
-  };
-
   const getColorClasses = (color: string) => {
     const colorMap: Record<
       string,
@@ -197,7 +190,7 @@ export default function ProgressOverview() {
               {/* Stats */}
               <div className="flex items-center justify-between text-xs text-gray-600">
                 <span>
-                  {module.completedExercises}/{module.totalExercises} exercises
+                  {module.completedExercises}/{module.totalExercises} practiced
                 </span>
                 <span
                   className={`px-2 py-0.5 rounded-full font-medium border ${colors.bg} ${colors.border} ${colors.text}`}

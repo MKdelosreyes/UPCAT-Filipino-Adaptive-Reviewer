@@ -85,7 +85,8 @@ export default function RecommendedPathIndicator() {
       const sentenceData = moduleData as SentenceProgress;
       if (
         exercise === "complete-sentence" ||
-        exercise === "sentence-ordering"
+        exercise === "sentence-ordering" ||
+        exercise === "fill-missing"
       ) {
         return sentenceData[exercise];
       }
@@ -100,30 +101,41 @@ export default function RecommendedPathIndicator() {
   };
 
   const getModuleStatus = (module: ModuleType) => {
-    const isCompleted = isModuleCompleted(module);
+    const isCompleted = isModuleCompleted(module); // Uses mastery >= 90%
     const isRecommended = recommended === module;
     const nextExercise = getNextRecommended(module);
     const exercises = getModuleExercises(module);
     const mastery = getModuleMastery(module);
 
-    // ✅ Count completed exercises with proper typing
     const completedCount = exercises.filter((ex) => {
       const exerciseProgress = getExerciseProgress(module, ex);
-      return exerciseProgress?.status === "completed";
+      if (!exerciseProgress) return false;
+
+      // For lessons: check if time spent
+      if (isLessonExercise(module, ex)) {
+        return (exerciseProgress as LessonProgress).timeSpent > 0;
+      }
+
+      // For quizzes: check if has performance history
+      return (exerciseProgress as QuizProgress).performanceHistory?.length > 0;
     }).length;
 
-    // ✅ Separate lessons from quizzes
     const lessons = exercises.filter((ex) => isLessonExercise(module, ex));
     const quizzes = exercises.filter((ex) => !isLessonExercise(module, ex));
 
     const completedLessons = lessons.filter((ex) => {
       const exerciseProgress = getExerciseProgress(module, ex);
-      return exerciseProgress?.status === "completed";
+      return (
+        exerciseProgress && (exerciseProgress as LessonProgress).timeSpent > 0
+      );
     }).length;
 
     const completedQuizzes = quizzes.filter((ex) => {
       const exerciseProgress = getExerciseProgress(module, ex);
-      return exerciseProgress?.status === "completed";
+      return (
+        exerciseProgress &&
+        (exerciseProgress as QuizProgress).performanceHistory?.length > 0
+      );
     }).length;
 
     return {
@@ -298,7 +310,6 @@ export default function RecommendedPathIndicator() {
                     !status.isRecommended &&
                     status.mastery.level !== "beginner" && (
                       <div className="mt-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 bg-blue-50 text-blue-700 border border-blue-200">
-                        {/* <span>{status.mastery.icon}</span> */}
                         <span className="capitalize">
                           {status.mastery.level}
                         </span>

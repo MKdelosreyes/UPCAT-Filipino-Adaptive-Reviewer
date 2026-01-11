@@ -285,9 +285,8 @@ export default function FlashcardsPage() {
       masteredCount,
     });
 
-    // ✅ Update as LESSON progress (no scoring, no performance metrics)
     updateProgress("flashcards", {
-      status: "completed",
+      status: "in-progress",
       completedAt: new Date().toISOString(),
       timeSpent,
       cardsReviewed,
