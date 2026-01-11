@@ -8,7 +8,7 @@ import type {
   VocabularyExercise,
   QuizProgress,
 } from "@/contexts/LearningProgressContext";
-import { Lock, CheckCircle, Play, Sparkles, BookOpen } from "lucide-react";
+import { CheckCircle, Play, Sparkles, BookOpen } from "lucide-react";
 import { useState } from "react";
 
 interface VocabularyCardProps {
@@ -38,40 +38,25 @@ export default function VocabularyCard({
   const [showWarning, setShowWarning] = useState(false);
 
   const exerciseProgress = progress[exerciseType];
-  const isLocked = !canAccessExercise(exerciseType);
+  const isAccessible = canAccessExercise(exerciseType);
   const isCompleted = exerciseProgress.status === "completed";
   const isRecommended = getNextRecommended() === exerciseType;
 
-  // ✅ FIX: Only get mastery for quiz exercises
   const isLesson = isLessonExercise(exerciseType);
   const exerciseMastery = !isLesson
     ? getExerciseMastery(exerciseProgress as QuizProgress)
     : null;
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (isLocked) {
-      e.preventDefault();
-      setShowWarning(true);
-      setTimeout(() => setShowWarning(false), 3000);
-    }
-  };
-
   return (
     <div className="relative">
       <motion.div
-        whileHover={!isLocked ? { scale: 1.03, y: -4 } : {}}
-        whileTap={!isLocked ? { scale: 0.98 } : {}}
+        whileHover={{ scale: 1.03, y: -4 }}
+        whileTap={{ scale: 0.98 }}
       >
-        <Link
-          href={isLocked ? "#" : url}
-          className={`block ${isLocked ? "pointer-events-none" : ""}`}
-          onClick={handleClick}
-        >
+        <Link href={url} className={`block`}>
           <div
             className={`relative rounded-3xl shadow-lg overflow-hidden border-2 transition-all ${
-              isLocked
-                ? "border-gray-300 bg-gray-100 opacity-60"
-                : isCompleted
+              isCompleted
                 ? "border-blue-300 bg-blue-50"
                 : isRecommended
                 ? "border-blue-500 ring-4 ring-blue-300"
@@ -80,12 +65,7 @@ export default function VocabularyCard({
           >
             {/* Status Badge */}
             <div className="absolute top-3 right-3 z-10">
-              {isLocked ? (
-                <div className="bg-gray-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
-                  <Lock className="w-3 h-3" />
-                  Locked
-                </div>
-              ) : isRecommended ? (
+              {isRecommended ? (
                 <div className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold shadow-md">
                   <Sparkles className="w-3 h-3" />
                   Next
@@ -130,65 +110,60 @@ export default function VocabularyCard({
               <p className="text-sm text-gray-700 mb-3">{description}</p>
 
               {/* Progress Info */}
-              {!isLocked && (
-                <div className="text-xs">
-                  {/* ✅ FIX: Different display for lessons vs quizzes */}
-                  {isLesson ? (
-                    // Lesson Progress Display
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-green-600" />
-                      <div>
-                        <p className="font-semibold text-green-700">
-                          {isCompleted ? "✓ Lesson Completed" : "Study Mode"}
-                        </p>
-                        <p className="text-gray-600">
-                          No scoring • Learn at your pace
-                        </p>
-                      </div>
+              <div className="text-xs">
+                {/* ✅ FIX: Different display for lessons vs quizzes */}
+                {isLesson ? (
+                  // Lesson Progress Display
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="font-semibold text-green-700">
+                        {isCompleted ? "✓ Lesson Completed" : "Study Mode"}
+                      </p>
+                      <p className="text-gray-600">
+                        No scoring • Learn at your pace
+                      </p>
                     </div>
-                  ) : (
-                    // Quiz Progress Display
-                    exerciseMastery && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">
-                            {exerciseMastery.icon}
-                          </span>
-                          <div>
-                            <p className="font-semibold text-blue-700 capitalize">
-                              {exerciseMastery.level}
-                            </p>
-                            <p className="text-gray-600">
-                              Avg: {exerciseMastery.avgScore}% •{" "}
-                              <span className="capitalize">
-                                {exerciseMastery.difficulty}
-                              </span>
-                            </p>
-                          </div>
+                  </div>
+                ) : (
+                  // Quiz Progress Display
+                  exerciseMastery && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{exerciseMastery.icon}</span>
+                        <div>
+                          <p className="font-semibold text-blue-700 capitalize">
+                            {exerciseMastery.level}
+                          </p>
+                          <p className="text-gray-600">
+                            Avg: {exerciseMastery.avgScore}% •{" "}
+                            <span className="capitalize">
+                              {exerciseMastery.difficulty}
+                            </span>
+                          </p>
                         </div>
-                        {(exerciseProgress as QuizProgress).attempts > 0 && (
-                          <div className="text-right">
-                            <p className="text-gray-600">
-                              {(exerciseProgress as QuizProgress).attempts}{" "}
-                              attempt
-                              {(exerciseProgress as QuizProgress).attempts > 1
-                                ? "s"
-                                : ""}
-                            </p>
-                            {(exerciseProgress as QuizProgress).score !==
-                              null && (
-                              <p className="font-semibold text-blue-700">
-                                Best: {(exerciseProgress as QuizProgress).score}
-                                %
-                              </p>
-                            )}
-                          </div>
-                        )}
                       </div>
-                    )
-                  )}
-                </div>
-              )}
+                      {(exerciseProgress as QuizProgress).attempts > 0 && (
+                        <div className="text-right">
+                          <p className="text-gray-600">
+                            {(exerciseProgress as QuizProgress).attempts}{" "}
+                            attempt
+                            {(exerciseProgress as QuizProgress).attempts > 1
+                              ? "s"
+                              : ""}
+                          </p>
+                          {(exerciseProgress as QuizProgress).score !==
+                            null && (
+                            <p className="font-semibold text-blue-700">
+                              Best: {(exerciseProgress as QuizProgress).score}%
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
             </div>
           </div>
         </Link>

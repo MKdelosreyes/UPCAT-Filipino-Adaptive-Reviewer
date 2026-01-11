@@ -15,7 +15,10 @@ export type GrammarLessonExercise = "lesson-cards";
 export type GrammarQuizExercise = "error-identification" | "fill-blanks";
 export type GrammarExercise = GrammarLessonExercise | GrammarQuizExercise;
 
-export type SentenceExercise = "complete-sentence" | "sentence-ordering";
+export type SentenceExercise =
+  | "complete-sentence"
+  | "sentence-ordering"
+  | "fill-missing";
 export type ReadingExercise = "passage-questions" | "comprehension";
 
 export type ExerciseType =
@@ -30,11 +33,7 @@ export type ModuleType =
   | "sentence-construction"
   | "reading-comprehension";
 
-export type ExerciseStatus =
-  | "locked"
-  | "not-started"
-  | "in-progress"
-  | "completed";
+export type ExerciseStatus = "not-started" | "in-progress" | "completed";
 
 // Different interfaces for lessons vs quizzes
 export interface LessonProgress {
@@ -81,6 +80,7 @@ export interface GrammarProgress {
 export interface SentenceProgress {
   "complete-sentence": QuizProgress;
   "sentence-ordering": QuizProgress;
+  "fill-missing": QuizProgress;
   lastAccessedAt: string | null;
 }
 
@@ -157,7 +157,7 @@ const defaultLessonProgress: LessonProgress = {
 };
 
 const defaultQuizProgress: QuizProgress = {
-  status: "locked",
+  status: "not-started",
   score: null,
   completedAt: null,
   attempts: 0,
@@ -168,27 +168,28 @@ const defaultQuizProgress: QuizProgress = {
 
 const createDefaultVocabularyProgress = (): VocabularyProgress => ({
   flashcards: { ...defaultLessonProgress, status: "not-started" },
-  quiz: { ...defaultQuizProgress, status: "locked" },
-  antonym: { ...defaultQuizProgress, status: "locked" },
+  quiz: { ...defaultQuizProgress, status: "not-started" },
+  antonym: { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
 });
 
 const createDefaultGrammarProgress = (): GrammarProgress => ({
   "lesson-cards": { ...defaultLessonProgress, status: "not-started" },
-  "error-identification": { ...defaultQuizProgress, status: "locked" },
-  "fill-blanks": { ...defaultQuizProgress, status: "locked" },
+  "error-identification": { ...defaultQuizProgress, status: "not-started" },
+  "fill-blanks": { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
 });
 
 const createDefaultSentenceProgress = (): SentenceProgress => ({
   "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
-  "sentence-ordering": { ...defaultQuizProgress, status: "locked" },
+  "sentence-ordering": { ...defaultQuizProgress, status: "not-started" },
+  "fill-missing": { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
 });
 
 const createDefaultReadingProgress = (): ReadingProgress => ({
   "passage-questions": { ...defaultQuizProgress, status: "not-started" },
-  comprehension: { ...defaultQuizProgress, status: "locked" },
+  comprehension: { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
 });
 
@@ -257,7 +258,8 @@ export function LearningProgressProvider({
       const sentenceData = moduleData as SentenceProgress;
       if (
         exercise === "complete-sentence" ||
-        exercise === "sentence-ordering"
+        exercise === "sentence-ordering" ||
+        exercise === "fill-missing"
       ) {
         return sentenceData[exercise];
       }
@@ -277,8 +279,6 @@ export function LearningProgressProvider({
     data: Partial<LessonProgress>
   ) => {
     setProgress((prev) => {
-      // const moduleProgress = { ...prev[module] };
-
       if (module === "vocabulary" && exercise === "flashcards") {
         const moduleProgress = { ...prev[module] } as VocabularyProgress;
 
@@ -286,10 +286,6 @@ export function LearningProgressProvider({
           ...moduleProgress.flashcards,
           ...data,
         };
-
-        if (data.status === "completed") {
-          moduleProgress.quiz.status = "not-started";
-        }
 
         return {
           ...prev,
@@ -302,10 +298,6 @@ export function LearningProgressProvider({
           ...moduleProgress["lesson-cards"],
           ...data,
         };
-
-        if (data.status === "completed") {
-          moduleProgress["error-identification"].status = "not-started";
-        }
 
         return {
           ...prev,
@@ -340,8 +332,6 @@ export function LearningProgressProvider({
     data: Partial<QuizProgress>
   ) => {
     setProgress((prev) => {
-      // const moduleProgress = { ...prev[module] };
-
       if (
         module === "vocabulary" &&
         (exercise === "quiz" || exercise === "antonym")
@@ -352,10 +342,6 @@ export function LearningProgressProvider({
           ...moduleProgress[exercise],
           ...data,
         };
-
-        if (exercise === "quiz" && data.status === "completed") {
-          moduleProgress.antonym.status = "not-started";
-        }
 
         return {
           ...prev,
@@ -372,20 +358,15 @@ export function LearningProgressProvider({
           ...data,
         };
 
-        if (
-          exercise === "error-identification" &&
-          data.status === "completed"
-        ) {
-          moduleProgress["fill-blanks"].status = "not-started";
-        }
-
         return {
           ...prev,
           [module]: moduleProgress,
         };
       } else if (
         module === "sentence-construction" &&
-        (exercise === "complete-sentence" || exercise === "sentence-ordering")
+        (exercise === "complete-sentence" ||
+          exercise === "sentence-ordering" ||
+          exercise === "fill-missing")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
 
@@ -393,10 +374,6 @@ export function LearningProgressProvider({
           ...moduleProgress[exercise],
           ...data,
         };
-
-        if (exercise === "complete-sentence" && data.status === "completed") {
-          moduleProgress["sentence-ordering"].status = "not-started";
-        }
 
         return {
           ...prev,
@@ -412,10 +389,6 @@ export function LearningProgressProvider({
           ...moduleProgress[exercise],
           ...data,
         };
-
-        if (exercise === "passage-questions" && data.status === "completed") {
-          moduleProgress.comprehension.status = "not-started";
-        }
 
         return {
           ...prev,
@@ -519,8 +492,38 @@ export function LearningProgressProvider({
         });
 
         frontendProgress.grammar = grammarProgress;
+      } else if (moduleKey === "sentence-construction") {
+        const sentenceProgress: SentenceProgress =
+          createDefaultSentenceProgress();
+        module.exercises.forEach((exercise) => {
+          const exType = exercise.exercise_type;
+
+          if (
+            exType === "complete-sentence" ||
+            exType === "sentence-ordering" ||
+            exType === "fill-missing"
+          ) {
+            sentenceProgress[exType] = {
+              status: exercise.status as ExerciseStatus,
+              score: exercise.last_score,
+              completedAt: exercise.last_completed_at,
+              attempts: exercise.attempts,
+              lastDifficulty: exercise.last_difficulty as any,
+              errorTags: [],
+              performanceHistory: exercise.performance_history.map((p) => ({
+                difficulty: p.difficulty as any,
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })),
+            };
+          }
+        });
+
+        frontendProgress["sentence-construction"] = sentenceProgress;
       }
-      // Add similar logic for sentence-construction and reading-comprehension
+      // Add similar logic for reading-comprehension
     });
 
     return frontendProgress;
@@ -612,7 +615,7 @@ export function LearningProgressProvider({
       case "grammar":
         return ["lesson-cards", "error-identification", "fill-blanks"];
       case "sentence-construction":
-        return ["complete-sentence", "sentence-ordering"];
+        return ["complete-sentence", "sentence-ordering", "fill-missing"];
       case "reading-comprehension":
         return ["passage-questions", "comprehension"];
       default:
@@ -674,48 +677,48 @@ export function LearningProgressProvider({
     module: ModuleType,
     exercise: ExerciseType
   ): boolean => {
-    if (isLessonExercise(module, exercise)) {
-      return true;
-    }
+    // if (isLessonExercise(module, exercise)) {
+    //   return true;
+    // }
 
-    if (module === "vocabulary") {
-      const flashcardsCompleted =
-        progress.vocabulary.flashcards.status === "completed";
-      if (exercise === "quiz") return flashcardsCompleted;
-      if (exercise === "antonym") {
-        return (
-          flashcardsCompleted && progress.vocabulary.quiz.status === "completed"
-        );
-      }
-    } else if (module === "grammar") {
-      const lessonCompleted =
-        progress.grammar["lesson-cards"].status === "completed";
-      if (exercise === "error-identification") return lessonCompleted;
-      if (exercise === "fill-blanks") {
-        return (
-          lessonCompleted &&
-          progress.grammar["error-identification"].status === "completed"
-        );
-      }
-    } else if (module === "sentence-construction") {
-      if (exercise === "complete-sentence") return true;
-      if (exercise === "sentence-ordering") {
-        return (
-          progress["sentence-construction"]["complete-sentence"].status ===
-          "completed"
-        );
-      }
-    } else if (module === "reading-comprehension") {
-      if (exercise === "passage-questions") return true;
-      if (exercise === "comprehension") {
-        return (
-          progress["reading-comprehension"]["passage-questions"].status ===
-          "completed"
-        );
-      }
-    }
+    // if (module === "vocabulary") {
+    //   const flashcardsCompleted =
+    //     progress.vocabulary.flashcards.status === "completed";
+    //   if (exercise === "quiz") return flashcardsCompleted;
+    //   if (exercise === "antonym") {
+    //     return (
+    //       flashcardsCompleted && progress.vocabulary.quiz.status === "completed"
+    //     );
+    //   }
+    // } else if (module === "grammar") {
+    //   const lessonCompleted =
+    //     progress.grammar["lesson-cards"].status === "completed";
+    //   if (exercise === "error-identification") return lessonCompleted;
+    //   if (exercise === "fill-blanks") {
+    //     return (
+    //       lessonCompleted &&
+    //       progress.grammar["error-identification"].status === "completed"
+    //     );
+    //   }
+    // } else if (module === "sentence-construction") {
+    //   if (exercise === "complete-sentence") return true;
+    //   if (exercise === "sentence-ordering") {
+    //     return (
+    //       progress["sentence-construction"]["complete-sentence"].status ===
+    //       "completed"
+    //     );
+    //   }
+    // } else if (module === "reading-comprehension") {
+    //   if (exercise === "passage-questions") return true;
+    //   if (exercise === "comprehension") {
+    //     return (
+    //       progress["reading-comprehension"]["passage-questions"].status ===
+    //       "completed"
+    //     );
+    //   }
+    // }
 
-    return false;
+    return true;
   };
 
   const isModuleCompleted = (module: ModuleType): boolean => {
@@ -773,8 +776,6 @@ export function LearningProgressProvider({
     metrics: PerformanceMetrics
   ) => {
     setProgress((prev) => {
-      // const moduleProgress = { ...prev[module] };
-
       if (
         module === "vocabulary" &&
         (exercise === "quiz" || exercise === "antonym")
@@ -811,7 +812,9 @@ export function LearningProgressProvider({
         };
       } else if (
         module === "sentence-construction" &&
-        (exercise === "complete-sentence" || exercise === "sentence-ordering")
+        (exercise === "complete-sentence" ||
+          exercise === "sentence-ordering" ||
+          exercise === "fill-missing")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
         const quizProgress = moduleProgress[exercise];

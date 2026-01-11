@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Lock, Circle } from "lucide-react";
+import { Check, Circle } from "lucide-react";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 import type {
   GrammarExercise,
@@ -19,7 +19,6 @@ export default function GrammarProgressStepper() {
   const { getExerciseProgress, getExerciseMastery } = useGrammarProgress();
   const { isLessonExercise } = useLearningProgress();
 
-  // ✅ FIX: Only count quiz exercises for progress calculation
   const quizSteps = steps.filter((s) => !isLessonExercise("grammar", s.key));
   const completedQuizzes = quizSteps.filter(
     (s) =>
@@ -48,7 +47,6 @@ export default function GrammarProgressStepper() {
           const isLesson = isLessonExercise("grammar", step.key);
           const isCompleted = progress.status === "completed";
 
-          // ✅ FIX: Lessons don't have performance history
           const hasStarted = isLesson
             ? isCompleted
             : (progress as QuizProgress).performanceHistory?.length > 0;
@@ -67,8 +65,6 @@ export default function GrammarProgressStepper() {
                     ? "bg-green-500 border-green-500 text-white"
                     : hasStarted
                     ? "bg-green-100 border-green-500 text-green-700"
-                    : progress.status === "locked"
-                    ? "bg-gray-200 border-gray-300 text-gray-400"
                     : "bg-white border-green-300 text-green-600"
                 }`}
               >
@@ -76,8 +72,6 @@ export default function GrammarProgressStepper() {
                   <Check className="w-5 h-5" />
                 ) : hasStarted && mastery ? (
                   <span>{mastery.icon}</span>
-                ) : progress.status === "locked" ? (
-                  <Lock size={16} />
                 ) : (
                   <Circle size={16} />
                 )}

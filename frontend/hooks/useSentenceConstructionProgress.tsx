@@ -40,10 +40,10 @@ export function useSentenceConstructionProgress() {
   const getSentenceConstructionMastery = (): SentenceConstructionMastery => {
     const sentenceConstruction = progress["sentence-construction"];
 
-    // ✅ FIX: Use correct exercise names from context
     const allHistory = [
       ...sentenceConstruction["complete-sentence"].performanceHistory,
       ...sentenceConstruction["sentence-ordering"].performanceHistory,
+      ...sentenceConstruction["fill-missing"].performanceHistory,
     ];
 
     if (allHistory.length === 0) {
@@ -59,6 +59,7 @@ export function useSentenceConstructionProgress() {
     const difficulties = [
       sentenceConstruction["complete-sentence"].lastDifficulty,
       sentenceConstruction["sentence-ordering"].lastDifficulty,
+      sentenceConstruction["fill-missing"].lastDifficulty,
     ];
 
     const currentDiff = difficulties.reduce((max, diff) => {
@@ -169,7 +170,6 @@ export function useSentenceConstructionProgress() {
     };
   };
 
-  // ✅ FIX: Use correct exercise names
   const getExerciseProgress = (exercise: SentenceExercise): QuizProgress => {
     return progress["sentence-construction"][exercise];
   };

@@ -44,7 +44,6 @@ export function useVocabularyProgress() {
   const getVocabularyMastery = (): VocabularyMastery => {
     const vocab = progress.vocabulary as VocabularyProgress;
 
-    // ✅ Only use quiz exercises for mastery calculation
     const allHistory = [
       ...vocab.quiz.performanceHistory,
       ...vocab.antonym.performanceHistory,

@@ -1,63 +1,94 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Check } from "lucide-react";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
-import type { SentenceExercise } from "@/contexts/LearningProgressContext";
+import { Circle, CheckCircle2 } from "lucide-react";
+import type {
+  SentenceExercise,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
 
-const steps: Array<{ id: number; name: string; key: SentenceExercise }> = [
-  { id: 1, name: "Complete Sentence", key: "complete-sentence" }, // ✅ First exercise
-  { id: 2, name: "Sentence Ordering", key: "sentence-ordering" }, // ✅ Second exercise
+const steps: Array<{ id: SentenceExercise; label: string; number: number }> = [
+  { id: "complete-sentence", label: "Complete Sentence", number: 1 },
+  { id: "sentence-ordering", label: "Sentence Ordering", number: 2 },
+  { id: "fill-missing", label: "Fill Missing", number: 3 },
 ];
 
 export default function SentenceConstructionProgressStepper() {
-  const { getExerciseProgress } = useSentenceConstructionProgress();
+  const { progress, getExerciseMastery } = useSentenceConstructionProgress();
+
+  // Calculate completed exercises
+  const completedExercises = steps.filter(
+    (step) => (progress[step.id] as QuizProgress).performanceHistory?.length > 0
+  ).length;
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-6">
+    <div className="w-full max-w-3xl mx-auto mb-8">
       <div className="flex items-center justify-between relative">
         {/* Progress Line */}
         <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
-          <motion.div
-            className="h-full bg-orange-500"
-            initial={{ width: "0%" }}
-            animate={{
-              width: `${
-                (steps.filter(
-                  (s) => getExerciseProgress(s.key).status === "completed"
-                ).length /
-                  steps.length) *
-                100
-              }%`,
+          <div
+            className="h-full bg-orange-600 transition-all duration-500"
+            style={{
+              width: `${(completedExercises / steps.length) * 100}%`,
             }}
-            transition={{ duration: 0.5 }}
           />
         </div>
 
-        {/* Steps */}
         {steps.map((step) => {
-          const progress = getExerciseProgress(step.key);
-          const isCompleted = progress.status === "completed";
+          const exerciseProgress = progress[step.id];
+
+          const hasStarted =
+            (exerciseProgress as QuizProgress).performanceHistory?.length > 0;
+
+          const isCompleted = exerciseProgress.status === "completed";
+
+          const mastery = hasStarted
+            ? getExerciseMastery(exerciseProgress as QuizProgress)
+            : null;
 
           return (
-            <div key={step.id} className="flex flex-col items-center">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
+            <div key={step.id} className="flex flex-col items-center relative">
+              {/* Circle */}
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 ${
                   isCompleted
-                    ? "bg-orange-500 border-orange-500 text-white"
-                    : "bg-white border-gray-300 text-gray-500"
+                    ? "bg-green-500 text-white"
+                    : hasStarted
+                    ? "bg-orange-600 text-white"
+                    : "bg-orange-100 text-orange-600 border-2 border-orange-300"
                 }`}
               >
-                {isCompleted ? <Check className="w-5 h-5" /> : step.id}
-              </motion.div>
-              <p
-                className={`mt-2 text-xs font-medium ${
-                  isCompleted ? "text-orange-700" : "text-gray-500"
+                {isCompleted ? (
+                  <CheckCircle2 size={20} />
+                ) : hasStarted && mastery ? (
+                  <span>{mastery.icon}</span>
+                ) : (
+                  <Circle size={16} />
+                )}
+              </div>
+
+              {/* Label */}
+              <span
+                className={`mt-2 text-xs md:text-sm font-medium text-center max-w-[80px] ${
+                  hasStarted || isCompleted
+                    ? "text-orange-900"
+                    : "text-gray-600"
                 }`}
               >
-                {step.name}
-              </p>
+                {step.label}
+              </span>
+
+              {/* Mastery Badge */}
+              {hasStarted && mastery && (
+                <div className="mt-1 flex flex-col items-center gap-1">
+                  <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold capitalize">
+                    {mastery.level}
+                  </span>
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold capitalize">
+                    {mastery.difficulty}
+                  </span>
+                </div>
+              )}
             </div>
           );
         })}
