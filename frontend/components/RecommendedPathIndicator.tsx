@@ -86,7 +86,7 @@ export default function RecommendedPathIndicator() {
       if (
         exercise === "complete-sentence" ||
         exercise === "sentence-ordering" ||
-        exercise === "fill-missing"
+        exercise === "choose-sentence"
       ) {
         return sentenceData[exercise];
       }

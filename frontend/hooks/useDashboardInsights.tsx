@@ -55,7 +55,7 @@ export function useDashboardInsights() {
       allHistory = [
         ...sentence["complete-sentence"].performanceHistory,
         ...sentence["sentence-ordering"].performanceHistory,
-        ...sentence["fill-missing"].performanceHistory,
+        ...sentence["choose-sentence"].performanceHistory,
       ];
     } else if (module === "reading-comprehension") {
       const reading = moduleData as ReadingProgress;
@@ -92,7 +92,7 @@ export function useDashboardInsights() {
       difficulties = [
         sentence["complete-sentence"].lastDifficulty,
         sentence["sentence-ordering"].lastDifficulty,
-        sentence["fill-missing"].lastDifficulty,
+        sentence["choose-sentence"].lastDifficulty,
       ];
     } else if (module === "reading-comprehension") {
       const reading = moduleData as ReadingProgress;

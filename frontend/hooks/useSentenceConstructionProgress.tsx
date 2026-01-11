@@ -43,7 +43,7 @@ export function useSentenceConstructionProgress() {
     const allHistory = [
       ...sentenceConstruction["complete-sentence"].performanceHistory,
       ...sentenceConstruction["sentence-ordering"].performanceHistory,
-      ...sentenceConstruction["fill-missing"].performanceHistory,
+      ...sentenceConstruction["choose-sentence"].performanceHistory,
     ];
 
     if (allHistory.length === 0) {
@@ -59,7 +59,7 @@ export function useSentenceConstructionProgress() {
     const difficulties = [
       sentenceConstruction["complete-sentence"].lastDifficulty,
       sentenceConstruction["sentence-ordering"].lastDifficulty,
-      sentenceConstruction["fill-missing"].lastDifficulty,
+      sentenceConstruction["choose-sentence"].lastDifficulty,
     ];
 
     const currentDiff = difficulties.reduce((max, diff) => {

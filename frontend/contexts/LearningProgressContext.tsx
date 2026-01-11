@@ -18,7 +18,7 @@ export type GrammarExercise = GrammarLessonExercise | GrammarQuizExercise;
 export type SentenceExercise =
   | "complete-sentence"
   | "sentence-ordering"
-  | "fill-missing";
+  | "choose-sentence";
 export type ReadingExercise = "passage-questions" | "comprehension";
 
 export type ExerciseType =
@@ -80,7 +80,7 @@ export interface GrammarProgress {
 export interface SentenceProgress {
   "complete-sentence": QuizProgress;
   "sentence-ordering": QuizProgress;
-  "fill-missing": QuizProgress;
+  "choose-sentence": QuizProgress;
   lastAccessedAt: string | null;
 }
 
@@ -197,7 +197,7 @@ const createDefaultGrammarProgress = (): GrammarProgress => ({
 const createDefaultSentenceProgress = (): SentenceProgress => ({
   "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
   "sentence-ordering": { ...defaultQuizProgress, status: "not-started" },
-  "fill-missing": { ...defaultQuizProgress, status: "not-started" },
+  "choose-sentence": { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
 });
 
@@ -273,7 +273,7 @@ export function LearningProgressProvider({
       if (
         exercise === "complete-sentence" ||
         exercise === "sentence-ordering" ||
-        exercise === "fill-missing"
+        exercise === "choose-sentence"
       ) {
         return sentenceData[exercise];
       }
@@ -380,7 +380,7 @@ export function LearningProgressProvider({
         module === "sentence-construction" &&
         (exercise === "complete-sentence" ||
           exercise === "sentence-ordering" ||
-          exercise === "fill-missing")
+          exercise === "choose-sentence")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
 
@@ -515,7 +515,7 @@ export function LearningProgressProvider({
           if (
             exType === "complete-sentence" ||
             exType === "sentence-ordering" ||
-            exType === "fill-missing"
+            exType === "choose-sentence"
           ) {
             sentenceProgress[exType] = {
               status: exercise.status as ExerciseStatus,
@@ -629,7 +629,7 @@ export function LearningProgressProvider({
       case "grammar":
         return ["lesson-cards", "error-identification", "fill-blanks"];
       case "sentence-construction":
-        return ["complete-sentence", "sentence-ordering", "fill-missing"];
+        return ["complete-sentence", "sentence-ordering", "choose-sentence"];
       case "reading-comprehension":
         return ["passage-questions", "comprehension"];
       default:
@@ -809,7 +809,7 @@ export function LearningProgressProvider({
         module === "sentence-construction" &&
         (exercise === "complete-sentence" ||
           exercise === "sentence-ordering" ||
-          exercise === "fill-missing")
+          exercise === "choose-sentence")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
         const quizProgress = moduleProgress[exercise];

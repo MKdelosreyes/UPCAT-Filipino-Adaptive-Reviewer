@@ -82,12 +82,12 @@ export default function SentenceConstructionPage() {
             exerciseType="sentence-ordering"
           />
           <SentenceConstructionCard
-            name="Fill Missing Words"
-            description="Complete sentences with the right phrases"
+            name="Choose the Best Sentence"
+            description="Evaluate overall sentence quality and naturalness"
             imagePath="/art/card2.png"
             color="bg-orange-50"
-            url="/sentence-construction/fill-missing"
-            exerciseType="fill-missing"
+            url="/sentence-construction/choose-sentence"
+            exerciseType="choose-sentence"
           />
           <SentenceConstructionCard
             name="Create a Sentence"

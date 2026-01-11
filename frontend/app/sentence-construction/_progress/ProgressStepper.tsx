@@ -10,7 +10,7 @@ import type {
 const steps: Array<{ id: SentenceExercise; label: string; number: number }> = [
   { id: "complete-sentence", label: "Complete Sentence", number: 1 },
   { id: "sentence-ordering", label: "Sentence Ordering", number: 2 },
-  { id: "fill-missing", label: "Fill Missing", number: 3 },
+  { id: "choose-sentence", label: "Choose the Best Sentence", number: 3 },
 ];
 
 export default function SentenceConstructionProgressStepper() {

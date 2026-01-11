@@ -128,10 +128,10 @@ export function useDashboardAnalytics() {
           if (sentence["sentence-ordering"].score !== null)
             scores.push(sentence["sentence-ordering"].score);
         }
-        if (hasAttempted(sentence["fill-missing"])) {
+        if (hasAttempted(sentence["choose-sentence"])) {
           attemptedQuizzes++;
-          if (sentence["fill-missing"].score !== null)
-            scores.push(sentence["fill-missing"].score);
+          if (sentence["choose-sentence"].score !== null)
+            scores.push(sentence["choose-sentence"].score);
         }
       } else if (module === "reading-comprehension") {
         const reading = moduleData as ReadingProgress;
@@ -311,12 +311,12 @@ export function useDashboardAnalytics() {
       recentScore: grammarScores[grammarScores.length - 1] || null,
     });
 
-    // Sentence construction skills - include fill-missing
+    // Sentence construction skills - include choose-sentence
     const sentenceData = progress["sentence-construction"];
     const sentenceScores = [
       sentenceData["complete-sentence"].score,
       sentenceData["sentence-ordering"].score,
-      sentenceData["fill-missing"].score,
+      sentenceData["choose-sentence"].score,
     ].filter((s): s is number => s !== null);
     const sentenceAvg =
       sentenceScores.length > 0
@@ -326,7 +326,7 @@ export function useDashboardAnalytics() {
     const sentenceAttempted = [
       sentenceData["complete-sentence"],
       sentenceData["sentence-ordering"],
-      sentenceData["fill-missing"],
+      sentenceData["choose-sentence"],
     ].filter((ex) => hasAttempted(ex)).length;
 
     skills.push({
@@ -486,7 +486,8 @@ export function useDashboardAnalytics() {
       progress["sentence-construction"]["complete-sentence"].attempts;
     totalAttempts +=
       progress["sentence-construction"]["sentence-ordering"].attempts;
-    totalAttempts += progress["sentence-construction"]["fill-missing"].attempts; // ✅ Added
+    totalAttempts +=
+      progress["sentence-construction"]["choose-sentence"].attempts;
     totalAttempts +=
       progress["reading-comprehension"]["passage-questions"].attempts;
     totalAttempts += progress["reading-comprehension"].comprehension.attempts;

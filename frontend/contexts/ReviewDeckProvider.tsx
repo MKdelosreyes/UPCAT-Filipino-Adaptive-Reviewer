@@ -3,10 +3,10 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface ReviewDeckContextType {
-  reviewDeck: string[]; // Changed from number[] to string[]
-  addToReviewDeck: (wordId: string) => void; // Changed from number to string
-  removeFromReviewDeck: (wordId: string) => void; // Changed from number to string
-  isInReviewDeck: (wordId: string) => boolean; // Changed from number to string
+  reviewDeck: string[];
+  addToReviewDeck: (wordId: string) => void;
+  removeFromReviewDeck: (wordId: string) => void;
+  isInReviewDeck: (wordId: string) => boolean;
   clearReviewDeck: () => void;
 }
 
@@ -19,7 +19,7 @@ export function ReviewDeckProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [reviewDeck, setReviewDeck] = useState<string[]>([]); // Changed from number[] to string[]
+  const [reviewDeck, setReviewDeck] = useState<string[]>([]);
 
   // Load from localStorage on mount
   useEffect(() => {

@@ -218,7 +218,7 @@ export function useGrammarProgress() {
     canAccessExercise: (exercise: GrammarExercise) =>
       canAccessExercise("grammar", exercise),
     getGrammarMastery,
-    getExerciseMastery, // ✅ Now only accepts QuizProgress
+    getExerciseMastery,
     getExerciseProgress,
     isLessonExercise: (exercise: GrammarExercise) =>
       isLessonExercise("grammar", exercise),
