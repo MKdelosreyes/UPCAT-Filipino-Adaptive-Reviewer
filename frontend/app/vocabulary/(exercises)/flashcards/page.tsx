@@ -240,6 +240,13 @@ export default function FlashcardsPage() {
     const targetWord = deck[targetIndex];
     if (!targetWord) return;
 
+    console.log("[SRS VERIFY]", {
+      word: targetWord.word,
+      lemma_id: targetWord.lemma_id,
+      item_id: targetWord.id,
+      numericId_used_as_word_id: targetWord.numericId,
+    });
+
     setIsProcessing(true);
     try {
       await grade(targetWord.numericId, SRS_GRADES.CORRECT);
