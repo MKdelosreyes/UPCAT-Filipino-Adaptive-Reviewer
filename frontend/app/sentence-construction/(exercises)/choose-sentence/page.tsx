@@ -33,9 +33,9 @@ export default function ChooseSentencePage() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [answers, setAnswers] = useState<(boolean | null)[]>([]);
-  const [detailedAnswers, setDetailedAnswers] = useState<ChooseSentenceAnswer[]>(
-    []
-  );
+  const [detailedAnswers, setDetailedAnswers] = useState<
+    ChooseSentenceAnswer[]
+  >([]);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isClient, setIsClient] = useState(false);
   // Initialize questions on client side only
@@ -46,7 +46,9 @@ export default function ChooseSentencePage() {
       (item): item is ChooseSentenceItem =>
         item.exerciseType === "choose_sentence"
     );
-    const shuffled = [...chooseSentenceExercises].sort(() => Math.random() - 0.5);
+    const shuffled = [...chooseSentenceExercises].sort(
+      () => Math.random() - 0.5
+    );
     const selected = shuffled.slice(0, Math.min(10, shuffled.length));
     setChooseSentenceQuestions(selected);
     setAnswers(Array(selected.length).fill(null));
@@ -142,8 +144,8 @@ export default function ChooseSentencePage() {
     const allHistory = [...history, metrics];
     const evaluation = evaluateUserPerformance(allHistory);
     // Update progress with evaluation results
-    updateProgress("quiz", {
-      status: "completed",
+    updateProgress("choose-sentence", {
+      status: "in-progress",
       score,
       completedAt: new Date().toISOString(),
       attempts: (history.length || 0) + 1,
@@ -158,7 +160,9 @@ export default function ChooseSentencePage() {
       (item): item is ChooseSentenceItem =>
         item.exerciseType === "choose_sentence"
     );
-    const shuffled = [...chooseSentenceExercises].sort(() => Math.random() - 0.5);
+    const shuffled = [...chooseSentenceExercises].sort(
+      () => Math.random() - 0.5
+    );
     const selected = shuffled.slice(0, Math.min(10, shuffled.length));
     setChooseSentenceQuestions(selected);
     setCurrentQuestion(0);
