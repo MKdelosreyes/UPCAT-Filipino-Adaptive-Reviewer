@@ -1,22 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, CheckCircle, RotateCcw, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { ArrowLeft, CheckCircle, RotateCcw, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
 import Flashcard from "@/components/vocabulary/flashcard-exercise/Flashcard";
 import FlashcardProgress from "@/components/vocabulary/flashcard-exercise/FlashcardProgress";
 import FlashcardCompletionModal from "@/components/vocabulary/flashcard-exercise/FlashcardCompletionModal";
+
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useSRS } from "@/hooks/useSRS";
+import { SRS_GRADES } from "@/utils/srs";
+
 import {
   getVocabularyExercisesAdaptive,
   getLexiconData,
   VocabularyExerciseItem,
   LexiconItem,
 } from "@/lib/api/exercises";
+
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 type CardStatus = "unseen" | "learning" | "mastered";
 
@@ -26,6 +32,7 @@ interface FlashcardData {
   word: string;
   meaning: string;
   example: string;
+  numericId: number;
 }
 
 interface CardState {
@@ -35,10 +42,14 @@ interface CardState {
 }
 
 export default function FlashcardsPage() {
-  const { updateProgress, getExerciseProgress } = useVocabularyProgress();
+  const { updateProgress } = useVocabularyProgress();
   const { user, tokens } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
 
   const [sessionWords, setSessionWords] = useState<FlashcardData[]>([]);
+  const [deck, setDeck] = useState<FlashcardData[]>([]); // ✅ frozen order for the session
+  const deckInitializedRef = useRef(false);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [cardStates, setCardStates] = useState<CardState[]>([]);
@@ -47,27 +58,29 @@ export default function FlashcardsPage() {
   const [error, setError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
   const [isProcessing, setIsProcessing] = useState(false);
-  const { isLoading: authLoading } = useAuthGuard();
 
-  // ✅ Load flashcards (no difficulty needed - it's a lesson!)
+  // SRS
+  const wordIds = useMemo(
+    () => sessionWords.map((w) => w.numericId),
+    [sessionWords]
+  );
+  const { dueIds, grade, isLoading: srsLoading } = useSRS(wordIds);
+
+  // Load flashcards
   useEffect(() => {
     async function loadExercises() {
       try {
         setIsLoading(true);
 
-        // ✅ For lessons, we don't need adaptive difficulty
-        // Just fetch a set of vocabulary items (can be random or ordered)
         const [vocabExercises, lexiconData] = await Promise.all([
           getVocabularyExercisesAdaptive({
             userId: user?.id,
-            targetDifficulty: "easy", // Lessons can start with easier words
+            targetDifficulty: "easy",
             limit: 15,
             accessToken: tokens?.access,
           }),
           getLexiconData(),
         ]);
-
-        console.log("📚 Flashcard Lesson:", vocabExercises.length, "cards");
 
         const lexiconMap = new Map(
           lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
@@ -78,6 +91,15 @@ export default function FlashcardsPage() {
             const lexiconEntry = lexiconMap.get(vocabItem.lemma_id);
             if (!lexiconEntry) return null;
 
+            // NOTE: numericId must match whatever backend expects as word_id.
+            // If your backend uses lemma_id as word_id, numeric extraction may be wrong.
+            // Keep as-is for now, but verify backend word_id format.
+            const numericId =
+              parseInt(vocabItem.lemma_id.replace(/\D/g, ""), 10) ||
+              parseInt(vocabItem.item_id.replace(/\D/g, ""), 10);
+
+            if (!numericId) return null;
+
             return {
               id: vocabItem.item_id,
               lemma_id: vocabItem.lemma_id,
@@ -87,54 +109,77 @@ export default function FlashcardsPage() {
                 vocabItem.sentence_example_1 ||
                 vocabItem.sentence_example_2 ||
                 "No example available",
+              numericId,
             };
           })
           .filter((item): item is FlashcardData => item !== null);
 
-        if (combinedData.length === 0) {
+        if (combinedData.length === 0)
           throw new Error("No flashcard data available");
-        }
 
         setSessionWords(combinedData);
-        setCardStates(
-          combinedData.map((word) => ({
-            id: word.id,
-            status: "unseen" as CardStatus,
-            flips: 0,
-          }))
-        );
         setError(null);
       } catch (err) {
-        console.error("❌ Failed to load flashcards:", err);
         setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load flashcards. Please try again."
+          err instanceof Error ? err.message : "Failed to load flashcards."
         );
       } finally {
         setIsLoading(false);
       }
     }
 
+    // reset session init when user/session changes
+    deckInitializedRef.current = false;
+    setDeck([]);
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    setCardStates([]);
+    setShowCompletion(false);
+    setIsProcessing(false);
+
     loadExercises();
   }, [user?.id, tokens?.access]);
+
+  // ✅ Initialize deck ONCE (freeze order) after SRS has loaded
+  useEffect(() => {
+    if (deckInitializedRef.current) return;
+    if (sessionWords.length === 0) return;
+    if (srsLoading) return;
+
+    const dueSet = new Set(dueIds); // snapshot of due at session start
+    const initialDeck = [...sessionWords].sort((a, b) => {
+      const aDue = dueSet.has(a.numericId) ? 1 : 0;
+      const bDue = dueSet.has(b.numericId) ? 1 : 0;
+      return bDue - aDue; // due first
+    });
+
+    setDeck(initialDeck);
+    setCardStates(
+      initialDeck.map((w) => ({
+        id: w.id,
+        status: "unseen",
+        flips: 0,
+      }))
+    );
+
+    deckInitializedRef.current = true;
+
+    // IMPORTANT: intentionally NOT depending on dueIds to avoid re-sorting mid-session
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionWords, srsLoading]);
 
   if (authLoading) {
     return (
       <div className="h-screen bg-red-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600" />
       </div>
     );
   }
 
-  if (isLoading) {
+  if (isLoading || srsLoading || !deckInitializedRef.current) {
     return (
       <div className="h-screen bg-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-blue-600 font-semibold">Loading flashcards...</p>
-          {/* <p className="text-sm text-gray-500 mt-2">Lesson Mode 📚</p> */}
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
       </div>
     );
   }
@@ -155,32 +200,8 @@ export default function FlashcardsPage() {
     );
   }
 
-  const currentWord = sessionWords[currentIndex];
-
-  if (!currentWord) {
-    return (
-      <div className="h-screen max-h-screen overflow-hidden flex flex-col bg-blue-50">
-        <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
-          <Link
-            href="/vocabulary"
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
-              Flashcards Lesson
-            </h1>
-          </div>
-          <div className="w-20"></div>
-        </div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-blue-600">Loading session...</div>
-        </div>
-      </div>
-    );
-  }
+  const currentWord = deck[currentIndex];
+  const isLastCard = currentIndex === deck.length - 1;
 
   const masteredCount = cardStates.filter(
     (c) => c.status === "mastered"
@@ -188,43 +209,59 @@ export default function FlashcardsPage() {
   const learningCount = cardStates.filter(
     (c) => c.status === "learning"
   ).length;
-  const isLastCard = currentIndex === sessionWords.length - 1;
 
   const handleFlip = () => {
     if (isProcessing) return;
+    setCardStates((prev) => {
+      const next = [...prev];
+      if (next[currentIndex])
+        next[currentIndex] = {
+          ...next[currentIndex],
+          flips: next[currentIndex].flips + 1,
+        };
+      return next;
+    });
+    setIsFlipped((v) => !v);
+  };
 
-    const newStates = [...cardStates];
-    newStates[currentIndex].flips++;
-    setCardStates(newStates);
-    setIsFlipped(!isFlipped);
+  const advanceFrom = (targetIndex: number) => {
+    if (targetIndex === deck.length - 1) {
+      completeSession();
+      return;
+    }
+    setIsFlipped(false);
+    setTimeout(() => setCurrentIndex(targetIndex + 1), 200);
   };
 
   const handleKnowIt = async () => {
     if (isProcessing) return;
-    setIsProcessing(true);
 
+    const targetIndex = currentIndex;
+    const targetWord = deck[targetIndex];
+    if (!targetWord) return;
+
+    setIsProcessing(true);
     try {
-      // ✅ Report lexical performance for tracking
+      await grade(targetWord.numericId, SRS_GRADES.CORRECT);
+
       await reportLexicalItemPerformance({
         module: "vocabulary",
         exerciseType: "flashcards",
-        lemmaId: currentWord.lemma_id,
-        correctAnswer: currentWord.word,
-        userAnswer: currentWord.word,
-        difficultyShown: "easy", // Lessons don't have adaptive difficulty
+        lemmaId: targetWord.lemma_id,
+        correctAnswer: targetWord.word,
+        userAnswer: targetWord.word,
+        difficultyShown: "easy",
         score: 100,
       });
 
-      const newStates = [...cardStates];
-      newStates[currentIndex].status = "mastered";
-      setCardStates(newStates);
-      nextCard();
-    } catch (error) {
-      console.error("Failed to report performance:", error);
-      const newStates = [...cardStates];
-      newStates[currentIndex].status = "mastered";
-      setCardStates(newStates);
-      nextCard();
+      setCardStates((prev) => {
+        const next = [...prev];
+        if (next[targetIndex])
+          next[targetIndex] = { ...next[targetIndex], status: "mastered" };
+        return next;
+      });
+
+      advanceFrom(targetIndex);
     } finally {
       setIsProcessing(false);
     }
@@ -232,87 +269,66 @@ export default function FlashcardsPage() {
 
   const handleStillLearning = async () => {
     if (isProcessing) return;
-    setIsProcessing(true);
 
+    const targetIndex = currentIndex;
+    const targetWord = deck[targetIndex];
+    if (!targetWord) return;
+
+    setIsProcessing(true);
     try {
+      await grade(targetWord.numericId, SRS_GRADES.HARD);
+
       await reportLexicalItemPerformance({
         module: "vocabulary",
         exerciseType: "flashcards",
-        lemmaId: currentWord.lemma_id,
-        correctAnswer: currentWord.word,
+        lemmaId: targetWord.lemma_id,
+        correctAnswer: targetWord.word,
         userAnswer: "",
         difficultyShown: "easy",
         score: 0,
       });
 
-      const newStates = [...cardStates];
-      if (newStates[currentIndex].status === "unseen") {
-        newStates[currentIndex].status = "learning";
-      }
-      setCardStates(newStates);
-      nextCard();
-    } catch (error) {
-      console.error("Failed to report performance:", error);
-      const newStates = [...cardStates];
-      if (newStates[currentIndex].status === "unseen") {
-        newStates[currentIndex].status = "learning";
-      }
-      setCardStates(newStates);
-      nextCard();
+      setCardStates((prev) => {
+        const next = [...prev];
+        if (next[targetIndex] && next[targetIndex].status === "unseen") {
+          next[targetIndex] = { ...next[targetIndex], status: "learning" };
+        }
+        return next;
+      });
+
+      advanceFrom(targetIndex);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const nextCard = () => {
-    if (isLastCard) {
-      completeSession();
-    } else {
-      setIsFlipped(false);
-      setTimeout(() => {
-        setCurrentIndex((prev) => prev + 1);
-      }, 300);
-    }
-  };
-
   const completeSession = () => {
     const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
-    const cardsReviewed = sessionWords.length;
-
-    console.log("✅ Flashcard Lesson Completed:", {
-      timeSpent,
-      cardsReviewed,
-      masteredCount,
-    });
 
     updateProgress("flashcards", {
       status: "in-progress",
       completedAt: new Date().toISOString(),
       timeSpent,
-      cardsReviewed,
+      cardsReviewed: deck.length,
     });
 
     setShowCompletion(true);
   };
 
   const resetSession = () => {
+    deckInitializedRef.current = false;
+    setDeck([]);
     setCurrentIndex(0);
     setIsFlipped(false);
-    setCardStates(
-      sessionWords.map((word) => ({
-        id: word.id,
-        status: "unseen" as CardStatus,
-        flips: 0,
-      }))
-    );
+    setCardStates([]);
     setShowCompletion(false);
     setIsProcessing(false);
     setSessionStartTime(Date.now());
+    // re-init will happen from the init effect once srsLoading=false and sessionWords is present
   };
 
   return (
     <div className="h-screen max-h-screen overflow-hidden flex flex-col bg-blue-50">
-      {/* Header */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
         <Link
           href="/vocabulary"
@@ -326,41 +342,40 @@ export default function FlashcardsPage() {
           <h1 className="text-xl md:text-2xl font-bold text-blue-900">
             Flashcards Lesson
           </h1>
-          <p className="text-xs text-gray-500 mt-1">Study mode</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {dueIds.length} due (live count)
+          </p>
         </div>
 
         <button
           onClick={resetSession}
           disabled={isProcessing}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm disabled:opacity-50"
         >
           <RotateCcw className="w-4 h-4" />
           <span className="hidden md:inline">Reset</span>
         </button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col px-4 md:px-8 py-4 md:py-6 gap-3 md:gap-4 max-w-4xl mx-auto w-full min-h-0 overflow-y-auto scrollbar-blue md:overflow-hidden">
-        {/* Progress */}
+      <div className="flex-1 flex flex-col px-4 md:px-8 py-4 md:py-6 gap-3 md:gap-4 max-w-4xl mx-auto w-full min-h-0 overflow-y-auto md:overflow-hidden">
         <div className="flex-shrink-0">
           <FlashcardProgress
             current={currentIndex}
-            total={sessionWords.length}
+            total={deck.length}
             masteredCount={masteredCount}
             learningCount={learningCount}
             wordId={currentWord.lemma_id}
           />
         </div>
 
-        {/* Flashcard */}
         <div className="flex-shrink-0 md:flex-1 flex items-center justify-center md:min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, scale: 0.9 }}
+              key={currentWord.id}
+              initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
               className="w-full h-full flex items-center justify-center"
             >
               <Flashcard
@@ -375,29 +390,32 @@ export default function FlashcardsPage() {
           </AnimatePresence>
         </div>
 
-        {/* Buttons */}
         <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-2xl mx-auto w-full">
           <motion.button
-            whileHover={!isProcessing ? { scale: 1.05 } : {}}
-            whileTap={!isProcessing ? { scale: 0.95 } : {}}
+            whileHover={!isProcessing ? { scale: 1.02 } : {}}
+            whileTap={!isProcessing ? { scale: 0.98 } : {}}
             onClick={handleStillLearning}
             disabled={isProcessing}
-            className="flex items-center justify-center gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-orange-300 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-orange-300 flex-1 disabled:opacity-50"
           >
             <X className="w-5 h-5" />
-            <span>{isProcessing ? "..." : "Still Learning"}</span>
+            <span>{isProcessing ? "Processing..." : "Still Learning"}</span>
           </motion.button>
 
           <motion.button
-            whileHover={!isProcessing ? { scale: 1.05 } : {}}
-            whileTap={!isProcessing ? { scale: 0.95 } : {}}
+            whileHover={!isProcessing ? { scale: 1.02 } : {}}
+            whileTap={!isProcessing ? { scale: 0.98 } : {}}
             onClick={handleKnowIt}
             disabled={isProcessing}
-            className="flex items-center justify-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-green-300 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-green-300 flex-1 disabled:opacity-50"
           >
             <CheckCircle className="w-5 h-5" />
             <span>
-              {isProcessing ? "..." : isLastCard ? "Finish" : "I Know This"}
+              {isProcessing
+                ? "Processing..."
+                : isLastCard
+                ? "Finish"
+                : "I Know This"}
             </span>
           </motion.button>
         </div>
@@ -405,9 +423,9 @@ export default function FlashcardsPage() {
 
       <FlashcardCompletionModal
         isOpen={showCompletion}
-        score={Math.round((masteredCount / sessionWords.length) * 100)}
+        score={Math.round((masteredCount / deck.length) * 100)}
         masteredCount={masteredCount}
-        totalCards={sessionWords.length}
+        totalCards={deck.length}
         onClose={() => setShowCompletion(false)}
       />
     </div>

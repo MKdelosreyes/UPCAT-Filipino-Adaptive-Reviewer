@@ -144,6 +144,8 @@ export function useSRS(allIds: number[]) {
     }
   };
 
+  const get = (id: number) => store[id];
+
   return { 
     dueIds, 
     grade, 

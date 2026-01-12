@@ -7,7 +7,16 @@ export type SrsCardState = {
 };
 
 export type SrsGrade = 0 | 1 | 2 | 3 | 4 | 5;
-// Map your UI to grades: Still Learning -> 2, I Know This -> 4
+
+// Map UI actions to SM-2 grades
+export const SRS_GRADES = {
+  BLACKOUT: 0,        // Complete failure - no memory at all
+  INCORRECT: 1,       // Incorrect, but upon seeing answer, remembered
+  HARD: 2,            // Incorrect, but easy to recall after seeing ("Still Learning")
+  CORRECT_HARD: 3,    // Correct with serious difficulty
+  CORRECT: 4,         // Correct with hesitation ("I Know This")
+  PERFECT: 5,         // Perfect instant recall
+} as const;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -55,4 +64,11 @@ export function applySm2(
 
 export function isDue(state: SrsCardState, now = new Date()): boolean {
   return new Date(state.due).getTime() <= now.getTime();
+}
+
+// Helper to get days until due
+export function getDaysUntilDue(state: SrsCardState, now = new Date()): number {
+  const dueDate = new Date(state.due);
+  const diffMs = dueDate.getTime() - now.getTime();
+  return Math.ceil(diffMs / DAY_MS);
 }
