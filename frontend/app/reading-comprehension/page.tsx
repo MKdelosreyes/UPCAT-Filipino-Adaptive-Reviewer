@@ -11,7 +11,7 @@ export default function ReadingComprehensionPage() {
   const { getReadingMastery } = useReadingProgress();
   const mastery = getReadingMastery();
 
-  const masteryColors = {
+  const masteryColors: Record<typeof mastery.level, string> = {
     beginner: "bg-gray-100 text-gray-700 border-gray-300",
     developing: "bg-blue-100 text-blue-700 border-blue-300",
     proficient: "bg-purple-100 text-purple-700 border-purple-300",
@@ -52,12 +52,6 @@ export default function ReadingComprehensionPage() {
             </div>
             <p className="text-xs text-gray-600 text-right max-w-xs">
               {mastery.description}
-              {mastery.comprehensionScore > 0 && (
-                <span className="font-semibold">
-                  {" "}
-                  • Avg Score: {mastery.comprehensionScore}%
-                </span>
-              )}
             </p>
           </div>
         </div>
@@ -83,16 +77,16 @@ export default function ReadingComprehensionPage() {
             imagePath="/art/grammar-icon1.png"
             color="bg-blue-50"
             url="/reading-comprehension/reading-exercise"
-            passageCount={readingPassages.length}
+            exerciseType="passage-questions"
           />
           
           <ReadingCard
-            name="Summary Exercise"
-            description="Write summaries to capture main ideas and key points"
+            name="Summarization"
+            description="Write comprehensive summaries of reading passages"
             imagePath="/art/grammar-icon1.png"
             color="bg-purple-50"
             url="/reading-comprehension/summary-exercise"
-            passageCount={readingPassages.length}
+            exerciseType="summary-exercise"
           />
         </div>
       </div>

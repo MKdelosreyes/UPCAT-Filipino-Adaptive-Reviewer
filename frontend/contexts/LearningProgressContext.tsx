@@ -15,14 +15,10 @@ export type GrammarLessonExercise = "lesson-cards";
 export type GrammarQuizExercise = "error-identification" | "fill-blanks";
 export type GrammarExercise = GrammarLessonExercise | GrammarQuizExercise;
 
-<<<<<<< HEAD
 export type SentenceExercise =
   | "complete-sentence"
   | "sentence-ordering"
   | "choose-sentence";
-=======
-export type SentenceExercise = "complete-sentence" | "sentence-ordering";
->>>>>>> c657bb5 (merged with main)
 export type ReadingExercise = "passage-questions" | "comprehension";
 
 export type ExerciseType =
@@ -37,7 +33,6 @@ export type ModuleType =
   | "sentence-construction"
   | "reading-comprehension";
 
-<<<<<<< HEAD
 export type ExerciseStatus = "not-started" | "in-progress";
 
 // Different interfaces for lessons vs quizzes
@@ -58,13 +53,6 @@ export interface QuizProgress {
   errorTags: string[];
   performanceHistory: PerformanceMetrics[];
 }
-=======
-export type ExerciseStatus =
-  | "locked"
-  | "not-started"
-  | "in-progress"
-  | "completed";
->>>>>>> c657bb5 (merged with main)
 
 // Different interfaces for lessons vs quizzes
 export interface LessonProgress {
@@ -111,10 +99,7 @@ export interface GrammarProgress {
 export interface SentenceProgress {
   "complete-sentence": QuizProgress;
   "sentence-ordering": QuizProgress;
-<<<<<<< HEAD
   "choose-sentence": QuizProgress;
-=======
->>>>>>> c657bb5 (merged with main)
   lastAccessedAt: string | null;
 }
 
@@ -205,11 +190,7 @@ const defaultLessonProgress: LessonProgress = {
 };
 
 const defaultQuizProgress: QuizProgress = {
-<<<<<<< HEAD
   status: "not-started",
-=======
-  status: "locked",
->>>>>>> c657bb5 (merged with main)
   score: null,
   completedAt: null,
   attempts: 0,
@@ -220,46 +201,28 @@ const defaultQuizProgress: QuizProgress = {
 
 const createDefaultVocabularyProgress = (): VocabularyProgress => ({
   flashcards: { ...defaultLessonProgress, status: "not-started" },
-<<<<<<< HEAD
   quiz: { ...defaultQuizProgress, status: "not-started" },
   antonym: { ...defaultQuizProgress, status: "not-started" },
-=======
-  quiz: { ...defaultQuizProgress, status: "locked" },
-  antonym: { ...defaultQuizProgress, status: "locked" },
->>>>>>> c657bb5 (merged with main)
   lastAccessedAt: null,
 });
 
 const createDefaultGrammarProgress = (): GrammarProgress => ({
   "lesson-cards": { ...defaultLessonProgress, status: "not-started" },
-<<<<<<< HEAD
   "error-identification": { ...defaultQuizProgress, status: "not-started" },
   "fill-blanks": { ...defaultQuizProgress, status: "not-started" },
-=======
-  "error-identification": { ...defaultQuizProgress, status: "locked" },
-  "fill-blanks": { ...defaultQuizProgress, status: "locked" },
->>>>>>> c657bb5 (merged with main)
   lastAccessedAt: null,
 });
 
 const createDefaultSentenceProgress = (): SentenceProgress => ({
   "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
-<<<<<<< HEAD
   "sentence-ordering": { ...defaultQuizProgress, status: "not-started" },
   "choose-sentence": { ...defaultQuizProgress, status: "not-started" },
-=======
-  "sentence-ordering": { ...defaultQuizProgress, status: "locked" },
->>>>>>> c657bb5 (merged with main)
   lastAccessedAt: null,
 });
 
 const createDefaultReadingProgress = (): ReadingProgress => ({
   "passage-questions": { ...defaultQuizProgress, status: "not-started" },
-<<<<<<< HEAD
   comprehension: { ...defaultQuizProgress, status: "not-started" },
-=======
-  comprehension: { ...defaultQuizProgress, status: "locked" },
->>>>>>> c657bb5 (merged with main)
   lastAccessedAt: null,
 });
 
@@ -328,12 +291,8 @@ export function LearningProgressProvider({
       const sentenceData = moduleData as SentenceProgress;
       if (
         exercise === "complete-sentence" ||
-<<<<<<< HEAD
         exercise === "sentence-ordering" ||
         exercise === "choose-sentence"
-=======
-        exercise === "sentence-ordering"
->>>>>>> c657bb5 (merged with main)
       ) {
         return sentenceData[exercise];
       }
@@ -353,11 +312,6 @@ export function LearningProgressProvider({
     data: Partial<LessonProgress>
   ) => {
     setProgress((prev) => {
-<<<<<<< HEAD
-=======
-      // const moduleProgress = { ...prev[module] };
-
->>>>>>> c657bb5 (merged with main)
       if (module === "vocabulary" && exercise === "flashcards") {
         const moduleProgress = { ...prev[module] } as VocabularyProgress;
 
@@ -366,13 +320,6 @@ export function LearningProgressProvider({
           ...data,
         };
 
-<<<<<<< HEAD
-=======
-        if (data.status === "completed") {
-          moduleProgress.quiz.status = "not-started";
-        }
-
->>>>>>> c657bb5 (merged with main)
         return {
           ...prev,
           [module]: moduleProgress,
@@ -385,13 +332,6 @@ export function LearningProgressProvider({
           ...data,
         };
 
-<<<<<<< HEAD
-=======
-        if (data.status === "completed") {
-          moduleProgress["error-identification"].status = "not-started";
-        }
-
->>>>>>> c657bb5 (merged with main)
         return {
           ...prev,
           [module]: moduleProgress,
@@ -425,11 +365,6 @@ export function LearningProgressProvider({
     data: Partial<QuizProgress>
   ) => {
     setProgress((prev) => {
-<<<<<<< HEAD
-=======
-      // const moduleProgress = { ...prev[module] };
-
->>>>>>> c657bb5 (merged with main)
       if (
         module === "vocabulary" &&
         (exercise === "quiz" || exercise === "antonym")
@@ -441,13 +376,6 @@ export function LearningProgressProvider({
           ...data,
         };
 
-<<<<<<< HEAD
-=======
-        if (exercise === "quiz" && data.status === "completed") {
-          moduleProgress.antonym.status = "not-started";
-        }
-
->>>>>>> c657bb5 (merged with main)
         return {
           ...prev,
           [module]: moduleProgress,
@@ -463,29 +391,15 @@ export function LearningProgressProvider({
           ...data,
         };
 
-<<<<<<< HEAD
-=======
-        if (
-          exercise === "error-identification" &&
-          data.status === "completed"
-        ) {
-          moduleProgress["fill-blanks"].status = "not-started";
-        }
-
->>>>>>> c657bb5 (merged with main)
         return {
           ...prev,
           [module]: moduleProgress,
         };
       } else if (
         module === "sentence-construction" &&
-<<<<<<< HEAD
         (exercise === "complete-sentence" ||
           exercise === "sentence-ordering" ||
           exercise === "choose-sentence")
-=======
-        (exercise === "complete-sentence" || exercise === "sentence-ordering")
->>>>>>> c657bb5 (merged with main)
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
 
@@ -494,13 +408,6 @@ export function LearningProgressProvider({
           ...data,
         };
 
-<<<<<<< HEAD
-=======
-        if (exercise === "complete-sentence" && data.status === "completed") {
-          moduleProgress["sentence-ordering"].status = "not-started";
-        }
-
->>>>>>> c657bb5 (merged with main)
         return {
           ...prev,
           [module]: moduleProgress,
@@ -516,13 +423,6 @@ export function LearningProgressProvider({
           ...data,
         };
 
-<<<<<<< HEAD
-=======
-        if (exercise === "passage-questions" && data.status === "completed") {
-          moduleProgress.comprehension.status = "not-started";
-        }
-
->>>>>>> c657bb5 (merged with main)
         return {
           ...prev,
           [module]: moduleProgress,
@@ -625,7 +525,6 @@ export function LearningProgressProvider({
         });
 
         frontendProgress.grammar = grammarProgress;
-<<<<<<< HEAD
       } else if (moduleKey === "sentence-construction") {
         const sentenceProgress: SentenceProgress =
           createDefaultSentenceProgress();
@@ -658,10 +557,6 @@ export function LearningProgressProvider({
         frontendProgress["sentence-construction"] = sentenceProgress;
       }
       // Add similar logic for reading-comprehension
-=======
-      }
-      // Add similar logic for sentence-construction and reading-comprehension
->>>>>>> c657bb5 (merged with main)
     });
 
     return frontendProgress;
@@ -753,11 +648,7 @@ export function LearningProgressProvider({
       case "grammar":
         return ["lesson-cards", "error-identification", "fill-blanks"];
       case "sentence-construction":
-<<<<<<< HEAD
         return ["complete-sentence", "sentence-ordering", "choose-sentence"];
-=======
-        return ["complete-sentence", "sentence-ordering"];
->>>>>>> c657bb5 (merged with main)
       case "reading-comprehension":
         return ["passage-questions", "comprehension"];
       default:
@@ -768,7 +659,6 @@ export function LearningProgressProvider({
   const getModuleProgress = (module: ModuleType): number => {
     const exercises = getModuleExercises(module);
 
-<<<<<<< HEAD
     let totalMasteryScore = 0;
     const maxMasteryPerExercise = 5; // master = 5, advanced = 4, etc.
 
@@ -807,14 +697,6 @@ export function LearningProgressProvider({
 
     const maxPossibleScore = exercises.length * maxMasteryPerExercise;
     return Math.round((totalMasteryScore / maxPossibleScore) * 100);
-=======
-    const completed = exercises.filter((ex) => {
-      const exerciseProgress = getExerciseProgressTyped(module, ex);
-      return exerciseProgress?.status === "completed";
-    }).length;
-
-    return Math.round((completed / exercises.length) * 100);
->>>>>>> c657bb5 (merged with main)
   };
 
   const getOverallProgress = (): number => {
@@ -825,7 +707,6 @@ export function LearningProgressProvider({
       "reading-comprehension",
     ];
 
-<<<<<<< HEAD
     const totalProgress = modules.reduce((sum, module) => {
       return sum + getModuleProgress(module);
     }, 0);
@@ -859,101 +740,15 @@ export function LearningProgressProvider({
     return leastPracticedEx;
   };
 
-=======
-    let totalCompleted = 0;
-    let totalExercises = 0;
-
-    modules.forEach((module) => {
-      const exercises = getModuleExercises(module);
-      totalExercises += exercises.length;
-
-      exercises.forEach((ex) => {
-        const exerciseProgress = getExerciseProgressTyped(module, ex);
-        if (exerciseProgress?.status === "completed") {
-          totalCompleted++;
-        }
-      });
-    });
-
-    return Math.round((totalCompleted / totalExercises) * 100);
-  };
-
-  const getNextRecommended = (module: ModuleType): ExerciseType | null => {
-    const exercises = getModuleExercises(module);
-
-    for (const ex of exercises) {
-      const exerciseProgress = getExerciseProgressTyped(module, ex);
-      if (exerciseProgress?.status !== "completed") {
-        return ex;
-      }
-    }
-
-    return null;
-  };
-
->>>>>>> c657bb5 (merged with main)
   const canAccessExercise = (
     module: ModuleType,
     exercise: ExerciseType
   ): boolean => {
-<<<<<<< HEAD
     return true;
   };
 
   const isModuleCompleted = (module: ModuleType): boolean => {
     return getModuleProgress(module) >= 90; // 90%+ mastery = "completed"
-=======
-    if (isLessonExercise(module, exercise)) {
-      return true;
-    }
-
-    if (module === "vocabulary") {
-      const flashcardsCompleted =
-        progress.vocabulary.flashcards.status === "completed";
-      if (exercise === "quiz") return flashcardsCompleted;
-      if (exercise === "antonym") {
-        return (
-          flashcardsCompleted && progress.vocabulary.quiz.status === "completed"
-        );
-      }
-    } else if (module === "grammar") {
-      const lessonCompleted =
-        progress.grammar["lesson-cards"].status === "completed";
-      if (exercise === "error-identification") return lessonCompleted;
-      if (exercise === "fill-blanks") {
-        return (
-          lessonCompleted &&
-          progress.grammar["error-identification"].status === "completed"
-        );
-      }
-    } else if (module === "sentence-construction") {
-      if (exercise === "complete-sentence") return true;
-      if (exercise === "sentence-ordering") {
-        return (
-          progress["sentence-construction"]["complete-sentence"].status ===
-          "completed"
-        );
-      }
-    } else if (module === "reading-comprehension") {
-      if (exercise === "passage-questions") return true;
-      if (exercise === "comprehension") {
-        return (
-          progress["reading-comprehension"]["passage-questions"].status ===
-          "completed"
-        );
-      }
-    }
-
-    return false;
-  };
-
-  const isModuleCompleted = (module: ModuleType): boolean => {
-    const exercises = getModuleExercises(module);
-    return exercises.every((ex) => {
-      const exerciseProgress = getExerciseProgressTyped(module, ex);
-      return exerciseProgress?.status === "completed";
-    });
->>>>>>> c657bb5 (merged with main)
   };
 
   const getRecommendedModule = (): ModuleType => {

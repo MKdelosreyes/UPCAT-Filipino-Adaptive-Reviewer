@@ -85,18 +85,14 @@ export default function RecommendedPathIndicator() {
       const sentenceData = moduleData as SentenceProgress;
       if (
         exercise === "complete-sentence" ||
-<<<<<<< HEAD
         exercise === "sentence-ordering" ||
         exercise === "choose-sentence"
-=======
-        exercise === "sentence-ordering"
->>>>>>> c657bb5 (merged with main)
       ) {
         return sentenceData[exercise];
       }
     } else if (module === "reading-comprehension") {
       const readingData = moduleData as ReadingProgress;
-      if (exercise === "passage-questions" || exercise === "comprehension") {
+      if (exercise === "passage-questions" || exercise === "summary-exercise") {
         return readingData[exercise];
       }
     }
@@ -105,17 +101,12 @@ export default function RecommendedPathIndicator() {
   };
 
   const getModuleStatus = (module: ModuleType) => {
-<<<<<<< HEAD
     const isCompleted = isModuleCompleted(module); // Uses mastery >= 90%
-=======
-    const isCompleted = isModuleCompleted(module);
->>>>>>> c657bb5 (merged with main)
     const isRecommended = recommended === module;
     const nextExercise = getNextRecommended(module);
     const exercises = getModuleExercises(module);
     const mastery = getModuleMastery(module);
 
-<<<<<<< HEAD
     const completedCount = exercises.filter((ex) => {
       const exerciseProgress = getExerciseProgress(module, ex);
       if (!exerciseProgress) return false;
@@ -129,39 +120,22 @@ export default function RecommendedPathIndicator() {
       return (exerciseProgress as QuizProgress).performanceHistory?.length > 0;
     }).length;
 
-=======
-    // ✅ Count completed exercises with proper typing
-    const completedCount = exercises.filter((ex) => {
-      const exerciseProgress = getExerciseProgress(module, ex);
-      return exerciseProgress?.status === "completed";
-    }).length;
-
-    // ✅ Separate lessons from quizzes
->>>>>>> c657bb5 (merged with main)
     const lessons = exercises.filter((ex) => isLessonExercise(module, ex));
     const quizzes = exercises.filter((ex) => !isLessonExercise(module, ex));
 
     const completedLessons = lessons.filter((ex) => {
       const exerciseProgress = getExerciseProgress(module, ex);
-<<<<<<< HEAD
       return (
         exerciseProgress && (exerciseProgress as LessonProgress).timeSpent > 0
       );
-=======
-      return exerciseProgress?.status === "completed";
->>>>>>> c657bb5 (merged with main)
     }).length;
 
     const completedQuizzes = quizzes.filter((ex) => {
       const exerciseProgress = getExerciseProgress(module, ex);
-<<<<<<< HEAD
       return (
         exerciseProgress &&
         (exerciseProgress as QuizProgress).performanceHistory?.length > 0
       );
-=======
-      return exerciseProgress?.status === "completed";
->>>>>>> c657bb5 (merged with main)
     }).length;
 
     return {
@@ -336,10 +310,6 @@ export default function RecommendedPathIndicator() {
                     !status.isRecommended &&
                     status.mastery.level !== "beginner" && (
                       <div className="mt-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 bg-blue-50 text-blue-700 border border-blue-200">
-<<<<<<< HEAD
-=======
-                        {/* <span>{status.mastery.icon}</span> */}
->>>>>>> c657bb5 (merged with main)
                         <span className="capitalize">
                           {status.mastery.level}
                         </span>

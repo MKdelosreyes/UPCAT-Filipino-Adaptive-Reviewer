@@ -3,19 +3,20 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
+import type { ReadingExercise } from "@/contexts/LearningProgressContext";
 
-const steps = [
-  { id: 1, name: "Reading Passages", key: "reading-exercise-1" as const },
-  { id: 2, name: "Summary Exercise", key: "reading-exercise-2" as const },
+const steps: Array<{ id: number; name: string; key: ReadingExercise }> = [
+  { id: 1, name: "Reading Passages", key: "passage-questions" },
+  { id: 2, name: "Summarization", key: "summary-exercise" },
 ];
 
 export default function ReadingProgressStepper() {
-  const { getReadingProgress } = useReadingProgress();
-  const progress = getReadingProgress();
+  const { getExerciseProgress } = useReadingProgress();
   
-  // For now, all steps are available (not locked)
-  // You can add locked logic later when you implement multiple reading levels
-  const completedCount = Math.min(progress.passagesRead || 0, 2);
+  // Count completed exercises
+  const completedCount = steps.filter(
+    (step) => getExerciseProgress(step.key).status === "completed"
+  ).length;
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-6">
@@ -23,7 +24,7 @@ export default function ReadingProgressStepper() {
         {/* Progress Line */}
         <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
           <motion.div
-            className="h-full bg-green-500"
+            className="h-full bg-blue-500"
             initial={{ width: "0%" }}
             animate={{
               width: `${(completedCount / steps.length) * 100}%`,
@@ -34,7 +35,8 @@ export default function ReadingProgressStepper() {
 
         {/* Steps */}
         {steps.map((step) => {
-          const isCompleted = step.id <= completedCount;
+          const exerciseProgress = getExerciseProgress(step.key);
+          const isCompleted = exerciseProgress.status === "completed";
 
           return (
             <div key={step.id} className="flex flex-col items-center">
@@ -42,7 +44,7 @@ export default function ReadingProgressStepper() {
                 whileHover={{ scale: 1.1 }}
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
                   isCompleted
-                    ? "bg-green-500 border-green-500 text-white"
+                    ? "bg-blue-500 border-blue-500 text-white"
                     : "bg-white border-gray-300 text-gray-500"
                 }`}
               >
@@ -50,7 +52,7 @@ export default function ReadingProgressStepper() {
               </motion.div>
               <p
                 className={`mt-2 text-xs font-medium ${
-                  isCompleted ? "text-green-700" : "text-gray-500"
+                  isCompleted ? "text-blue-700" : "text-gray-500"
                 }`}
               >
                 {step.name}

@@ -6,8 +6,11 @@ import { ArrowLeft, RotateCcw, BookOpen, Send } from "lucide-react";
 import Link from "next/link";
 import ReadingProgress from "@/components/reading-comprehension/ReadingProgress";
 import { readingPassages } from "@/data/reading-comprehension-dataset";
+import { useReadingProgress } from "@/hooks/useReadingProgress";
 
 export default function SummaryExercisePage() {
+  const { updateProgress } = useReadingProgress();
+  
   const [currentPassage, setCurrentPassage] = useState<typeof readingPassages[0] | null>(null);
   const [summary, setSummary] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -57,6 +60,21 @@ export default function SummaryExercisePage() {
 
   const handleSubmit = () => {
     if (summary.trim().length === 0) return;
+    
+    // ✅ Calculate a simple score based on word count
+    const targetWords = 50;
+    const score = Math.min(100, Math.round((wordCount / targetWords) * 100));
+    
+    // ✅ Update progress with completion status
+    updateProgress("summary-exercise", {
+      status: "completed",
+      score: score,
+      completedAt: new Date().toISOString(),
+      attempts: 1,
+      lastDifficulty: "easy",
+      errorTags: [],
+    });
+    
     setIsSubmitted(true);
   };
 

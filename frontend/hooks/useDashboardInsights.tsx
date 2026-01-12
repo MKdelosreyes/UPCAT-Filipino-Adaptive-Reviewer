@@ -61,7 +61,7 @@ export function useDashboardInsights() {
       const reading = moduleData as ReadingProgress;
       allHistory = [
         ...reading["passage-questions"].performanceHistory,
-        ...reading.comprehension.performanceHistory,
+        ...reading["summary-exercise"].performanceHistory,
       ];
     }
 
@@ -98,7 +98,7 @@ export function useDashboardInsights() {
       const reading = moduleData as ReadingProgress;
       difficulties = [
         reading["passage-questions"].lastDifficulty,
-        reading.comprehension.lastDifficulty,
+        reading["summary-exercise"].lastDifficulty,
       ];
     }
 

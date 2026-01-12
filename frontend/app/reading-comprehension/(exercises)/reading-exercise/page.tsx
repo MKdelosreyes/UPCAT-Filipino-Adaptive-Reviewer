@@ -8,6 +8,7 @@ import ComprehensionQuestion from "@/components/reading-comprehension/Comprehens
 import ReadingProgress from "@/components/reading-comprehension/ReadingProgress";
 import ReadingCompletionModal from "@/components/reading-comprehension/ReadingCompletionModal";
 import { readingPassages } from "@/data/reading-comprehension-dataset";
+import { useReadingProgress } from "@/hooks/useReadingProgress";
 
 interface QuestionAnswer {
   isCorrect: boolean;
@@ -36,6 +37,8 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function ReadingExercisePage() {
+  const { updateProgress } = useReadingProgress();
+  
   const [currentPassage, setCurrentPassage] = useState<typeof readingPassages[0] | null>(null);
   const [shuffledQuestions, setShuffledQuestions] = useState<ShuffledQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -172,7 +175,16 @@ export default function ReadingExercisePage() {
       (correctCount / shuffledQuestions.length) * 100
     );
 
-    // TODO: Add performance tracking similar to grammar exercises
+    // ✅ Update progress with completion status
+    updateProgress("passage-questions", {
+      status: "completed",
+      score: score,
+      completedAt: new Date().toISOString(),
+      attempts: 1,
+      lastDifficulty: "easy", // You can make this dynamic later
+      errorTags: [],
+    });
+
     setShowCompletion(true);
   };
 
