@@ -12,6 +12,8 @@ import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type { QuizProgress as QuizProgressType } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useSRSWithExercises } from "@/hooks/useSRS"; // ✅ SRS HOOK
+import { SRS_GRADES } from "@/utils/srs"; // ✅ SRS GRADES
 import {
   getVocabularyExercisesAdaptive,
   getLexiconData,
@@ -172,6 +174,14 @@ export default function ClosestMeaningQuizPage() {
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
   const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
+
+  // ✅ SRS HOOK
+  const { grade: gradeSRS } = useSRSWithExercises({
+    module: "vocabulary",
+    targetDifficulty: "easy",
+    limit: 15,
+  });
 
   const [questions, setQuestions] = useState<QuizItem[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -185,7 +195,6 @@ export default function ClosestMeaningQuizPage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
-  const { isLoading: authLoading } = useAuthGuard();
 
   // ✅ Load quiz items with adaptive difficulty
   useEffect(() => {
@@ -266,8 +275,8 @@ export default function ClosestMeaningQuizPage() {
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-red-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="h-screen bg-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -275,19 +284,19 @@ export default function ClosestMeaningQuizPage() {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="h-screen bg-purple-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
+      <div className="h-screen bg-blue-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
           <Link
             href="/vocabulary"
-            className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
-              Multiple Choice Quiz
+            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+              What is its Closest Meaning
             </h1>
             <p className="text-xs text-gray-500 mt-1">
               Difficulty:{" "}
@@ -302,8 +311,8 @@ export default function ClosestMeaningQuizPage() {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-purple-600 font-semibold">Loading quiz...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-blue-600 font-semibold">Loading quiz...</p>
           </div>
         </div>
       </div>
@@ -313,19 +322,19 @@ export default function ClosestMeaningQuizPage() {
   // Show error state
   if (error || questions.length === 0) {
     return (
-      <div className="h-screen bg-purple-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
+      <div className="h-screen bg-blue-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
           <Link
             href="/vocabulary"
-            className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
-              Multiple Choice Quiz
+            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+              What is its Closest Meaning
             </h1>
           </div>
 
@@ -339,7 +348,7 @@ export default function ClosestMeaningQuizPage() {
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Retry
             </button>
@@ -395,6 +404,10 @@ export default function ClosestMeaningQuizPage() {
     } catch (e) {
       console.error("Failed to record lexical performance", e);
     }
+
+    // ✅ SRS GRADING
+    const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
+    await gradeSRS(currentQuiz.lemma_id, srsGrade);
 
     // Update metrics with CURRENT difficulty
     addPerformanceMetrics("vocabulary", "quiz", {
