@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -9,26 +9,45 @@ import ChooseSentenceProgress from "@/components/sentence-construction/choose-se
 import ChooseSentenceCompletionModal from "@/components/sentence-construction/choose-sentence-exercise/ChooseSentenceCompletionModal";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
-import {
-  sentenceConstructionData,
-  type ChooseSentenceItem,
-} from "@/data/sentence-construction-dataset";
+import { useSRSWithExercises } from "@/hooks/useSRS";
+import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
+import type { SentenceConstructionExerciseItem } from "@/lib/api/exercises";
+import { SRS_GRADES } from "@/utils/srs";
 
 interface ChooseSentenceAnswer {
   isCorrect: boolean;
   selectedAnswer: string;
   correctAnswer: string;
   context: string;
+  lemmaId: string;
+}
+
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
 
 export default function ChooseSentencePage() {
   const { updateProgress } = useSentenceConstructionProgress();
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
-  const [chooseSentenceQuestions, setChooseSentenceQuestions] = useState<
-    ChooseSentenceItem[]
-  >([]);
+
+  const {
+    dueExercises,
+    grade: gradeSRS,
+    isLoading: srsLoading,
+  } = useSRSWithExercises({
+    module: "sentence-construction",
+    exerciseType: "choose",
+    targetDifficulty: "easy",
+    limit: 10,
+  });
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -37,24 +56,14 @@ export default function ChooseSentencePage() {
     ChooseSentenceAnswer[]
   >([]);
   const [showCompletion, setShowCompletion] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-  // Initialize questions on client side only
+
   useEffect(() => {
-    setIsClient(true);
-    // Type guard to filter only choose_sentence items
-    const chooseSentenceExercises = sentenceConstructionData.filter(
-      (item): item is ChooseSentenceItem =>
-        item.exerciseType === "choose_sentence"
-    );
-    const shuffled = [...chooseSentenceExercises].sort(
-      () => Math.random() - 0.5
-    );
-    const selected = shuffled.slice(0, Math.min(10, shuffled.length));
-    setChooseSentenceQuestions(selected);
-    setAnswers(Array(selected.length).fill(null));
-  }, []);
-  // Show loading state while initializing
-  if (!isClient || chooseSentenceQuestions.length === 0) {
+    if (dueExercises.length > 0) {
+      setAnswers(Array(dueExercises.length).fill(null));
+    }
+  }, [dueExercises.length]);
+
+  if (srsLoading || dueExercises.length === 0) {
     return (
       <div className="h-screen bg-orange-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-orange-200">
@@ -65,39 +74,83 @@ export default function ChooseSentencePage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
+
           <div className="text-center flex-1 px-4">
             <h1 className="text-xl md:text-2xl font-bold text-orange-900">
               Choose the Best Sentence
             </h1>
           </div>
+
           <div className="w-20"></div>
         </div>
+
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+          {srsLoading ? (
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+          ) : (
+            <div className="text-center">
+              <p className="text-lg text-orange-900 mb-2">
+                🎉 No exercises due right now!
+              </p>
+              <p className="text-sm text-orange-600">
+                Come back later for more practice.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
   }
-  const currentChooseSentence = chooseSentenceQuestions[currentQuestion];
-  const isLastQuestion = currentQuestion === chooseSentenceQuestions.length - 1;
-  const handleSelectAnswer = (answer: string) => {
+
+  const currentExercise = dueExercises[
+    currentQuestion
+  ] as SentenceConstructionExerciseItem;
+  const isLastQuestion = currentQuestion === dueExercises.length - 1;
+
+  const choices = useMemo(() => {
+    const allChoices = [
+      currentExercise.chooseCorrectSentence,
+      ...currentExercise.distractors,
+    ];
+    return shuffleArray(allChoices);
+  }, [currentExercise]);
+
+  const handleSelectAnswer = async (answer: string) => {
     setSelectedAnswer(answer);
     setShowResult(true);
-    const isCorrect = answer === currentChooseSentence.correctAnswer;
+
+    const correctAnswer = currentExercise.chooseCorrectSentence;
+    const isCorrect = answer === correctAnswer;
+
     const newAnswers = [...answers];
     newAnswers[currentQuestion] = isCorrect;
     setAnswers(newAnswers);
-    // Store detailed answer for analysis
+
     setDetailedAnswers([
       ...detailedAnswers,
       {
         isCorrect,
         selectedAnswer: answer,
-        correctAnswer: currentChooseSentence.correctAnswer,
-        context: currentChooseSentence.context,
+        correctAnswer,
+        context: currentExercise.chooseContext,
+        lemmaId: currentExercise.lemma_id,
       },
     ]);
+
+    await reportLexicalItemPerformance({
+      module: "sentence-construction",
+      exerciseType: "quiz",
+      lemmaId: currentExercise.lemma_id,
+      correctAnswer,
+      userAnswer: answer,
+      difficultyShown: "medium",
+      score: isCorrect ? 100 : 0,
+    });
+
+    const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
+    await gradeSRS(currentExercise.lemma_id, srsGrade);
   };
+
   const handleNext = () => {
     if (isLastQuestion) {
       completeExercise();
@@ -107,30 +160,27 @@ export default function ChooseSentencePage() {
       setShowResult(false);
     }
   };
-  const completeExercise = () => {
+
+  const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round(
-      (correctCount / chooseSentenceQuestions.length) * 100
-    );
-    // Calculate performance metrics
+    const score = Math.round((correctCount / dueExercises.length) * 100);
+
     let missedLowFreq = 0;
     let similarChoiceErrors = 0;
+
     detailedAnswers.forEach((answer) => {
-      const question = chooseSentenceQuestions.find(
-        (q) => q.context === answer.context
-      );
-      if (!answer.isCorrect && question?.difficulty === "hard") {
-        missedLowFreq++;
-      }
       if (!answer.isCorrect) {
         similarChoiceErrors++;
       }
     });
-    // Get current difficulty
-    const history = getPerformanceHistory("sentence-construction", "quiz");
+
+    const history = getPerformanceHistory(
+      "sentence-construction",
+      "choose-sentence"
+    );
     const currentDifficulty =
       history.length > 0 ? history[history.length - 1].difficulty : "easy";
-    // Create performance metrics
+
     const metrics = {
       difficulty: currentDifficulty,
       score,
@@ -138,13 +188,26 @@ export default function ChooseSentencePage() {
       similarChoiceErrors,
       timestamp: new Date().toISOString(),
     };
-    // Add to performance history
-    addPerformanceMetrics("sentence-construction", "quiz", metrics);
-    // Evaluate and get next difficulty + tags
+
+    console.log("📊 Choose Sentence Session Completed - Metrics:", metrics);
+
+    await addPerformanceMetrics(
+      "sentence-construction",
+      "choose-sentence",
+      metrics
+    );
+
     const allHistory = [...history, metrics];
     const evaluation = evaluateUserPerformance(allHistory);
-    // Update progress with evaluation results
-    updateProgress("choose-sentence", {
+
+    console.log(
+      "🎯 Next Choose Sentence Difficulty:",
+      evaluation.nextDifficulty,
+      "| Error Tags:",
+      evaluation.tags
+    );
+
+    await updateProgress("choose-sentence", {
       status: "in-progress",
       score,
       completedAt: new Date().toISOString(),
@@ -152,29 +215,16 @@ export default function ChooseSentencePage() {
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });
+
     setShowCompletion(true);
   };
+
   const resetExercise = () => {
-    // Type guard to filter only choose_sentence items
-    const chooseSentenceExercises = sentenceConstructionData.filter(
-      (item): item is ChooseSentenceItem =>
-        item.exerciseType === "choose_sentence"
-    );
-    const shuffled = [...chooseSentenceExercises].sort(
-      () => Math.random() - 0.5
-    );
-    const selected = shuffled.slice(0, Math.min(10, shuffled.length));
-    setChooseSentenceQuestions(selected);
-    setCurrentQuestion(0);
-    setSelectedAnswer(null);
-    setShowResult(false);
-    setAnswers(Array(selected.length).fill(null));
-    setDetailedAnswers([]);
-    setShowCompletion(false);
+    window.location.reload();
   };
+
   return (
     <div className="h-screen bg-orange-50 overflow-auto flex flex-col scrollbar-orange">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-orange-200">
         <Link
           href="/sentence-construction"
@@ -183,11 +233,16 @@ export default function ChooseSentencePage() {
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
+
         <div className="text-center flex-1 px-4">
           <h1 className="text-xl md:text-2xl font-bold text-orange-900">
             Choose the Best Sentence
           </h1>
+          <p className="text-xs text-orange-600 mt-1">
+            {dueExercises.length} exercises due for review
+          </p>
         </div>
+
         <button
           onClick={resetExercise}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm"
@@ -196,14 +251,14 @@ export default function ChooseSentencePage() {
           <span className="hidden md:inline">Reset</span>
         </button>
       </div>
-      {/* Main Content */}
+
       <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
         <ChooseSentenceProgress
           currentQuestion={currentQuestion}
-          totalQuestions={chooseSentenceQuestions.length}
+          totalQuestions={dueExercises.length}
           answers={answers}
         />
-        {/* Question Component with Animation */}
+
         <motion.div
           key={currentQuestion}
           initial={{ opacity: 0, x: 50 }}
@@ -213,16 +268,17 @@ export default function ChooseSentencePage() {
         >
           <ChooseSentenceQuestion
             questionNumber={currentQuestion + 1}
-            totalQuestions={chooseSentenceQuestions.length}
-            context={currentChooseSentence.context}
-            choices={currentChooseSentence.choices}
-            correctAnswer={currentChooseSentence.correctAnswer}
+            totalQuestions={dueExercises.length}
+            context={currentExercise.chooseContext}
+            choices={choices}
+            correctAnswer={currentExercise.chooseCorrectSentence}
             selectedAnswer={selectedAnswer}
             onSelectAnswer={handleSelectAnswer}
             showResult={showResult}
-            explanation={currentChooseSentence.explanation}
+            explanation={currentExercise.explanation}
           />
         </motion.div>
+
         {showResult ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -245,15 +301,14 @@ export default function ChooseSentencePage() {
           </div>
         )}
       </div>
+
       <ChooseSentenceCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length /
-            chooseSentenceQuestions.length) *
-            100
+          (answers.filter((a) => a === true).length / dueExercises.length) * 100
         )}
         correctCount={answers.filter((a) => a === true).length}
-        totalQuestions={chooseSentenceQuestions.length}
+        totalQuestions={dueExercises.length}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}
       />

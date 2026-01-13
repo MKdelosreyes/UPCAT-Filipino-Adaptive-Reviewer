@@ -9,19 +9,19 @@ import OrderingProgress from "@/components/sentence-construction/sentence-orderi
 import OrderingCompletionModal from "@/components/sentence-construction/sentence-ordering-exercise/OrderingCompletionModal";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
-import {
-  sentenceConstructionData,
-  type SentenceOrderingItem,
-} from "@/data/sentence-construction-dataset";
+import { useSRSWithExercises } from "@/hooks/useSRS";
+import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
+import type { SentenceConstructionExerciseItem } from "@/lib/api/exercises";
+import { SRS_GRADES } from "@/utils/srs";
 
 interface OrderingAnswer {
   isCorrect: boolean;
   userSentence: string;
   correctSentence: string;
+  lemmaId: string;
 }
 
-// Shuffle array function
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -36,42 +36,31 @@ export default function SentenceOrderingPage() {
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
 
-  const [orderingQuestions, setOrderingQuestions] = useState<
-    SentenceOrderingItem[]
-  >([]);
+  const {
+    dueExercises,
+    grade: gradeSRS,
+    isLoading: srsLoading,
+  } = useSRSWithExercises({
+    module: "sentence-construction",
+    exerciseType: "ordering",
+    targetDifficulty: "easy", // Dynamic based on performance
+    limit: 10,
+  });
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [answers, setAnswers] = useState<(boolean | null)[]>([]);
   const [detailedAnswers, setDetailedAnswers] = useState<OrderingAnswer[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [isClient, setIsClient] = useState(false);
 
-  // Initialize questions on client side only
   useEffect(() => {
-    setIsClient(true);
+    if (dueExercises.length > 0) {
+      setAnswers(Array(dueExercises.length).fill(null));
+    }
+  }, [dueExercises.length]);
 
-    // Type guard to filter only sentence_ordering items
-    const orderingExercises = sentenceConstructionData.filter(
-      (item): item is SentenceOrderingItem =>
-        item.exerciseType === "sentence_ordering"
-    );
-
-    const shuffled = [...orderingExercises].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, Math.min(10, shuffled.length));
-
-    // Shuffle the words for each question
-    const questionsWithShuffledWords = selected.map((q) => ({
-      ...q,
-      words: shuffleArray(q.words),
-    }));
-
-    setOrderingQuestions(questionsWithShuffledWords);
-    setAnswers(Array(selected.length).fill(null));
-  }, []);
-
-  // Show loading state while initializing
-  if (!isClient || orderingQuestions.length === 0) {
+  if (srsLoading || dueExercises.length === 0) {
     return (
       <div className="h-screen bg-orange-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-orange-200">
@@ -93,16 +82,34 @@ export default function SentenceOrderingPage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+          {srsLoading ? (
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+          ) : (
+            <div className="text-center">
+              <p className="text-lg text-orange-900 mb-2">
+                🎉 No exercises due right now!
+              </p>
+              <p className="text-sm text-orange-600">
+                Come back later for more practice.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  const currentOrdering = orderingQuestions[currentQuestion];
-  const isLastQuestion = currentQuestion === orderingQuestions.length - 1;
+  const currentExercise = dueExercises[
+    currentQuestion
+  ] as SentenceConstructionExerciseItem;
+  const isLastQuestion = currentQuestion === dueExercises.length - 1;
 
-  const handleSubmit = (userSentence: string, correct: boolean) => {
+  const shuffledWords = shuffleArray(
+    currentExercise.orderingCorrectSentence.split(" ")
+  );
+
+  // Report performance + Grade SRS
+  const handleSubmit = async (userSentence: string, correct: boolean) => {
     setIsCorrect(correct);
     setShowResult(true);
 
@@ -116,9 +123,23 @@ export default function SentenceOrderingPage() {
       {
         isCorrect: correct,
         userSentence,
-        correctSentence: currentOrdering.correctSentence,
+        correctSentence: currentExercise.orderingCorrectSentence,
+        lemmaId: currentExercise.lemma_id,
       },
     ]);
+
+    await reportLexicalItemPerformance({
+      module: "sentence-construction",
+      exerciseType: "flashcards", // Mapped to ordering
+      lemmaId: currentExercise.lemma_id,
+      correctAnswer: currentExercise.orderingCorrectSentence,
+      userAnswer: userSentence,
+      difficultyShown: "medium",
+      score: correct ? 100 : 0,
+    });
+
+    const srsGrade = correct ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
+    await gradeSRS(currentExercise.lemma_id, srsGrade);
   };
 
   const handleNext = () => {
@@ -131,22 +152,15 @@ export default function SentenceOrderingPage() {
     }
   };
 
-  const completeExercise = () => {
+  const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / orderingQuestions.length) * 100);
+    const score = Math.round((correctCount / dueExercises.length) * 100);
 
     // Calculate performance metrics
     let missedLowFreq = 0;
     let similarChoiceErrors = 0;
 
     detailedAnswers.forEach((answer) => {
-      const question = orderingQuestions.find(
-        (q) => q.correctSentence === answer.correctSentence
-      );
-      if (!answer.isCorrect && question?.difficulty === "hard") {
-        missedLowFreq++;
-      }
-
       if (!answer.isCorrect) {
         similarChoiceErrors++;
       }
@@ -155,7 +169,7 @@ export default function SentenceOrderingPage() {
     // Get current difficulty
     const history = getPerformanceHistory(
       "sentence-construction",
-      "flashcards"
+      "sentence-ordering"
     );
     const currentDifficulty =
       history.length > 0 ? history[history.length - 1].difficulty : "easy";
@@ -169,49 +183,41 @@ export default function SentenceOrderingPage() {
       timestamp: new Date().toISOString(),
     };
 
+    console.log("📊 Sentence Ordering Session Completed - Metrics:", metrics);
+
     // Add to performance history
-    // addPerformanceMetrics("sentence-construction", "flashcards", metrics);
+    await addPerformanceMetrics(
+      "sentence-construction",
+      "sentence-ordering",
+      metrics
+    );
 
     // Evaluate and get next difficulty + tags
     const allHistory = [...history, metrics];
     const evaluation = evaluateUserPerformance(allHistory);
 
+    console.log(
+      "🎯 Next Sentence Ordering Difficulty:",
+      evaluation.nextDifficulty,
+      "| Error Tags:",
+      evaluation.tags
+    );
+
     // Update progress with evaluation results
-    // updateProgress("flashcards", {
-    //   status: "completed",
-    //   score,
-    //   completedAt: new Date().toISOString(),
-    //   attempts: (history.length || 0) + 1,
-    //   lastDifficulty: evaluation.nextDifficulty,
-    //   errorTags: evaluation.tags,
-    // });
+    await updateProgress("sentence-ordering", {
+      status: "in-progress",
+      score,
+      completedAt: new Date().toISOString(),
+      attempts: (history.length || 0) + 1,
+      lastDifficulty: evaluation.nextDifficulty,
+      errorTags: evaluation.tags,
+    });
 
     setShowCompletion(true);
   };
 
   const resetExercise = () => {
-    // Type guard to filter only sentence_ordering items
-    const orderingExercises = sentenceConstructionData.filter(
-      (item): item is SentenceOrderingItem =>
-        item.exerciseType === "sentence_ordering"
-    );
-
-    const shuffled = [...orderingExercises].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, Math.min(10, shuffled.length));
-
-    // Shuffle the words for each question
-    const questionsWithShuffledWords = selected.map((q) => ({
-      ...q,
-      words: shuffleArray(q.words),
-    }));
-
-    setOrderingQuestions(questionsWithShuffledWords);
-    setCurrentQuestion(0);
-    setShowResult(false);
-    setAnswers(Array(selected.length).fill(null));
-    setDetailedAnswers([]);
-    setShowCompletion(false);
-    setIsCorrect(null);
+    window.location.reload();
   };
 
   return (
@@ -230,6 +236,9 @@ export default function SentenceOrderingPage() {
           <h1 className="text-xl md:text-2xl font-bold text-orange-900">
             Sentence Ordering
           </h1>
+          <p className="text-xs text-orange-600 mt-1">
+            {dueExercises.length} exercises due for review
+          </p>
         </div>
 
         <button
@@ -245,7 +254,7 @@ export default function SentenceOrderingPage() {
       <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
         <OrderingProgress
           currentQuestion={currentQuestion}
-          totalQuestions={orderingQuestions.length}
+          totalQuestions={dueExercises.length}
           answers={answers}
         />
 
@@ -259,13 +268,13 @@ export default function SentenceOrderingPage() {
         >
           <OrderingQuestion
             questionNumber={currentQuestion + 1}
-            totalQuestions={orderingQuestions.length}
-            words={currentOrdering.words}
-            correctSentence={currentOrdering.correctSentence}
+            totalQuestions={dueExercises.length}
+            words={shuffledWords}
+            correctSentence={currentExercise.orderingCorrectSentence}
             onSubmit={handleSubmit}
             showResult={showResult}
             isCorrect={isCorrect}
-            explanation={currentOrdering.explanation}
+            explanation={currentExercise.explanation}
           />
         </motion.div>
 
@@ -295,12 +304,10 @@ export default function SentenceOrderingPage() {
       <OrderingCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length /
-            orderingQuestions.length) *
-            100
+          (answers.filter((a) => a === true).length / dueExercises.length) * 100
         )}
         correctCount={answers.filter((a) => a === true).length}
-        totalQuestions={orderingQuestions.length}
+        totalQuestions={dueExercises.length}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}
       />

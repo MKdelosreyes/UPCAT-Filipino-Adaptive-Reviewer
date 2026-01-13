@@ -47,7 +47,7 @@ export default function FlashcardsPage() {
   const { isLoading: authLoading } = useAuthGuard();
 
   const [sessionWords, setSessionWords] = useState<FlashcardData[]>([]);
-  const [deck, setDeck] = useState<FlashcardData[]>([]); // ✅ frozen order for the session
+  const [deck, setDeck] = useState<FlashcardData[]>([]);
   const deckInitializedRef = useRef(false);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -59,12 +59,27 @@ export default function FlashcardsPage() {
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // SRS
-  const wordIds = useMemo(
-    () => sessionWords.map((w) => w.numericId),
-    [sessionWords]
-  );
-  const { dueIds, grade, isLoading: srsLoading } = useSRS(wordIds);
+  // SRS - use the exercises-based hook
+  const {
+    exercises: srsExercises,
+    dueExercises,
+    grade,
+    isLoading: srsLoading,
+    store: srsStore,
+  } = useSRS({
+    module: "vocabulary",
+    targetDifficulty: "easy",
+    limit: 15,
+  });
+
+  // Calculate due IDs from the SRS store
+  const dueIds = useMemo(() => {
+    const now = new Date();
+    return Object.entries(srsStore)
+      .filter(([_, card]) => new Date(card.due) <= now)
+      .map(([id]) => parseInt(id, 10))
+      .filter((id) => !isNaN(id));
+  }, [srsStore]);
 
   // Load flashcards
   useEffect(() => {
@@ -91,9 +106,6 @@ export default function FlashcardsPage() {
             const lexiconEntry = lexiconMap.get(vocabItem.lemma_id);
             if (!lexiconEntry) return null;
 
-            // NOTE: numericId must match whatever backend expects as word_id.
-            // If your backend uses lemma_id as word_id, numeric extraction may be wrong.
-            // Keep as-is for now, but verify backend word_id format.
             const numericId =
               parseInt(vocabItem.lemma_id.replace(/\D/g, ""), 10) ||
               parseInt(vocabItem.item_id.replace(/\D/g, ""), 10);
@@ -128,7 +140,6 @@ export default function FlashcardsPage() {
       }
     }
 
-    // reset session init when user/session changes
     deckInitializedRef.current = false;
     setDeck([]);
     setCurrentIndex(0);
@@ -140,17 +151,17 @@ export default function FlashcardsPage() {
     loadExercises();
   }, [user?.id, tokens?.access]);
 
-  // ✅ Initialize deck ONCE (freeze order) after SRS has loaded
+  // Initialize deck ONCE (freeze order) after SRS has loaded
   useEffect(() => {
     if (deckInitializedRef.current) return;
     if (sessionWords.length === 0) return;
     if (srsLoading) return;
 
-    const dueSet = new Set(dueIds); // snapshot of due at session start
+    const dueSet = new Set(dueIds);
     const initialDeck = [...sessionWords].sort((a, b) => {
       const aDue = dueSet.has(a.numericId) ? 1 : 0;
       const bDue = dueSet.has(b.numericId) ? 1 : 0;
-      return bDue - aDue; // due first
+      return bDue - aDue;
     });
 
     setDeck(initialDeck);
@@ -163,8 +174,6 @@ export default function FlashcardsPage() {
     );
 
     deckInitializedRef.current = true;
-
-    // IMPORTANT: intentionally NOT depending on dueIds to avoid re-sorting mid-session
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionWords, srsLoading]);
 
@@ -249,7 +258,7 @@ export default function FlashcardsPage() {
 
     setIsProcessing(true);
     try {
-      await grade(targetWord.numericId, SRS_GRADES.CORRECT);
+      await grade(targetWord.lemma_id, SRS_GRADES.CORRECT);
 
       await reportLexicalItemPerformance({
         module: "vocabulary",
@@ -283,7 +292,7 @@ export default function FlashcardsPage() {
 
     setIsProcessing(true);
     try {
-      await grade(targetWord.numericId, SRS_GRADES.HARD);
+      await grade(targetWord.lemma_id, SRS_GRADES.HARD);
 
       await reportLexicalItemPerformance({
         module: "vocabulary",
@@ -331,7 +340,6 @@ export default function FlashcardsPage() {
     setShowCompletion(false);
     setIsProcessing(false);
     setSessionStartTime(Date.now());
-    // re-init will happen from the init effect once srsLoading=false and sessionWords is present
   };
 
   return (

@@ -49,6 +49,14 @@ export interface SentenceConstructionExerciseItem {
   sampleCompletions: string;
 }
 
+// ✅ ADD EXERCISE TYPE EXPORT
+export type ExerciseType = 
+  | "error_identification" 
+  | "fill-blanks" 
+  | "ordering" 
+  | "choose" 
+  | "complete";
+
 export async function getVocabularyExercises(): Promise<VocabularyExerciseItem[]> {
   const response = await aiServiceClient.get('/exercises/vocabulary');
   return response.data.exercises || [];
@@ -73,11 +81,6 @@ export async function getVocabularyExercisesAdaptive(params: {
   const response = await aiServiceClient.post('/exercises/vocabulary', body);
   return response.data.exercises || [];
 }
-
-// export async function getGrammarExercises(): Promise<GrammarExerciseItem[]> {
-//   const response = await aiServiceClient.get('/exercises/grammar');
-//   return response.data.exercises || [];
-// }
 
 export async function getGrammarExercisesAdaptive(params: {
   userId?: string;
