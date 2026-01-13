@@ -10,8 +10,8 @@ lexicon_data = [
             "inaadhika",
             "aadhikain",
             "pag-adhika",
-            "mga adhika",
-            "mga adhikain"
+            "adhika",
+            "adhikain"
         ],
         "relations": {
             "synonyms": ["hangarin", "mithiin", "layunin"],
@@ -24,7 +24,7 @@ lexicon_data = [
         "base_definition": "Kalagayan ng pagdududa o kawalan ng katiyakan sa isang bagay, pasiya, o kinabukasan.",
         "surface_forms": [
             "agam-agam",
-            "may agam-agam",
+            "agam-agam",
             "inaagam-agam",
             "mag-agam-agam",
             "pag-aagam-agam"
@@ -60,7 +60,7 @@ lexicon_data = [
             "nag-aalab",
             "pag-aalab",
             "nag-alab",
-            "mga alab"
+            "alab"
         ],
         "relations": {
             "synonyms": ["ningas", "sigla", "sidhi"],
@@ -184,7 +184,7 @@ lexicon_data = [
             "umambag",
             "inaambag",
             "ambagan",
-            "mga ambag"
+            "ambag"
         ],
         "relations": {
             "synonyms": ["kontribusyon", "tulong", "bigay"],
@@ -197,7 +197,7 @@ lexicon_data = [
         "base_definition": "Bahaging mababa at patag sa tabi ng dagat o anyong-tubig; dalampasigan.",
         "surface_forms": [
             "aplaya",
-            "mga aplaya"
+            "aplaya"
         ],
         "relations": {
             "synonyms": ["dalampasigan", "baybayin", "pampang"],
@@ -301,7 +301,7 @@ lexicon_data = [
         "lemma": "balakid",
         "base_definition": "Anumang bagay o kalagayan na humahadlang o pumipigil sa pag-usad o pagtupad ng isang layunin.",
         "surface_forms": [
-            "balakid",
+            "balakid"
         ],
         "relations": {
             "synonyms": ["harang", "sagabal", "hadlang"],
@@ -317,7 +317,7 @@ lexicon_data = [
             "binalangkas",
             "binabalangkas",
             "pagbabalangkas",
-            "mga balangkas"
+            "balangkas"
         ],
         "relations": {
             "synonyms": ["banghay", "estruktura"],
@@ -453,7 +453,7 @@ lexicon_data = [
             "kabiyayaan",
             "mabiyaya",
             "nabiyayaan",
-            "mga biyaya"
+            "biyaya"
         ],
         "relations": {
             "synonyms": ["grasya", "basbas", "pagpapala"],
@@ -519,7 +519,7 @@ lexicon_data = [
         "base_definition": "Malawak at matinding kapinsalaan dulot ng sakuna o trahedya, lalo na ng baha.",
         "surface_forms": [
             "delubyo",
-            "mga delubyo"
+            "delubyo"
         ],
         "relations": {
             "synonyms": ["sakuna", "kalamidad", "malaking-baha"],
@@ -532,7 +532,7 @@ lexicon_data = [
         "base_definition": "Likas na kagandahan o kaakit-akit na anyo, kadalasang tumutukoy sa isang magandang dalaga.",
         "surface_forms": [
             "dilag",
-            "mga dilag"
+            "dilag"
         ],
         "relations": {
             "synonyms": ["ganda", "mutya"],
@@ -577,7 +577,7 @@ lexicon_data = [
         "base_definition": "Salaming lalagyan o bintana ng tindahan na pinaglalagyan o ipinapakita ang paninda.",
         "surface_forms": [
             "eskaparate",
-            "mga eskaparate"
+            "eskaparate"
         ],
         "relations": {
             "synonyms": ["aparador", "display case"],
@@ -597,28 +597,13 @@ lexicon_data = [
             "antonyms": ["mapagbigay", "kontento"]
         }
     },
-    # {
-    #     "lemma_id": "LEX-041",
-    #     "lemma": "gitla",
-    #     "base_definition": "Biglaang pagkagulat o pagkatigagal dahil sa isang di-inaasahang pangyayari.",
-    #     "surface_forms": [
-    #         "gitla",
-    #         "nagitla",
-    #         "nagigitla",
-    #         "pagkagitla"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["sindak", "gulat"],
-    #         "antonyms": ["kahinahunan", "kapanatagan"]
-    #     }
-    # },
     {
         "lemma_id": "LEX-042",
         "lemma": "guni-guni",
         "base_definition": "Larawan o pangyayaring likha lamang ng isip; bunga ng imahinasyon o maling akala.",
         "surface_forms": [
             "guni-guni",
-            "mga guni-guni"
+            "guni-guni"
         ],
         "relations": {
             "synonyms": ["pantasya", "imahinasyon", "haka-haka"],
@@ -675,7 +660,7 @@ lexicon_data = [
         "surface_forms": [
             "halas",
             "kahalasan",
-            "mga halas"
+            "halas"
         ],
         "relations": {
             "synonyms": ["galos", "sugat", "gasgas"],
@@ -737,7 +722,7 @@ lexicon_data = [
             "humatol",
             "hinatulan",
             "paghahatol",
-            "mga hatol"
+            "hatol"
         ],
         "relations": {
             "synonyms": ["pasya", "desisyon", "berdikto"],
@@ -750,7 +735,7 @@ lexicon_data = [
         "base_definition": "Manipis na sinulid o pinong bahagi ng isang materyal, gaya ng tela o buhok.",
         "surface_forms": [
             "hibla",
-            "mga hibla"
+            "hibla"
         ],
         "relations": {
             "synonyms": ["sinulid", "himaymay"],
@@ -819,7 +804,7 @@ lexicon_data = [
         "base_definition": "Bagay na may mataas na halaga o kagandahan, tulad ng bato o alahas; maaari ring tumukoy sa isang taong itinuturing na mahalaga at kagalang-galang.",
         "surface_forms": [
             "hiyas",
-            "mga hiyas"
+            "hiyas"
         ],
         "relations": {
             "synonyms": ["kayamanan", "alahas", "karangalan"],
@@ -876,7 +861,7 @@ lexicon_data = [
         "base_definition": "Hindi tunay; peke o ginaya lamang.",
         "surface_forms": [
             "huwad",
-            "mga huwad"
+            "huwad"
         ],
         "relations": {
             "synonyms": ["peke", "palsipikado", "panggap"],
@@ -983,7 +968,7 @@ lexicon_data = [
         "surface_forms": [
             "aliwaswas",
             "kaaliwaswasan",
-            "mga kaaliwaswasan"
+            "kaaliwaswasan"
         ],
         "relations": {
             "synonyms": ["kalokohan", "katiwalian", "anomalya"],
@@ -1166,7 +1151,7 @@ lexicon_data = [
         "surface_forms": [
             "kapatiran",
             "kakapatiran",
-            "mga kapatiran"
+            "kapatiran"
         ],
         "relations": {
             "synonyms": ["samahan", "brotherhood", "organisasyon"],
@@ -1180,7 +1165,7 @@ lexicon_data = [
         "surface_forms": [
             "katiwalian",
             "tiwali",
-            "mga katiwalian"
+            "katiwalian"
         ],
         "relations": {
             "synonyms": ["korupsiyon", "anomalya", "panlalamang"],
@@ -1451,7 +1436,7 @@ lexicon_data = [
         "base_definition": "Lugar na pinagmumulan o pinagtitipunan ng isang bagay, tulad ng kalakalan, kultura, o karunungan.",
         "surface_forms": [
             "lunduyan",
-            "mga lunduyan"
+            "lunduyan"
         ],
         "relations": {
             "synonyms": ["pinagmulan", "sentro", "duyan"],
@@ -1479,7 +1464,7 @@ lexicon_data = [
         "base_definition": "Lugar na pinagmumulan o pinagdadaungan ng mga sasakyang pandagat; maaari ring tumukoy sa panimulang pook ng isang gawain.",
         "surface_forms": [
             "lunsaran",
-            "mga lunsaran"
+            "lunsaran"
         ],
         "relations": {
             "synonyms": ["daungan", "pantalan", "panimulang-lugar"],
@@ -1606,7 +1591,7 @@ lexicon_data = [
         "base_definition": "Bagay o kagamitan na ginagamit upang magawa ang isang gawain o tungkulin.",
         "surface_forms": [
             "kasangkapan",
-            "mga kasangkapan"
+            "kasangkapan"
         ],
         "relations": {
             "synonyms": ["kagamitan", "tools", "aparato"],
@@ -1634,7 +1619,7 @@ lexicon_data = [
         "surface_forms": [
             "manggagaway",
             "panggagaway",
-            "mga manggagaway"
+            "manggagaway"
         ],
         "relations": {
             "synonyms": ["mangkukulam", "salamangkero-sa-masama"],
@@ -2120,7 +2105,7 @@ lexicon_data = [
         "base_definition": "Maliit o pansamantalang tulay na gawa sa kahoy, kawayan, o iba pang materyales upang daanan sa ibabaw ng tubig o hukay.",
         "surface_forms": [
             "taytay",
-            "mga taytay"
+            "taytay"
         ],
         "relations": {
             "synonyms": ["maliit-na-tulay", "tawiran"],
@@ -2319,9 +2304,6 @@ lexicon_data = [
             "antonyms": ["pag-alis", "paglisan"]
         }
     },
-
-    # ---- EXISTING ENTRIES CONTINUE UNCHANGED FROM LEX-162 ONWARD ----
-
     {
         "lemma_id": "LEX-162",
         "lemma": "hamok",
@@ -3140,131 +3122,5 @@ lexicon_data = [
             "synonyms": ["sumunod", "tumupad"],
             "antonyms": ["sumuway", "lumabag"]
         }
-    },
-    # {
-    #     "lemma_id": "LEX-223",
-    #     "lemma": "talaga",
-    #     "base_definition": "Ang pagkilos ng paglalaan o pagtatalaga ng sarili sa isang tungkulin o layunin.",
-    #     "surface_forms": [
-    #         "tumatalaga",
-    #         "italaga",
-    #         "itinalaga",
-    #         "pagtatalaga"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["naglaan", "itinalaga"],
-    #         "antonyms": ["binawi", "tumanggi"]
-    #     }
-    # },
-    # {
-    #     "lemma_id": "LEX-224",
-    #     "lemma": "umis",
-    #     "base_definition": "Isang tipid na ngiti na madalas ay nagpapakita ng lihim na kagalakan o pangungutya.",
-    #     "surface_forms": [
-    #         "umis",
-    #         "napangumis",
-    #         "pag-umis"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["ngiti"],
-    #         "antonyms": ["simangot", "pag-iyak"]
-    #     }
-    # },
-    # {
-    #     "lemma_id": "LEX-225",
-    #     "lemma": "usad",
-    #     "base_definition": "Ang mabagal na pagkilos o pag-unlad ng isang bagay o sitwasyon.",
-    #     "surface_forms": [
-    #         "usad",
-    #         "umuusad",
-    #         "pag-usad"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["pag-unlad", "kilos"],
-    #         "antonyms": ["hinto", "pag-urong"]
-    #     }
-    # },
-    # {
-    #     "lemma_id": "LEX-226",
-    #     "lemma": "utas",
-    #     "base_definition": "Ang pagtatapos, pagwawakas, o pagkamatay ng isang tao o gawain.",
-    #     "surface_forms": [
-    #         "utas",
-    #         "mautas",
-    #         "nag-utas",
-    #         "pagkaka-utas"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["tapos", "patay"],
-    #         "antonyms": ["simula", "buhay"]
-    #     }
-    # },
-    # {
-    #     "lemma_id": "LEX-227",
-    #     "lemma": "wagayway",
-    #     "base_definition": "Ang paggalaw o pagpalo ng tela o bandila sa ihip ng hangin.",
-    #     "surface_forms": [
-    #         "wagayway",
-    #         "iwagayway",
-    #         "nagwagayway"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["pakaypay"],
-    #         "antonyms": ["nakatigil", "tahimik"]
-    #     }
-    # },
-    # {
-    #     "lemma_id": "LEX-228",
-    #     "lemma": "wagas",
-    #     "base_definition": "Ang pagkakaroon ng dalisay, tunay, at walang halong dumi na katangian o pag-ibig.",
-    #     "surface_forms": [
-    #         "wagas",
-    #         "kawagasan"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["dalisay"],
-    #         "antonyms": ["huwad", "marumi", "mapagbalatkayo"]
-    #     }
-    # },
-    # {
-    #     "lemma_id": "LEX-229",
-    #     "lemma": "yao",
-    #     "base_definition": "Ang pag-alis o ang pagpanaw ng isang tao mula sa mundong ito.",
-    #     "surface_forms": [
-    #         "yumao",
-    #         "pumanaw",
-    #         "pagyao"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["umalis", "pumanaw"],
-    #         "antonyms": ["dumating", "nabuhay"]
-    #     }
-    # },
-    # {
-    #     "lemma_id": "LEX-230",
-    #     "lemma": "yao",
-    #     "base_definition": "Ang pagkilos nang pabalik-balik sa magkakaibang direksyon.",
-    #     "surface_forms": [
-    #         "yao't dito",
-    #         "payaot-dito"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["paroot-parito"],
-    #         "antonyms": ["nakatigil", "nananatili"]
-    #     }
-    # },
-    # {
-    #     "lemma_id": "LEX-231",
-    #     "lemma": "yurak",
-    #     "base_definition": "Ang pagkilos ng pagtapak nang may paghamak o paglapastangan sa karangalan ng iba.",
-    #     "surface_forms": [
-    #         "yurakan",
-    #         "niyurakan",
-    #         "pagyurak"
-    #     ],
-    #     "relations": {
-    #         "synonyms": ["tapakan", "alipustahin"],
-    #         "antonyms": ["igalang", "dakilain"]
-    #     }
-    # }
+    }
 ]
