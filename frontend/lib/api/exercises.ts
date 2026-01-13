@@ -30,6 +30,25 @@ export interface GrammarExerciseItem {
   exercise_type: "error_identification" | "fill-blanks";
 }
 
+export interface SentenceConstructionExerciseItem {
+  item_id: string;
+  lemma_id: string;
+  
+  // Sentence Ordering fields
+  orderingCorrectSentence: string;
+  
+  // Choose Sentence fields
+  chooseContext: string;
+  chooseCorrectSentence: string;
+  distractors: string[];
+  explanation: string;
+  
+  // Complete Sentence fields
+  incompletePhrase: string;
+  completeContext: string;
+  sampleCompletions: string;
+}
+
 export async function getVocabularyExercises(): Promise<VocabularyExerciseItem[]> {
   const response = await aiServiceClient.get('/exercises/vocabulary');
   return response.data.exercises || [];
@@ -84,6 +103,34 @@ export async function getGrammarExercisesAdaptive(params: {
     return response.data.exercises || [];
   } catch (error: any) {
     console.error('Grammar exercises error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+export async function getSentenceConstructionExercisesAdaptive(params: {
+  userId?: string;
+  targetDifficulty?: "easy" | "medium" | "hard";
+  exerciseType?: "ordering" | "choose" | "complete";
+  limit?: number;
+  accessToken?: string;
+} = {}): Promise<SentenceConstructionExerciseItem[]> {
+  const userId = params.userId ? parseInt(String(params.userId)) : null;
+  
+  const body = {
+    user_id: userId,
+    target_difficulty: params.targetDifficulty || null,
+    exercise_type: params.exerciseType || null,
+    limit: params.limit || 15,
+  };
+
+  console.log('Sentence Construction request body:', body);
+
+  try {
+    const response = await aiServiceClient.post('/exercises/sentence-construction', body);
+    console.log('Sentence Construction exercises loaded:', response.data.exercises?.length);
+    return response.data.exercises || [];
+  } catch (error: any) {
+    console.error('Sentence Construction exercises error:', error.response?.data || error.message);
     throw error;
   }
 }

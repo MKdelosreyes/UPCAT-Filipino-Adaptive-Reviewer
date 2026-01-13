@@ -20,6 +20,8 @@ try:
     print(f"✅ Loaded {len(vocabulary_data)} vocabulary items")
     print(f"✅ Loaded {len(lexicon_data)} lexicon items")
     print(f"✅ Loaded {len(grammar_data)} grammar items")
+    print(
+        f"✅ Loaded {len(sentence_construction_data)} sentence construction items")
 except ImportError as e:
     print(f"⚠️ Error loading data modules: {e}")
     vocabulary_data = []
@@ -143,6 +145,39 @@ class GrammarExercisesRequest(BaseModel):
     def validate_difficulty(cls, v):
         if v is not None and v not in ['easy', 'medium', 'hard']:
             raise ValueError('target_difficulty must be easy, medium, or hard')
+        return v
+
+
+class SentenceConstructionExercisesRequest(BaseModel):
+    """Request model for sentence construction exercises endpoint."""
+    user_id: Optional[int] = None
+    target_difficulty: Optional[str] = None
+    exercise_type: Optional[str] = None  # "ordering", "choose", "complete"
+    limit: int = 15
+
+    @field_validator('user_id', mode='before')
+    @classmethod
+    def parse_user_id(cls, v):
+        if v is None or v == '':
+            return None
+        try:
+            return int(v)
+        except (ValueError, TypeError):
+            return None
+
+    @field_validator('target_difficulty')
+    @classmethod
+    def validate_difficulty(cls, v):
+        if v is not None and v not in ['easy', 'medium', 'hard']:
+            raise ValueError('target_difficulty must be easy, medium, or hard')
+        return v
+
+    @field_validator('exercise_type')
+    @classmethod
+    def validate_exercise_type(cls, v):
+        if v is not None and v not in ['ordering', 'choose', 'complete']:
+            raise ValueError(
+                'exercise_type must be ordering, choose, or complete')
         return v
 
 
@@ -271,9 +306,59 @@ def estimate_grammar_difficulty(item: dict) -> str:
         return "medium"
 
 
+def estimate_sentence_difficulty(item: dict) -> str:
+    """Estimate difficulty of a sentence construction item."""
+    try:
+        # Check sentence complexity
+        ordering_sentence = item.get("orderingCorrectSentence", "")
+        word_count = len(ordering_sentence.split())
+
+        # Check if has complex context
+        context = item.get("chooseContext", "")
+        context_length = len(context.split())
+
+        # Scoring
+        length_score = 0
+        if word_count <= 8:
+            length_score = 0
+        elif word_count <= 12:
+            length_score = 1
+        else:
+            length_score = 2
+
+        context_score = 0
+        if context_length <= 10:
+            context_score = 0
+        elif context_length <= 20:
+            context_score = 1
+        else:
+            context_score = 2
+
+        # Check for multiple distractors (harder = more options)
+        distractor_count = len(item.get("distractors", []))
+        distractor_score = 0
+        if distractor_count >= 4:
+            distractor_score = 2
+        elif distractor_count >= 3:
+            distractor_score = 1
+
+        total_score = length_score + context_score + distractor_score
+
+        if total_score <= 2:
+            return "easy"
+        elif total_score <= 4:
+            return "medium"
+        else:
+            return "hard"
+
+    except Exception as e:
+        print(f"⚠️ Error estimating sentence difficulty: {e}")
+        return "medium"
+
 # ============================================================
 # ENDPOINTS
 # ============================================================
+
 
 @app.get("/", response_model=HealthResponse)
 async def root():
@@ -638,6 +723,117 @@ async def get_grammar_exercises_adaptive(
     return {"exercises": selected[:limit]}
 
 
+@app.post("/exercises/sentence-construction")
+async def get_sentence_construction_exercises_adaptive(
+    request: SentenceConstructionExercisesRequest,
+    authorization: Optional[str] = Header(None),
+):
+    """Get adaptive sentence construction exercises based on user performance."""
+    user_id = request.user_id
+    target_difficulty = request.target_difficulty
+    # exercise_type = request.exercise_type
+    limit = request.limit
+
+    # Filter by exercise type if specified
+    filtered_items = sentence_construction_data
+    # Note: Currently all items support all 3 exercise types, so no filtering needed
+    # But keep this structure for future flexibility
+
+    if not filtered_items:
+        print("⚠️ No sentence construction items available")
+        return {"exercises": []}
+
+    def select_exercises_with_heuristic():
+        """Select exercises using heuristic difficulty estimation."""
+        annotated = []
+        for item in filtered_items:
+            estimated_diff = estimate_sentence_difficulty(item)
+            annotated.append((item, estimated_diff))
+
+        if target_difficulty in {"easy", "medium", "hard"}:
+            preferred = [item for item,
+                         diff in annotated if diff == target_difficulty]
+            others = [item for item,
+                      diff in annotated if diff != target_difficulty]
+        else:
+            preferred = []
+            others = [item for item, _ in annotated]
+
+        random.shuffle(preferred)
+        random.shuffle(others)
+
+        selected = preferred[:limit]
+        if len(selected) < limit:
+            remaining = limit - len(selected)
+            selected.extend(others[:remaining])
+
+        if not selected and filtered_items:
+            random.shuffle(filtered_items)
+            selected = filtered_items[:limit]
+
+        return selected
+
+    # If no user auth, use heuristic
+    if user_id is None or authorization is None:
+        selected = select_exercises_with_heuristic()
+        return {"exercises": selected}
+
+    token = None
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+
+    # Try to fetch user-specific difficulties
+    try:
+        user_difficulties = await fetch_user_lexical_difficulties(user_id=user_id, token=token)
+    except Exception as e:
+        print(
+            f"⚠️ Failed to fetch difficulties for sentence construction: {e}")
+        selected = select_exercises_with_heuristic()
+        return {"exercises": selected}
+
+    # Annotate items with user-specific or estimated difficulty
+    annotated = []
+    for item in filtered_items:
+        lemma_id = item.get("lemma_id")
+        score = user_difficulties.get(lemma_id)
+
+        if score is not None:
+            bucket = bucket_from_score(score)
+        else:
+            bucket = estimate_sentence_difficulty(item)
+
+        annotated.append((item, bucket))
+
+    # Select based on target difficulty
+    if target_difficulty not in {"easy", "medium", "hard"}:
+        target_difficulty = None
+
+    preferred = []
+    others = []
+
+    for item, bucket in annotated:
+        if target_difficulty is not None and bucket == target_difficulty:
+            preferred.append(item)
+        else:
+            others.append(item)
+
+    selected = []
+    random.shuffle(preferred)
+    selected.extend(preferred[:limit])
+
+    if len(selected) < limit:
+        remaining = limit - len(selected)
+        random.shuffle(others)
+        selected.extend(others[:remaining])
+
+    # Fallback to random selection if nothing selected
+    if not selected and filtered_items:
+        random.shuffle(filtered_items)
+        selected = filtered_items[:limit]
+
+    return {"exercises": selected[:limit]}
+
+
 @app.get("/exercises/lexicon")
 async def get_lexicon_exercises():
     """Get all lexicon data."""
@@ -666,6 +862,12 @@ async def debug_data_status():
     except Exception as e:
         status["grammar"] = {"loaded": False, "error": str(e)}
 
+    try:
+        status["sentence_construction"] = {
+            "loaded": True, "count": len(sentence_construction_data)}
+    except Exception as e:
+        status["sentence_construction"] = {"loaded": False, "error": str(e)}
+
     return status
 
 
@@ -693,6 +895,8 @@ async def startup_event():
     print(f"✅ Vocabulary Data: {len(vocabulary_data)} words loaded")
     print(f"✅ Lexicon Data: {len(lexicon_data)} entries loaded")
     print(f"✅ Grammar Data: {len(grammar_data)} exercises loaded")
+    print(
+        f"✅ Sentence Construction Data: {len(sentence_construction_data)} exercises loaded")
     print(
         f"✅ Explain Handler: {'Loaded' if handle_explain else 'Not Available'}")
     print(
