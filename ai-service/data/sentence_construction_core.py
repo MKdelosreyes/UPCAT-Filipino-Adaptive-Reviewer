@@ -2931,5 +2931,485 @@ sentence_construction_data = [
         "incompletePhrase": "Sa kanyang pagtangis, naramdaman niyang ________.",
         "completeContext": "Pagpapahayag ng matinding lungkot.",
         "sampleCompletions": "wala nang lakas ang kanyang loob para magpanggap na okay"
+    },
+    {
+        "item_id": "SC-LEX-171",
+        "lemma_id": "LEX-171",
+        "orderingCorrectSentence": "Tinuligsa ng mamamayan ang maling patakaran ng pamahalaan.",
+        "chooseContext": "May panukalang hindi pabor sa nakararami kaya maraming tumutol.",
+        "chooseCorrectSentence": "Matapang niyang tinuligsa ang katiwalian sa harap ng lahat.",
+        "distractors": [
+            "Matapang niyang pinuri ang katiwalian sa harap ng lahat.",
+            "Matapang niyang itinago ang katiwalian sa harap ng lahat.",
+            "Matapang niyang sinuportahan ang katiwalian sa harap ng lahat."
+        ],
+        "explanation": "Ang 'tuligsa' ang tama dahil ito ay tumutukoy sa matinding pagbatikos o pagkondena sa isang tao o ideya.",
+        "incompletePhrase": "Tinuligsa niya ang desisyon dahil ________.",
+        "completeContext": "Pagbibigay ng dahilan sa pagbatikos.",
+        "sampleCompletions": "hindi ito makatarungan para sa mga naapektuhan"
+    },
+    {
+        "item_id": "SC-LEX-172",
+        "lemma_id": "LEX-172",
+        "orderingCorrectSentence": "Pinayaman niya ang kanyang kaalaman sa pamamagitan ng pagbabasa.",
+        "chooseContext": "Gusto niyang mapanatili at mapalago ang isang mahalagang bagay.",
+        "chooseCorrectSentence": "Dapat nating pagyamanin ang kultura at wika ng ating bayan.",
+        "distractors": [
+            "Dapat nating pabayaan ang kultura at wika ng ating bayan.",
+            "Dapat nating sirain ang kultura at wika ng ating bayan.",
+            "Dapat nating talikuran ang kultura at wika ng ating bayan."
+        ],
+        "explanation": "Ang 'yaman/pagyamanin' ang tama dahil dito ang diin ay sa pagpapanatili, pag-aalaga, at pagpapalago ng mahalagang bagay o katangian.",
+        "incompletePhrase": "Pagyamanin natin ang mga talento ng kabataan sa pamamagitan ng ________.",
+        "completeContext": "Pagpapalago ng kakayahan.",
+        "sampleCompletions": "tamang pagsasanay at patuloy na paggabay"
+    },
+    {
+        "item_id": "SC-LEX-173",
+        "lemma_id": "LEX-173",
+        "orderingCorrectSentence": "Nagpahaging siya ng komento ngunit hindi tahasang nagsalita.",
+        "chooseContext": "Gusto niyang magpahiwatig ng mensahe nang hindi diretso.",
+        "chooseCorrectSentence": "Sa kanyang pahaging, alam ng lahat kung sino ang tinutukoy niya.",
+        "distractors": [
+            "Sa kanyang direktang sabi, alam ng lahat kung sino ang tinutukoy niya.",
+            "Sa kanyang pagbati, alam ng lahat kung sino ang tinutukoy niya.",
+            "Sa kanyang papuri, alam ng lahat kung sino ang tinutukoy niya."
+        ],
+        "explanation": "Ang 'pahaging' ang tama dahil ito ay hindi direktang pahayag o pasaring upang magpahiwatig ng mensahe.",
+        "incompletePhrase": "Nagpahaging siya dahil ________.",
+        "completeContext": "Dahilan ng pasaring.",
+        "sampleCompletions": "ayaw niyang makasakit nang harapan ngunit nais niyang magpahiwatig"
+    },
+    {
+        "item_id": "SC-LEX-174",
+        "lemma_id": "LEX-174",
+        "orderingCorrectSentence": "Nag-iwan siya ng pahimakas bago umalis nang tuluyan.",
+        "chooseContext": "May taong magpapaalam bago ang mahabang paghihiwalay.",
+        "chooseCorrectSentence": "Ang kanyang pahimakas ay puno ng pag-asa at pagmamahal.",
+        "distractors": [
+            "Ang kanyang pagbati ay puno ng pag-asa at pagmamahal.",
+            "Ang kanyang panunuya ay puno ng pag-asa at pagmamahal.",
+            "Ang kanyang pagtuligsa ay puno ng pag-asa at pagmamahal."
+        ],
+        "explanation": "Ang 'pahimakas' ang tama dahil ito ay huling mensahe o pamamaalam bago ang mahabang paghihiwalay o bago ang kamatayan.",
+        "incompletePhrase": "Sa kanyang pahimakas, sinabi niyang ________.",
+        "completeContext": "Huling mensahe.",
+        "sampleCompletions": "huwag kayong mawalan ng pag-asa at ipagpatuloy ang pangarap"
+    },
+    {
+        "item_id": "SC-LEX-175",
+        "lemma_id": "LEX-175",
+        "orderingCorrectSentence": "Nakibaka sila para sa karapatan ng mga manggagawa.",
+        "chooseContext": "May grupong lumalaban para sa isang prinsipyong makatarungan.",
+        "chooseCorrectSentence": "Ang pakikibaka nila ay para sa mas maayos na kinabukasan.",
+        "distractors": [
+            "Ang pagsuko nila ay para sa mas maayos na kinabukasan.",
+            "Ang pag-iwas nila ay para sa mas maayos na kinabukasan.",
+            "Ang pagtatago nila ay para sa mas maayos na kinabukasan."
+        ],
+        "explanation": "Ang 'pakikibaka' ang tama dahil ito ay tumutukoy sa pakikipaglaban o pagtunggali para sa isang layunin o prinsipyo.",
+        "incompletePhrase": "Sa kanilang pakikibaka, natutunan nilang ________.",
+        "completeContext": "Aral mula sa pakikipaglaban.",
+        "sampleCompletions": "magkaisa at huwag matakot magsalita para sa tama"
+    },
+    {
+        "item_id": "SC-LEX-176",
+        "lemma_id": "LEX-176",
+        "orderingCorrectSentence": "Mahusay siyang makisalamuha sa iba’t ibang tao.",
+        "chooseContext": "May bagong empleyado at kailangan niyang makihalubilo sa mga katrabaho.",
+        "chooseCorrectSentence": "Ang pakikisalamuha ay mahalaga sa pagbuo ng tiwala sa trabaho.",
+        "distractors": [
+            "Ang pag-iisa ay mahalaga sa pagbuo ng tiwala sa trabaho.",
+            "Ang paglayo ay mahalaga sa pagbuo ng tiwala sa trabaho.",
+            "Ang pagtatago ay mahalaga sa pagbuo ng tiwala sa trabaho."
+        ],
+        "explanation": "Ang 'pakikisalamuha' ang tama dahil ito ay tumutukoy sa pakikipag-ugnayan o pakikihalo sa iba't ibang tao.",
+        "incompletePhrase": "Gumanda ang samahan nila dahil sa ________.",
+        "completeContext": "Pagpapalalim ng ugnayan.",
+        "sampleCompletions": "madalas na pakikisalamuha at bukas na komunikasyon"
+    },
+    {
+        "item_id": "SC-LEX-177",
+        "lemma_id": "LEX-177",
+        "orderingCorrectSentence": "Dahil palalo siya, marami ang naiinis sa kanya.",
+        "chooseContext": "May taong laging nagyayabang at minamaliit ang iba.",
+        "chooseCorrectSentence": "Ang palalong pag-uugali ay nakakasira ng relasyon.",
+        "distractors": [
+            "Ang mapagkumbabang pag-uugali ay nakakasira ng relasyon.",
+            "Ang mabait na pag-uugali ay nakakasira ng relasyon.",
+            "Ang maunawaing pag-uugali ay nakakasira ng relasyon."
+        ],
+        "explanation": "Ang 'palalo/kapalaluan' ang tama dahil ito ay tumutukoy sa labis na pagmamalaki o kayabangan.",
+        "incompletePhrase": "Naging palalo siya dahil ________.",
+        "completeContext": "Sanhi ng pagyayabang.",
+        "sampleCompletions": "biglang sumikat siya at nakalimot sa mga tumulong sa kanya"
+    },
+    {
+        "item_id": "SC-LEX-178",
+        "lemma_id": "LEX-178",
+        "orderingCorrectSentence": "Tumaghoy siya sa tindi ng kanyang hinagpis.",
+        "chooseContext": "May nawala sa kanya at hindi niya mapigilan ang pagdadalamhati.",
+        "chooseCorrectSentence": "Ang taghoy ay nagpapahiwatig ng matinding pagdurusa.",
+        "distractors": [
+            "Ang halakhak ay nagpapahiwatig ng matinding pagdurusa.",
+            "Ang pagdiriwang ay nagpapahiwatig ng matinding pagdurusa.",
+            "Ang papuri ay nagpapahiwatig ng matinding pagdurusa."
+        ],
+        "explanation": "Ang 'taghoy' ang tama dahil ito ay pagpapahayag ng matinding hinagpis o pagluluksa.",
+        "incompletePhrase": "Narinig ang kanyang taghoy nang ________.",
+        "completeContext": "Sandali ng pagdadalamhati.",
+        "sampleCompletions": "malaman niyang hindi na babalik ang mahal niya sa buhay"
+    },
+    {
+        "item_id": "SC-LEX-179",
+        "lemma_id": "LEX-179",
+        "orderingCorrectSentence": "Panaka-naka siyang dumadalaw sa kanilang lola.",
+        "chooseContext": "Hindi madalas ang kanyang pagbisita dahil abala siya sa trabaho.",
+        "chooseCorrectSentence": "Panaka-naka lang umuulan kaya natuyo ang lupa.",
+        "distractors": [
+            "Palagi lang umuulan kaya natuyo ang lupa.",
+            "Madalas lang umuulan kaya natuyo ang lupa.",
+            "Araw-araw lang umuulan kaya natuyo ang lupa."
+        ],
+        "explanation": "Ang 'panaka-naka' ang tama dahil ito ay tumutukoy sa nangyayari nang may pagitan o hindi madalas.",
+        "incompletePhrase": "Panaka-naka siyang napapaisip tungkol sa ________.",
+        "completeContext": "Paminsan-minsang pagninilay.",
+        "sampleCompletions": "mga desisyong sana’y ginawa niya noon"
+    },
+    {
+        "item_id": "SC-LEX-180",
+        "lemma_id": "LEX-180",
+        "orderingCorrectSentence": "Nabalot siya ng panimdim sa tahimik na gabi.",
+        "chooseContext": "May dinadala siyang lungkot na hindi niya masabi kanino man.",
+        "chooseCorrectSentence": "Ang panimdim ay mabigat sa dibdib kapag kinikimkim.",
+        "distractors": [
+            "Ang kasiyahan ay mabigat sa dibdib kapag kinikimkim.",
+            "Ang kagalakan ay mabigat sa dibdib kapag kinikimkim.",
+            "Ang tuwa ay mabigat sa dibdib kapag kinikimkim."
+        ],
+        "explanation": "Ang 'panimdim' ang tama dahil ito ay tumutukoy sa malalim na kalungkutan o lihim na dinaramdam.",
+        "incompletePhrase": "Nadama niya ang panimdim nang ________.",
+        "completeContext": "Pag-alaala na may lungkot.",
+        "sampleCompletions": "maalala niya ang mga bagay na nawala at hindi na maibabalik"
+    },
+    {
+        "item_id": "SC-LEX-181",
+        "lemma_id": "LEX-181",
+        "orderingCorrectSentence": "Mabigat ang pasanin niya sa pamilya.",
+        "chooseContext": "Siya lang ang kumikita kaya maraming responsibilidad ang nakaatang sa kanya.",
+        "chooseCorrectSentence": "Hindi madaling dalhin ang pasanin ng utang at problema.",
+        "distractors": [
+            "Hindi madaling dalhin ang ginhawa ng utang at problema.",
+            "Hindi madaling dalhin ang kasiyahan ng utang at problema.",
+            "Hindi madaling dalhin ang luwalhati ng utang at problema."
+        ],
+        "explanation": "Ang 'pasan/pasanin' ang tama dahil ito ay tumutukoy sa mabigat na tungkulin, obligasyon, o problema.",
+        "incompletePhrase": "Pasanin niya ang responsibilidad kaya ________.",
+        "completeContext": "Epekto ng mabigat na obligasyon.",
+        "sampleCompletions": "madalas siyang napapagod at kulang sa pahinga"
+    },
+    {
+        "item_id": "SC-LEX-182",
+        "lemma_id": "LEX-182",
+        "orderingCorrectSentence": "Naglatag sila ng patibog sa gubat para makahuli.",
+        "chooseContext": "May plano silang manghuli ng hayop gamit ang bitag.",
+        "chooseCorrectSentence": "Ang patibog ay inilagay sa daanan ng baboy-ramo.",
+        "distractors": [
+            "Ang pagkain ay inilagay sa daanan ng baboy-ramo.",
+            "Ang laruan ay inilagay sa daanan ng baboy-ramo.",
+            "Ang unan ay inilagay sa daanan ng baboy-ramo."
+        ],
+        "explanation": "Ang 'patibog' ang tama dahil ito ay tumutukoy sa kasangkapan o paraan upang makahuli, gaya ng bitag.",
+        "incompletePhrase": "Naglagay sila ng patibog upang ________.",
+        "completeContext": "Layunin ng bitag.",
+        "sampleCompletions": "mahuli ang hayop na sumisira sa kanilang mga pananim"
+    },
+    {
+        "item_id": "SC-LEX-183",
+        "lemma_id": "LEX-183",
+        "orderingCorrectSentence": "Patnubay ng guro ang mga estudyante sa tamang landas.",
+        "chooseContext": "May baguhang empleyado at kailangan niya ng gabay sa trabaho.",
+        "chooseCorrectSentence": "Ang patnubay ng magulang ay mahalaga sa paglaki ng anak.",
+        "distractors": [
+            "Ang panunuya ng magulang ay mahalaga sa paglaki ng anak.",
+            "Ang pagpapabaya ng magulang ay mahalaga sa paglaki ng anak.",
+            "Ang panlilibak ng magulang ay mahalaga sa paglaki ng anak."
+        ],
+        "explanation": "Ang 'patnubay' ang tama dahil ito ay tumutukoy sa pagbibigay ng direksyon o alalay sa isang tao.",
+        "incompletePhrase": "Humingi siya ng patnubay upang ________.",
+        "completeContext": "Paghahanap ng gabay.",
+        "sampleCompletions": "makagawa siya ng tamang desisyon sa mahirap na sitwasyon"
+    },
+    {
+        "item_id": "SC-LEX-184",
+        "lemma_id": "LEX-184",
+        "orderingCorrectSentence": "Payak ang kanilang handa ngunit masaya ang salu-salo.",
+        "chooseContext": "Hindi marangya ang selebrasyon pero puno ito ng pagmamahal.",
+        "chooseCorrectSentence": "Pinili nila ang payak na pamumuhay para makaiwas sa utang.",
+        "distractors": [
+            "Pinili nila ang marangyang pamumuhay para makaiwas sa utang.",
+            "Pinili nila ang magarbong pamumuhay para makaiwas sa utang.",
+            "Pinili nila ang magastos na pamumuhay para makaiwas sa utang."
+        ],
+        "explanation": "Ang 'payak' ang tama dahil ito ay tumutukoy sa simple o walang halong arte at komplikasyon.",
+        "incompletePhrase": "Mas gusto niya ang payak na damit dahil ________.",
+        "completeContext": "Pagpapaliwanag ng pagpili sa pagiging simple.",
+        "sampleCompletions": "komportable ito at hindi siya mahilig sa magarbong ayos"
+    },
+    {
+        "item_id": "SC-LEX-185",
+        "lemma_id": "LEX-185",
+        "orderingCorrectSentence": "Nasa pedestal ang rebulto sa gitna ng plaza.",
+        "chooseContext": "May estatwa sa parke at kailangan itong ilagay sa mataas na tungtungan.",
+        "chooseCorrectSentence": "Itinayo ang pedestal upang maging matatag ang estatwa.",
+        "distractors": [
+            "Itinayo ang sahig upang maging matatag ang estatwa.",
+            "Itinayo ang hukay upang maging matatag ang estatwa.",
+            "Itinayo ang bangin upang maging matatag ang estatwa."
+        ],
+        "explanation": "Ang 'pedestal' ang tama dahil ito ay plataporma o tungtungan na kinalalagyan ng estatwa o mahalagang bagay.",
+        "incompletePhrase": "Inilagay sa pedestal ang parangal upang ________.",
+        "completeContext": "Pagpapakita ng kahalagahan.",
+        "sampleCompletions": "madaling makita at mapahalagahan ng mga bisita"
+    },
+    {
+        "item_id": "SC-LEX-186",
+        "lemma_id": "LEX-186",
+        "orderingCorrectSentence": "Napighati siya nang malaman ang masamang balita.",
+        "chooseContext": "Namatay ang mahal niya sa buhay kaya matindi ang kanyang lungkot.",
+        "chooseCorrectSentence": "Ang pighati ay mas mabigat kapag nag-iisa kang humaharap dito.",
+        "distractors": [
+            "Ang luwalhati ay mas mabigat kapag nag-iisa kang humaharap dito.",
+            "Ang saya ay mas mabigat kapag nag-iisa kang humaharap dito.",
+            "Ang tuwa ay mas mabigat kapag nag-iisa kang humaharap dito."
+        ],
+        "explanation": "Ang 'pighati/kapighatian' ang tama dahil ito ay tumutukoy sa matinding lungkot o hapis.",
+        "incompletePhrase": "Sa gitna ng pighati, ________.",
+        "completeContext": "Pagharap sa matinding kalungkutan.",
+        "sampleCompletions": "kumapit siya sa pag-asa at sa suporta ng pamilya"
+    },
+    {
+        "item_id": "SC-LEX-187",
+        "lemma_id": "LEX-187",
+        "orderingCorrectSentence": "Pinagtagpi-tagpi nila ang lumang kumot para magamit muli.",
+        "chooseContext": "May sirang tela at kailangan nilang pagsamahin ang mga piraso.",
+        "chooseCorrectSentence": "Ang pinagtagpi-tagping kuwento ay nabuo sa dulo ng usapan.",
+        "distractors": [
+            "Ang pinaghiwa-hiwalay na kuwento ay nabuo sa dulo ng usapan.",
+            "Ang binaklas na kuwento ay nabuo sa dulo ng usapan.",
+            "Ang winasak na kuwento ay nabuo sa dulo ng usapan."
+        ],
+        "explanation": "Ang 'tagpi/pagtagpi' ang tama dahil ito ay pagsasama ng mga bahagi upang makabuo ng kabuuan.",
+        "incompletePhrase": "Pinagtagpi-tagpi niya ang mga ideya upang ________.",
+        "completeContext": "Pagbuo ng iisang konsepto.",
+        "sampleCompletions": "makagawa ng malinaw na paliwanag para sa presentasyon"
+    },
+    {
+        "item_id": "SC-LEX-188",
+        "lemma_id": "LEX-188",
+        "orderingCorrectSentence": "Nagkataon at pinagtiyap silang muli sa parehong lugar.",
+        "chooseContext": "Hindi nila sinadyang magkita, pero sabay silang dumating.",
+        "chooseCorrectSentence": "Pinagtiyap ng pagkakataon ang kanilang muling pagtatagpo.",
+        "distractors": [
+            "Sinadya ng pagkakataon ang kanilang muling pagtatagpo.",
+            "Hiniwalay ng pagkakataon ang kanilang muling pagtatagpo.",
+            "Tinanggi ng pagkakataon ang kanilang muling pagtatagpo."
+        ],
+        "explanation": "Ang 'tiyap/pinagtiyap' ang tama dahil ito ay tumutukoy sa pagkakasabay o pagsasama ng pangyayari (nagkataon).",
+        "incompletePhrase": "Pinagtiyap silang magkasama dahil ________.",
+        "completeContext": "Hindi inaasahang pagkakatugma ng oras/pangyayari.",
+        "sampleCompletions": "pareho silang na-delay at pareho ring sumakay sa parehong biyahe"
+    },
+    {
+        "item_id": "SC-LEX-189",
+        "lemma_id": "LEX-189",
+        "orderingCorrectSentence": "Pinatingkad ng araw ang kulay ng mga dahon.",
+        "chooseContext": "Gusto mong gawing mas malinaw at mas kapansin-pansin ang isang detalye.",
+        "chooseCorrectSentence": "Ang matibay na ebidensya ang nagpatiningkad sa katotohanan.",
+        "distractors": [
+            "Ang matibay na ebidensya ang nagpalabo sa katotohanan.",
+            "Ang matibay na ebidensya ang nagtago sa katotohanan.",
+            "Ang matibay na ebidensya ang nagkaila sa katotohanan."
+        ],
+        "explanation": "Ang 'tingkad/pinatingkad' ang tama dahil ito ay tumutukoy sa pagpapasidhi o pagpapalinaw ng kulay o katangian.",
+        "incompletePhrase": "Pinatingkad ng kanyang halimbawa ang ________.",
+        "completeContext": "Pagpapalinaw ng aral sa pamamagitan ng halimbawa.",
+        "sampleCompletions": "kahalagahan ng pagiging tapat sa trabaho"
+    },
+    {
+        "item_id": "SC-LEX-190",
+        "lemma_id": "LEX-190",
+        "orderingCorrectSentence": "Narinig niya ang pintig ng kanyang puso sa sobrang kaba.",
+        "chooseContext": "May mahalagang sandali at mabilis ang tibok ng puso niya.",
+        "chooseCorrectSentence": "Bumilis ang pintig ng kanyang puso nang tawagin ang kanyang pangalan.",
+        "distractors": [
+            "Huminto ang pintig ng kanyang puso nang tawagin ang kanyang pangalan.",
+            "Tumigil ang pintig ng kanyang puso nang tawagin ang kanyang pangalan.",
+            "Nawala ang pintig ng kanyang puso nang tawagin ang kanyang pangalan."
+        ],
+        "explanation": "Ang 'pintig' ang tama dahil ito ay tumutukoy sa regular na pagtibok ng puso o pulso.",
+        "incompletePhrase": "Bumilis ang pintig niya dahil ________.",
+        "completeContext": "Sanhi ng kaba o tuwa.",
+        "sampleCompletions": "bigla siyang kinabahan sa harap ng maraming tao"
+    },
+    {
+        "item_id": "SC-LEX-191",
+        "lemma_id": "LEX-191",
+        "orderingCorrectSentence": "Ginamit niya ang pisi para itali ang kahon.",
+        "chooseContext": "Kailangan niyang magtali gamit ang sinulid na hinabi.",
+        "chooseCorrectSentence": "Nabali ang pisi kaya kumalas ang pagkakatali.",
+        "distractors": [
+            "Nabali ang bakal kaya kumalas ang pagkakatali.",
+            "Nabali ang bato kaya kumalas ang pagkakatali.",
+            "Nabali ang papel kaya kumalas ang pagkakatali."
+        ],
+        "explanation": "Ang 'pisi' ang tama dahil ito ay uri ng tali na gawa sa hinabing sinulid.",
+        "incompletePhrase": "Itinali niya gamit ang pisi upang ________.",
+        "completeContext": "Layunin ng pagtali.",
+        "sampleCompletions": "hindi mahulog ang mga gamit habang dinadala"
+    },
+    {
+        "item_id": "SC-LEX-192",
+        "lemma_id": "LEX-192",
+        "orderingCorrectSentence": "Napudpod ang suwelas ng kanyang sapatos sa kakalakad.",
+        "chooseContext": "Matagal nang ginagamit ang isang bagay kaya numipis at nasira.",
+        "chooseCorrectSentence": "Napudpod ang kanyang tuhod sa kaka-practice sa sayaw.",
+        "distractors": [
+            "Guminhawa ang kanyang tuhod sa kaka-practice sa sayaw.",
+            "Lumakas ang kanyang tuhod sa kaka-practice sa sayaw.",
+            "Naging bago ang kanyang tuhod sa kaka-practice sa sayaw."
+        ],
+        "explanation": "Ang 'pudpod/napudpod' ang tama dahil ito ay pagkasira o pagliit dahil sa madalas na paggamit o pagkikiskisan.",
+        "incompletePhrase": "Napudpod ang mga upuan dahil ________.",
+        "completeContext": "Sanhi ng pagkasira.",
+        "sampleCompletions": "araw-araw itong ginagamit ng maraming tao"
+    },
+    {
+        "item_id": "SC-LEX-193",
+        "lemma_id": "LEX-193",
+        "orderingCorrectSentence": "Pugtuin mo ang lubid bago pa siya madulas.",
+        "chooseContext": "May kailangang putulin nang mabilis para maiwasan ang panganib.",
+        "chooseCorrectSentence": "Isang iglap lang at napugto ang tali ng saranggola.",
+        "distractors": [
+            "Isang iglap lang at nadugtong ang tali ng saranggola.",
+            "Isang iglap lang at naayos ang tali ng saranggola.",
+            "Isang iglap lang at tumibay ang tali ng saranggola."
+        ],
+        "explanation": "Ang 'pugtuin/pugto' ang tama dahil ito ay mabilis na pagputol o paghiwalay sa isang bagay.",
+        "incompletePhrase": "Napugto ang kanilang ugnayan nang ________.",
+        "completeContext": "Talinghagang pagputol ng relasyon.",
+        "sampleCompletions": "mawala ang tiwala at hindi na sila nagkausap"
+    },
+    {
+        "item_id": "SC-LEX-194",
+        "lemma_id": "LEX-194",
+        "orderingCorrectSentence": "Pulido ang pagkakagawa niya sa proyekto.",
+        "chooseContext": "Tinapos niya ang trabaho nang maayos at malinis ang resulta.",
+        "chooseCorrectSentence": "Pulido ang kanyang presentasyon kaya naintindihan agad ng lahat.",
+        "distractors": [
+            "Burara ang kanyang presentasyon kaya naintindihan agad ng lahat.",
+            "Magulo ang kanyang presentasyon kaya naintindihan agad ng lahat.",
+            "Magaspang ang kanyang presentasyon kaya naintindihan agad ng lahat."
+        ],
+        "explanation": "Ang 'pulido' ang tama dahil ito ay tumutukoy sa gawaing maingat, malinis, at maayos ang pagkakatapos.",
+        "incompletePhrase": "Para maging pulido ang output, ________.",
+        "completeContext": "Pagpapabuti ng kalidad.",
+        "sampleCompletions": "sinuri niya ito at inayos ang mga detalye bago ipasa"
+    },
+    {
+        "item_id": "SC-LEX-195",
+        "lemma_id": "LEX-195",
+        "orderingCorrectSentence": "Pulos katotohanan ang kanyang sinabi.",
+        "chooseContext": "Walang halong kasinungalingan o ibang bagay ang pahayag.",
+        "chooseCorrectSentence": "Pulos papuri ang narinig niya mula sa mga hurado.",
+        "distractors": [
+            "Halo-halong papuri ang narinig niya mula sa mga hurado.",
+            "Pulos panunuya ang narinig niya mula sa mga hurado.",
+            "Pulos libak ang narinig niya mula sa mga hurado."
+        ],
+        "explanation": "Ang 'pulos' ang tama dahil ito ay tumutukoy sa 'puro' o binubuo lamang ng iisang uri.",
+        "incompletePhrase": "Pulos reklamo ang naririnig niya kaya ________.",
+        "completeContext": "Reaksyon sa negatibong sitwasyon.",
+        "sampleCompletions": "pinili niyang ayusin ang problema kaysa makipagtalo"
+    },
+    {
+        "item_id": "SC-LEX-196",
+        "lemma_id": "LEX-196",
+        "orderingCorrectSentence": "Pumailanlang ang saranggola sa bughaw na langit.",
+        "chooseContext": "May bagay na umaakyat o lumilipad nang mataas.",
+        "chooseCorrectSentence": "Pumailanlang ang kanyang pangarap dahil sa suporta ng pamilya.",
+        "distractors": [
+            "Lumubog ang kanyang pangarap dahil sa suporta ng pamilya.",
+            "Bumaba ang kanyang pangarap dahil sa suporta ng pamilya.",
+            "Huminto ang kanyang pangarap dahil sa suporta ng pamilya."
+        ],
+        "explanation": "Ang 'pumailanlang/ilanlang' ang tama dahil ito ay tumutukoy sa pag-akyat o paglipad nang mataas; maaari ring gamitin sa talinghaga sa pagtaas ng pangarap.",
+        "incompletePhrase": "Pumailanlang ang kanyang tinig habang ________.",
+        "completeContext": "Paglalarawan ng pagtaas ng boses/tinig.",
+        "sampleCompletions": "umaawit siya sa harap ng madla"
+    },
+    {
+        "item_id": "SC-LEX-197",
+        "lemma_id": "LEX-197",
+        "orderingCorrectSentence": "Pumuna siya sa maling sagot ngunit mahinahon.",
+        "chooseContext": "May napansin siyang pagkakamali at nais niya itong itama.",
+        "chooseCorrectSentence": "Makatwiran ang kanyang puna kaya pinakinggan siya ng lahat.",
+        "distractors": [
+            "Walang saysay ang kanyang puna kaya pinakinggan siya ng lahat.",
+            "Magulo ang kanyang puna kaya pinakinggan siya ng lahat.",
+            "Bastos ang kanyang puna kaya pinakinggan siya ng lahat."
+        ],
+        "explanation": "Ang 'puna' ang tama dahil ito ay obserbasyon o pagbibigay-pansin sa isang bagay o gawi.",
+        "incompletePhrase": "Ang kanyang puna ay nakatulong upang ________.",
+        "completeContext": "Gamit ng konstruktibong feedback.",
+        "sampleCompletions": "maitama agad ang mga pagkukulang sa plano"
+    },
+    {
+        "item_id": "SC-LEX-198",
+        "lemma_id": "LEX-198",
+        "orderingCorrectSentence": "Puspos ng saya ang pagdiriwang kagabi.",
+        "chooseContext": "Lubos ang damdamin na nararamdaman niya sa isang sandali.",
+        "chooseCorrectSentence": "Puspos ng pag-asa ang kanyang puso kahit may pagsubok.",
+        "distractors": [
+            "Kapos ng pag-asa ang kanyang puso kahit may pagsubok.",
+            "Kulang ng pag-asa ang kanyang puso kahit may pagsubok.",
+            "Walang pag-asa ang kanyang puso kahit may pagsubok."
+        ],
+        "explanation": "Ang 'puspos' ang tama dahil ito ay tumutukoy sa pagiging puno o lubos ng isang damdamin o katangian.",
+        "incompletePhrase": "Puspos siya ng pasasalamat kaya ________.",
+        "completeContext": "Pagpapahayag ng taos-pusong damdamin.",
+        "sampleCompletions": "nagpasalamat siya sa lahat ng tumulong sa kanya"
+    },
+    {
+        "item_id": "SC-LEX-199",
+        "lemma_id": "LEX-199",
+        "orderingCorrectSentence": "Ang watawat ay sagisag ng ating bansa.",
+        "chooseContext": "May simbolong kumakatawan sa isang ideya o identidad.",
+        "chooseCorrectSentence": "Ang puting kalapati ay sagisag ng kapayapaan.",
+        "distractors": [
+            "Ang puting kalapati ay katotohanan ng kapayapaan.",
+            "Ang puting kalapati ay kabuuan ng kapayapaan.",
+            "Ang puting kalapati ay detalye ng kapayapaan."
+        ],
+        "explanation": "Ang 'sagisag' ang tama dahil ito ay tanda o representasyon na tumatayo para sa isang ideya, bansa, o halaga.",
+        "incompletePhrase": "Ang singsing ay sagisag ng ________.",
+        "completeContext": "Kahulugan ng simbolo.",
+        "sampleCompletions": "pangako at panghabambuhay na pagsasama"
+    },
+    {
+        "item_id": "SC-LEX-200",
+        "lemma_id": "LEX-200",
+        "orderingCorrectSentence": "Nasaid ang kanilang pagkain bago matapos ang linggo.",
+        "chooseContext": "Naubos ang suplay kaya kailangan nilang maghanap ng paraan.",
+        "chooseCorrectSentence": "Nasaid ang kanyang lakas kaya kailangan niyang magpahinga.",
+        "distractors": [
+            "Sagana ang kanyang lakas kaya kailangan niyang magpahinga.",
+            "Puno ang kanyang lakas kaya kailangan niyang magpahinga.",
+            "Labis ang kanyang lakas kaya kailangan niyang magpahinga."
+        ],
+        "explanation": "Ang 'said/nasaid' ang tama dahil ito ay tumutukoy sa pagkaubos o pagsimot ng lahat ng laman o suplay.",
+        "incompletePhrase": "Nasaid ang kanilang pasensya kaya ________.",
+        "completeContext": "Bunga ng labis na pagkaubos ng pasensya.",
+        "sampleCompletions": "nagpasiya silang tumigil muna at ipagpatuloy na lang kinabukasan"
     }
 ]
