@@ -2451,5 +2451,485 @@ sentence_construction_data = [
         "incompletePhrase": "Kahit hapo na ang kanyang katawan, ________.",
         "completeContext": "Pagtitiyaga sa kabila ng pagod.",
         "sampleCompletions": "ipinagpatuloy pa rin niya ang pagtakbo hanggang sa finish line"
+    },
+    {
+        "item_id": "SC-LEX-141",
+        "lemma_id": "LEX-141",
+        "orderingCorrectSentence": "Nahihili siya sa bagong cellphone ng kanyang kaibigan.",
+        "chooseContext": "May kaklase siyang may bagong gamit na gusto rin niyang magkaroon.",
+        "chooseCorrectSentence": "Nahihili siya sa tagumpay ng iba, ngunit sinikap niyang magsikap din.",
+        "distractors": [
+            "Wala siyang pakialam sa tagumpay ng iba, ngunit sinikap niyang magsikap din.",
+            "Kontento siya sa tagumpay ng iba, ngunit sinikap niyang magsikap din.",
+            "Natutuwa siya sa tagumpay ng iba, ngunit sinikap niyang magsikap din."
+        ],
+        "explanation": "Ang 'nahihili' ang tama dahil ito ay tumutukoy sa matinding paghanga o pagkaakit na maaaring mauwi sa pagnanais na magkaroon o tularan ang isang bagay.",
+        "incompletePhrase": "Nahihili siya hindi dahil sa inggit, kundi dahil ________.",
+        "completeContext": "Paglilinaw ng dahilan ng paghanga.",
+        "sampleCompletions": "humanga siya sa sipag na nagdala roon sa tagumpay"
+    },
+    {
+        "item_id": "SC-LEX-142",
+        "lemma_id": "LEX-142",
+        "orderingCorrectSentence": "Nabulahaw ang buong barangay sa biglang sigawan.",
+        "chooseContext": "May malakas na ingay sa gabi na nagpagising sa lahat.",
+        "chooseCorrectSentence": "Ang bulahaw sa kalsada ay nakagambala sa mga natutulog.",
+        "distractors": [
+            "Ang katahimikan sa kalsada ay nakagambala sa mga natutulog.",
+            "Ang lamyos sa kalsada ay nakagambala sa mga natutulog.",
+            "Ang pahinga sa kalsada ay nakagambala sa mga natutulog."
+        ],
+        "explanation": "Ang 'bulahaw' ang tama dahil ito ay tumutukoy sa malakas at nakakagambalang ingay o sigaw.",
+        "incompletePhrase": "Nabulahaw sila nang ________.",
+        "completeContext": "Pagkagising o pagkagulat dahil sa ingay.",
+        "sampleCompletions": "may sumigaw sa labas at may nagtakbuhang tao"
+    },
+    {
+        "item_id": "SC-LEX-143",
+        "lemma_id": "LEX-143",
+        "orderingCorrectSentence": "Ikintal mo sa isip ang aral na natutunan mo ngayon.",
+        "chooseContext": "Gusto ng guro na hindi makalimutan ng mga estudyante ang mahalagang aral.",
+        "chooseCorrectSentence": "Nakakintal sa kanya ang payo ng kanyang ina.",
+        "distractors": [
+            "Nakalimutan sa kanya ang payo ng kanyang ina.",
+            "Nawala sa kanya ang payo ng kanyang ina.",
+            "Napawi sa kanya ang payo ng kanyang ina."
+        ],
+        "explanation": "Ang 'nakakintal' ang tama dahil ito ay tumutukoy sa isang bagay na malinaw na naitatak sa isip o puso at hindi madaling makalimutan.",
+        "incompletePhrase": "Nakakintal sa kanyang alaala ang ________.",
+        "completeContext": "Matinding alaalang hindi mabura.",
+        "sampleCompletions": "mga salitang nagpalakas ng loob niya noong siya'y sumuko na sana"
+    },
+    {
+        "item_id": "SC-LEX-144",
+        "lemma_id": "LEX-144",
+        "orderingCorrectSentence": "Sulit ang pagod namin dahil natapos din ang proyekto.",
+        "chooseContext": "Marami silang pinagdaanan, pero maganda ang kinalabasan ng kanilang trabaho.",
+        "chooseCorrectSentence": "Sulit ang sakripisyo kapag may natutulungang tao.",
+        "distractors": [
+            "Sayang ang sakripisyo kapag may natutulungang tao.",
+            "Walang saysay ang sakripisyo kapag may natutulungang tao.",
+            "Hindi sulit ang sakripisyo kapag may natutulungang tao."
+        ],
+        "explanation": "Ang 'sulit' ang tama dahil ito ay tumutukoy sa pagkakaroon ng kapalit o balik na halaga sa ginastos o pinaghirapan.",
+        "incompletePhrase": "Sulit ang lahat ng paghihintay kapag ________.",
+        "completeContext": "Pagbibigay-diin sa kinalabasan.",
+        "sampleCompletions": "dumating na rin ang pagkakataong matagal mong pinagdasal"
+    },
+    {
+        "item_id": "SC-LEX-145",
+        "lemma_id": "LEX-145",
+        "orderingCorrectSentence": "Nalulugami siya sa sunod-sunod na problema.",
+        "chooseContext": "Sunod-sunod ang malas at hindi niya alam kung paano babangon.",
+        "chooseCorrectSentence": "Sa kabila ng pagkalugami, pinili pa rin niyang lumaban.",
+        "distractors": [
+            "Sa kabila ng tagumpay, pinili pa rin niyang lumaban.",
+            "Sa kabila ng luwalhati, pinili pa rin niyang lumaban.",
+            "Sa kabila ng kasaganaan, pinili pa rin niyang lumaban."
+        ],
+        "explanation": "Ang 'pagkalugami' ang tama dahil ito ay tumutukoy sa pagiging lubos na nadadaig o napapailalim ng hirap o lungkot.",
+        "incompletePhrase": "Nalulugami siya dahil ________.",
+        "completeContext": "Sanhi ng matinding pagkapit sa problema.",
+        "sampleCompletions": "nawala ang trabaho niya at nagkasakit pa ang kanyang anak"
+    },
+    {
+        "item_id": "SC-LEX-146",
+        "lemma_id": "LEX-146",
+        "orderingCorrectSentence": "Namayani ang takot sa buong komunidad matapos ang insidente.",
+        "chooseContext": "May nangyaring krimen kaya maraming tao ang natakot lumabas.",
+        "chooseCorrectSentence": "Namayani ang pag-asa nang dumating ang tulong.",
+        "distractors": [
+            "Napawi ang pag-asa nang dumating ang tulong.",
+            "Nawala ang pag-asa nang dumating ang tulong.",
+            "Nabura ang pag-asa nang dumating ang tulong."
+        ],
+        "explanation": "Ang 'namayani' ang tama dahil ito ay tumutukoy sa pagiging nangingibabaw o umiral sa isang panahon o sitwasyon.",
+        "incompletePhrase": "Sa paglipas ng mga araw, namayani ang ________.",
+        "completeContext": "Pagbabago ng nangingibabaw na damdamin o kalagayan.",
+        "sampleCompletions": "tiwala sa sarili dahil unti-unti niyang natutunan ang bagong gawain"
+    },
+    {
+        "item_id": "SC-LEX-147",
+        "lemma_id": "LEX-147",
+        "orderingCorrectSentence": "Namutawi sa kanyang labi ang katotohanan.",
+        "chooseContext": "Hindi niya sinadyang masabi ang sikreto sa gitna ng usapan.",
+        "chooseCorrectSentence": "Namutawi ang kanyang pasasalamat nang tulungan siya ng lahat.",
+        "distractors": [
+            "Itinago ang kanyang pasasalamat nang tulungan siya ng lahat.",
+            "Tinago niya ang kanyang pasasalamat nang tulungan siya ng lahat.",
+            "Sinikil ang kanyang pasasalamat nang tulungan siya ng lahat."
+        ],
+        "explanation": "Ang 'namutawi' ang tama dahil ito ay tumutukoy sa kusang paglabas ng mga salita o pahayag.",
+        "incompletePhrase": "Namutawi ang kanyang paghingi ng tawad nang ________.",
+        "completeContext": "Kusang pag-amin o paghingi ng tawad.",
+        "sampleCompletions": "napagtanto niyang nakasakit siya ng damdamin"
+    },
+    {
+        "item_id": "SC-LEX-148",
+        "lemma_id": "LEX-148",
+        "orderingCorrectSentence": "Tumawid sila sa taytay na gawa sa kawayan.",
+        "chooseContext": "Kailangan nilang makatawid sa sapa kahit walang konkretong tulay.",
+        "chooseCorrectSentence": "Maingat silang dumaan sa taytay upang hindi madulas.",
+        "distractors": [
+            "Maingat silang dumaan sa bangin upang hindi madulas.",
+            "Maingat silang dumaan sa hukay upang hindi madulas.",
+            "Maingat silang dumaan sa pader upang hindi madulas."
+        ],
+        "explanation": "Ang 'taytay' ang tama dahil ito ay tumutukoy sa maliit o pansamantalang tulay para tawiran ang tubig o hukay.",
+        "incompletePhrase": "Ang taytay ang nagsilbing ________.",
+        "completeContext": "Gamit ng tulay/tawiran.",
+        "sampleCompletions": "daan para makarating sila sa kabilang pampang"
+    },
+    {
+        "item_id": "SC-LEX-149",
+        "lemma_id": "LEX-149",
+        "orderingCorrectSentence": "Nananangan siya sa pangakong binitiwan ng kanyang ama.",
+        "chooseContext": "Nahihirapan siya, pero kumakapit siya sa isang paniniwala para magpatuloy.",
+        "chooseCorrectSentence": "Sa gitna ng pagsubok, tangan niya ang pag-asang makakabangon.",
+        "distractors": [
+            "Sa gitna ng pagsubok, binitiwan niya ang pag-asang makakabangon.",
+            "Sa gitna ng pagsubok, tinalikuran niya ang pag-asang makakabangon.",
+            "Sa gitna ng pagsubok, winasak niya ang pag-asang makakabangon."
+        ],
+        "explanation": "Ang 'tangan' ang tama dahil ito ay tumutukoy sa mahigpit na pagkapit o pag-asa sa isang bagay bilang sandigan.",
+        "incompletePhrase": "Tangan niya ang lakas ng loob upang ________.",
+        "completeContext": "Pagharap sa hamon.",
+        "sampleCompletions": "harapin ang pagsubok nang hindi sumusuko"
+    },
+    {
+        "item_id": "SC-LEX-150",
+        "lemma_id": "LEX-150",
+        "orderingCorrectSentence": "Nangahas siyang magsalita kahit maraming tutol.",
+        "chooseContext": "May panganib, pero pinili niyang subukan pa rin.",
+        "chooseCorrectSentence": "Nangahas siyang tumalon sa pagkakataon kahit hindi tiyak ang resulta.",
+        "distractors": [
+            "Umatras siyang tumalon sa pagkakataon kahit hindi tiyak ang resulta.",
+            "Naduwag siyang tumalon sa pagkakataon kahit hindi tiyak ang resulta.",
+            "Tumanggi siyang tumalon sa pagkakataon kahit hindi tiyak ang resulta."
+        ],
+        "explanation": "Ang 'nangahas' ang tama dahil ito ay tumutukoy sa paggawa ng bagay na may panganib dahil sa tapang o lakas ng loob.",
+        "incompletePhrase": "Nangahas siya dahil ________.",
+        "completeContext": "Motibasyon sa pagkuha ng panganib.",
+        "sampleCompletions": "naniniwala siyang may saysay ang kanyang ipinaglalaban"
+    },
+    {
+        "item_id": "SC-LEX-151",
+        "lemma_id": "LEX-151",
+        "orderingCorrectSentence": "Nanunuya siya sa kaklase niyang nagkamali sa sagot.",
+        "chooseContext": "May taong gumagamit ng masasakit na salita para ipahiya ang iba.",
+        "chooseCorrectSentence": "Ang panunuya ay nakakasira ng tiwala sa sarili ng biktima.",
+        "distractors": [
+            "Ang papuri ay nakakasira ng tiwala sa sarili ng biktima.",
+            "Ang pag-unawa ay nakakasira ng tiwala sa sarili ng biktima.",
+            "Ang paggalang ay nakakasira ng tiwala sa sarili ng biktima."
+        ],
+        "explanation": "Ang 'panunuya' ang tama dahil ito ay tumutukoy sa pangungutya o pang-aalipusta sa kapwa.",
+        "incompletePhrase": "Iwasan ang panunuya dahil ________.",
+        "completeContext": "Paalaala sa mabuting pakikitungo.",
+        "sampleCompletions": "may mga salitang hindi na mababawi at nakakasugat ng damdamin"
+    },
+    {
+        "item_id": "SC-LEX-152",
+        "lemma_id": "LEX-152",
+        "orderingCorrectSentence": "Nanuot ang lamig sa kanyang buto dahil sa ulan.",
+        "chooseContext": "Magdamag siyang nasa labas kaya tumagos ang lamig sa kanyang katawan.",
+        "chooseCorrectSentence": "Nanuot sa kanya ang amoy ng usok mula sa kalsada.",
+        "distractors": [
+            "Tumalbog sa kanya ang amoy ng usok mula sa kalsada.",
+            "Humarang sa kanya ang amoy ng usok mula sa kalsada.",
+            "Hindi pumasok sa kanya ang amoy ng usok mula sa kalsada."
+        ],
+        "explanation": "Ang 'nanuot' ang tama dahil ito ay tumutukoy sa pagpasok o pagtagos nang malalim sa loob, gaya ng lamig o amoy.",
+        "incompletePhrase": "Nanuot sa kanyang isip ang ________.",
+        "completeContext": "Talinghagang pagtagos ng ideya/damdamin.",
+        "sampleCompletions": "pag-aalinlangan matapos ang paulit-ulit na pagkabigo"
+    },
+    {
+        "item_id": "SC-LEX-153",
+        "lemma_id": "LEX-153",
+        "orderingCorrectSentence": "May bunton ng mga papel sa ibabaw ng mesa.",
+        "chooseContext": "Maraming gawain ang naipon at kailangan nang ayusin.",
+        "chooseCorrectSentence": "Nagbunton siya ng sisi sa iba para makaiwas sa pananagutan.",
+        "distractors": [
+            "Nagbunton siya ng papuri sa iba para makaiwas sa pananagutan.",
+            "Nagbunton siya ng tulong sa iba para makaiwas sa pananagutan.",
+            "Nagbunton siya ng respeto sa iba para makaiwas sa pananagutan."
+        ],
+        "explanation": "Ang 'bunton' ang tama dahil ito ay tumutukoy sa tambak o tumpok; maaari ring tumukoy sa pagbubunton ng damdamin o sisi.",
+        "incompletePhrase": "Nabunton sa kanya ang ________.",
+        "completeContext": "Pagpapasa ng bigat o pananagutan.",
+        "sampleCompletions": "lahat ng trabaho kahit dapat ay hati-hati sila"
+    },
+    {
+        "item_id": "SC-LEX-154",
+        "lemma_id": "LEX-154",
+        "orderingCorrectSentence": "Nasaid ang tubig sa galon bago pa dumating ang delivery.",
+        "chooseContext": "Naubos na ang kanilang suplay kaya kailangan nilang magtipid.",
+        "chooseCorrectSentence": "Nasaid ang kanyang lakas matapos ang mahabang araw.",
+        "distractors": [
+            "Puno ang kanyang lakas matapos ang mahabang araw.",
+            "Sagana ang kanyang lakas matapos ang mahabang araw.",
+            "Labis ang kanyang lakas matapos ang mahabang araw."
+        ],
+        "explanation": "Ang 'nasaid' ang tama dahil ito ay tumutukoy sa ganap na pagkaubos ng suplay o lakas.",
+        "incompletePhrase": "Nasaid ang kanyang pasensya kaya ________.",
+        "completeContext": "Bunga ng pagkaubos ng pasensya.",
+        "sampleCompletions": "pinili niyang tumahimik muna kaysa makasakit ng salita"
+    },
+    {
+        "item_id": "SC-LEX-155",
+        "lemma_id": "LEX-155",
+        "orderingCorrectSentence": "Nawaglit ang kanyang pitaka sa gitna ng siksikan.",
+        "chooseContext": "Bigla niyang napansing wala na ang mahalagang gamit na dala niya kanina.",
+        "chooseCorrectSentence": "Nawaglit ang susi kaya hindi sila makapasok sa bahay.",
+        "distractors": [
+            "Nahanap ang susi kaya hindi sila makapasok sa bahay.",
+            "Nakita ang susi kaya hindi sila makapasok sa bahay.",
+            "Nanatili ang susi kaya hindi sila makapasok sa bahay."
+        ],
+        "explanation": "Ang 'nawaglit' ang tama dahil ito ay tumutukoy sa hindi sinasadyang pagkawala ng isang bagay.",
+        "incompletePhrase": "Nawaglit ang kanyang tiwala nang ________.",
+        "completeContext": "Pagkawala ng tiwala.",
+        "sampleCompletions": "madiskubre niyang niloko siya ng taong pinagkatiwalaan niya"
+    },
+    {
+        "item_id": "SC-LEX-156",
+        "lemma_id": "LEX-156",
+        "orderingCorrectSentence": "Nangangawit ang kanyang mga braso matapos magbuhat.",
+        "chooseContext": "Matagal siyang nakaupo sa iisang posisyon kaya sumakit ang katawan niya.",
+        "chooseCorrectSentence": "Nangangawit ang kanyang binti dahil sa mahabang pagtakbo.",
+        "distractors": [
+            "Guminhawa ang kanyang binti dahil sa mahabang pagtakbo.",
+            "Nakapahinga ang kanyang binti dahil sa mahabang pagtakbo.",
+            "Lumakas ang kanyang binti dahil sa mahabang pagtakbo."
+        ],
+        "explanation": "Ang 'ngawit' ang tama dahil ito ay pakiramdam ng paninigas o kirot ng kalamnan dahil sa pagod o matagal na pagkakawesto.",
+        "incompletePhrase": "Para mawala ang ngawit, ________.",
+        "completeContext": "Paraan ng pag-alis ng pananakit ng kalamnan.",
+        "sampleCompletions": "magpahinga siya at mag-unat-unat muna"
+    },
+    {
+        "item_id": "SC-LEX-157",
+        "lemma_id": "LEX-157",
+        "orderingCorrectSentence": "Nagngingitngit siya sa galit ngunit piniling manahimik.",
+        "chooseContext": "May gumawa ng matinding kasalanan sa kanya at hirap siyang pigilan ang damdamin.",
+        "chooseCorrectSentence": "Ang ngitngit niya ay lalo pang lumala nang insultuhin siya.",
+        "distractors": [
+            "Ang tuwa niya ay lalo pang lumala nang insultuhin siya.",
+            "Ang kapayapaan niya ay lalo pang lumala nang insultuhin siya.",
+            "Ang katahimikan niya ay lalo pang lumala nang insultuhin siya."
+        ],
+        "explanation": "Ang 'ngitngit' ang tama dahil ito ay tumutukoy sa matinding galit na kadalasang kinikimkim.",
+        "incompletePhrase": "Sa ngitngit, gusto niyang ________.",
+        "completeContext": "Tukso na gumawa ng padalos-dalos.",
+        "sampleCompletions": "sumigaw at ipagtanggol ang sarili, pero pinili niyang magpigil"
+    },
+    {
+        "item_id": "SC-LEX-158",
+        "lemma_id": "LEX-158",
+        "orderingCorrectSentence": "Pagak ang kanyang boses matapos ang mahabang talumpati.",
+        "chooseContext": "Paos at garalgal ang boses niya dahil sa sobrang pagsigaw.",
+        "chooseCorrectSentence": "Pagak ang kanyang tinig kaya hindi siya masyadong marinig.",
+        "distractors": [
+            "Matining ang kanyang tinig kaya hindi siya masyadong marinig.",
+            "Malinaw ang kanyang tinig kaya hindi siya masyadong marinig.",
+            "Malamyos ang kanyang tinig kaya hindi siya masyadong marinig."
+        ],
+        "explanation": "Ang 'pagak' ang tama dahil ito ay tumutukoy sa paos o garalgal na boses na hindi malinaw.",
+        "incompletePhrase": "Naging pagak ang kanyang boses dahil ________.",
+        "completeContext": "Sanhi ng pamamalat.",
+        "sampleCompletions": "magdamag siyang umubo at hindi nakapagpahinga"
+    },
+    {
+        "item_id": "SC-LEX-159",
+        "lemma_id": "LEX-159",
+        "orderingCorrectSentence": "Bumalikwas siya mula sa higaan nang marinig ang balita.",
+        "chooseContext": "Bigla siyang nagising at mabilis na umupo dahil sa gulat.",
+        "chooseCorrectSentence": "Sa isang balikwas, nagbago ang kanyang pasya at tumuloy sa laban.",
+        "distractors": [
+            "Sa isang paghiga, nagbago ang kanyang pasya at tumuloy sa laban.",
+            "Sa isang pananatili, nagbago ang kanyang pasya at tumuloy sa laban.",
+            "Sa isang pag-idlip, nagbago ang kanyang pasya at tumuloy sa laban."
+        ],
+        "explanation": "Ang 'balikwas' ang tama dahil ito ay biglaang pagbangon o pagbabago ng posisyon; maaari ring tumukoy sa biglaang pagbabago ng asal o pasya.",
+        "incompletePhrase": "Bumalikwas siya dahil ________.",
+        "completeContext": "Biglaang reaksyon.",
+        "sampleCompletions": "akala niya ay may panganib na paparating"
+    },
+    {
+        "item_id": "SC-LEX-160",
+        "lemma_id": "LEX-160",
+        "orderingCorrectSentence": "Nagbubulay-bulay siya tungkol sa kanyang mga desisyon sa buhay.",
+        "chooseContext": "Tahimik siyang nakaupo at iniisip ang mga nangyari noong nakaraan.",
+        "chooseCorrectSentence": "Ang bulay-bulay ay nakatutulong upang mas makilala ang sarili.",
+        "distractors": [
+            "Ang pagpapabaya ay nakatutulong upang mas makilala ang sarili.",
+            "Ang pag-iwas ay nakatutulong upang mas makilala ang sarili.",
+            "Ang panunuya ay nakatutulong upang mas makilala ang sarili."
+        ],
+        "explanation": "Ang 'bulay-bulay' ang tama dahil ito ay tumutukoy sa malalim na pag-iisip o pagmumuni-muni.",
+        "incompletePhrase": "Sa kanyang bulay-bulay, napagtanto niyang ________.",
+        "completeContext": "Bunga ng pagninilay.",
+        "sampleCompletions": "kailangan niyang humingi ng tawad at magsimula muli"
+    },
+    {
+        "item_id": "SC-LEX-161",
+        "lemma_id": "LEX-161",
+        "orderingCorrectSentence": "Dumatal ang bagyo sa oras na hindi nila inaasahan.",
+        "chooseContext": "Bigla na lang may dumating na balita habang abala sila sa paghahanda.",
+        "chooseCorrectSentence": "Nang dumatal ang pagkakataon, hindi na siya nag-atubiling kumilos.",
+        "distractors": [
+            "Nang umalis ang pagkakataon, hindi na siya nag-atubiling kumilos.",
+            "Nang lumisan ang pagkakataon, hindi na siya nag-atubiling kumilos.",
+            "Nang mawala ang pagkakataon, hindi na siya nag-atubiling kumilos."
+        ],
+        "explanation": "Ang 'dumatal' ang tama dahil ito ay tumutukoy sa pagdating o pag-abot sa isang takdang oras o pangyayari.",
+        "incompletePhrase": "Dumatal ang araw na ________.",
+        "completeContext": "Pagdating ng takdang panahon.",
+        "sampleCompletions": "matagal na nilang hinihintay ang kanilang pagtatapos"
+    },
+    {
+        "item_id": "SC-LEX-162",
+        "lemma_id": "LEX-162",
+        "orderingCorrectSentence": "Handa siyang makipaghamok para ipagtanggol ang kanyang bayan.",
+        "chooseContext": "May labanan at kailangang lumaban ang mga sundalo upang protektahan ang kanilang lugar.",
+        "chooseCorrectSentence": "Ang paghamok ay nangangailangan ng tapang at disiplina.",
+        "distractors": [
+            "Ang paghamok ay nangangailangan ng katamaran at disiplina.",
+            "Ang paghamok ay nangangailangan ng pag-iwas at disiplina.",
+            "Ang paghamok ay nangangailangan ng pagtalikod at disiplina."
+        ],
+        "explanation": "Ang 'paghamok' ang tama dahil ito ay tumutukoy sa pakikipaglaban o pakikipagtunggali sa labanan.",
+        "incompletePhrase": "Bago sila makipaghamok, ________.",
+        "completeContext": "Paghahanda bago lumaban.",
+        "sampleCompletions": "nagplano muna sila at sinuri ang kalakasan ng kalaban"
+    },
+    {
+        "item_id": "SC-LEX-163",
+        "lemma_id": "LEX-163",
+        "orderingCorrectSentence": "Humimok siya ng mga kabataan na mag-aral nang mabuti.",
+        "chooseContext": "Gusto niyang kumbinsihin ang mga tao nang mahinahon at may respeto.",
+        "chooseCorrectSentence": "Sa maayos na paghimok, pumayag ang lahat na makipagtulungan.",
+        "distractors": [
+            "Sa maayos na pag-utos, pumayag ang lahat na makipagtulungan.",
+            "Sa maayos na pagpilit, pumayag ang lahat na makipagtulungan.",
+            "Sa maayos na pananakot, pumayag ang lahat na makipagtulungan."
+        ],
+        "explanation": "Ang 'paghimok' ang tama dahil ito ay tumutukoy sa mapayapang pakiusap o pangungumbinsi.",
+        "incompletePhrase": "Hinimok niya sila na ________.",
+        "completeContext": "Pag-udyok sa mabuting gawain.",
+        "sampleCompletions": "maging responsable at tumulong sa komunidad"
+    },
+    {
+        "item_id": "SC-LEX-164",
+        "lemma_id": "LEX-164",
+        "orderingCorrectSentence": "Maingat nilang pinagdugtong ang mga sanga sa paghuhugpong.",
+        "chooseContext": "Gusto nilang pag-isahin ang dalawang bahagi para maging mas buo at matibay.",
+        "chooseCorrectSentence": "Ang paghuhugpong ng ideya ay nagbunga ng mas magandang plano.",
+        "distractors": [
+            "Ang pagbaklas ng ideya ay nagbunga ng mas magandang plano.",
+            "Ang paghihiwalay ng ideya ay nagbunga ng mas magandang plano.",
+            "Ang pagwasak ng ideya ay nagbunga ng mas magandang plano."
+        ],
+        "explanation": "Ang 'hugpong' ang tama dahil ito ay tumutukoy sa pagkakabit o pagdudugtong ng dalawang bahagi.",
+        "incompletePhrase": "Sa paghuhugpong ng kanilang mga mungkahi, ________.",
+        "completeContext": "Pagbubuo ng mas mahusay na solusyon.",
+        "sampleCompletions": "nakabuo sila ng iisang malinaw na direksiyon"
+    },
+    {
+        "item_id": "SC-LEX-165",
+        "lemma_id": "LEX-165",
+        "orderingCorrectSentence": "Umiinog ang mundo sa sarili nitong axis.",
+        "chooseContext": "Pinag-aaralan nila ang pag-ikot ng mga planeta sa kalawakan.",
+        "chooseCorrectSentence": "Patuloy na umiinog ang usapan sa iisang isyu.",
+        "distractors": [
+            "Patuloy na humihinto ang usapan sa iisang isyu.",
+            "Patuloy na napuputol ang usapan sa iisang isyu.",
+            "Patuloy na nawawala ang usapan sa iisang isyu."
+        ],
+        "explanation": "Ang 'inog/umiinog' ang tama dahil ito ay tumutukoy sa pag-ikot; maaari ring gamitin sa talinghaga kapag paulit-ulit na bumabalik sa isang paksa.",
+        "incompletePhrase": "Umiinog ang kanyang araw sa ________.",
+        "completeContext": "Paglalarawan ng routine.",
+        "sampleCompletions": "trabaho, pamilya, at mga responsibilidad sa bahay"
+    },
+    {
+        "item_id": "SC-LEX-166",
+        "lemma_id": "LEX-166",
+        "orderingCorrectSentence": "Ang pagniniig nila ay puno ng tiwala at paggalang.",
+        "chooseContext": "Pinag-uusapan nila ang masinsinang pagsasama at pag-uusap ng dalawang tao.",
+        "chooseCorrectSentence": "Sa pagniniig, mas nakikilala nila ang isa't isa.",
+        "distractors": [
+            "Sa pag-aaway, mas nakikilala nila ang isa't isa.",
+            "Sa paglayo, mas nakikilala nila ang isa't isa.",
+            "Sa paghihiwalay, mas nakikilala nila ang isa't isa."
+        ],
+        "explanation": "Ang 'pagniniig' ang tama dahil ito ay tumutukoy sa masinsinang pag-uusap o pagsasama ng dalawang tao.",
+        "incompletePhrase": "Sa kanilang pagniniig, napag-usapan nila ang ________.",
+        "completeContext": "Masinsinang pag-uusap.",
+        "sampleCompletions": "mga plano nila para sa kinabukasan"
+    },
+    {
+        "item_id": "SC-LEX-167",
+        "lemma_id": "LEX-167",
+        "orderingCorrectSentence": "Rumaragasa ang tubig sa ilog tuwing tag-ulan.",
+        "chooseContext": "Biglang lumakas ang agos at mabilis na dumaloy ang tubig.",
+        "chooseCorrectSentence": "Rumaragasa ang mga tao papasok sa istasyon dahil sa pagkaantala ng tren.",
+        "distractors": [
+            "Marahang naglalakad ang mga tao papasok sa istasyon dahil sa pagkaantala ng tren.",
+            "Mahinang kumikilos ang mga tao papasok sa istasyon dahil sa pagkaantala ng tren.",
+            "Tahimik na natutulog ang mga tao papasok sa istasyon dahil sa pagkaantala ng tren."
+        ],
+        "explanation": "Ang 'ragasa' ang tama dahil ito ay tumutukoy sa mabilis at malakas na pagdaloy o pag-usad, gaya ng tubig o maraming tao.",
+        "incompletePhrase": "Rumaragasa ang emosyon niya nang ________.",
+        "completeContext": "Biglaang pagdagsa ng damdamin.",
+        "sampleCompletions": "marinig niya ang balitang matagal niyang hinihintay"
+    },
+    {
+        "item_id": "SC-LEX-168",
+        "lemma_id": "LEX-168",
+        "orderingCorrectSentence": "Nasiil ang kanyang karapatan nang pigilan siyang magsalita.",
+        "chooseContext": "Hindi siya pinayagang magpahayag ng saloobin kahit may karapatan siya.",
+        "chooseCorrectSentence": "Ang panunupil at pagsiil ay hindi dapat palaganapin.",
+        "distractors": [
+            "Ang panunupil at pagsiil ay dapat palaganapin.",
+            "Ang panunupil at pagsiil ay dapat ipagdiwang.",
+            "Ang panunupil at pagsiil ay dapat suportahan."
+        ],
+        "explanation": "Ang 'siil/pagsiil' ang tama dahil ito ay tumutukoy sa pagmamalupit o pag-ipit sa karapatan at kalayaan ng iba.",
+        "incompletePhrase": "Nasiil ang kanilang kalayaan kaya ________.",
+        "completeContext": "Reaksyon sa panunupil.",
+        "sampleCompletions": "nagkaisa silang ipaglaban ang kanilang karapatan"
+    },
+    {
+        "item_id": "SC-LEX-169",
+        "lemma_id": "LEX-169",
+        "orderingCorrectSentence": "Masigasig siyang pumasok araw-araw para matuto.",
+        "chooseContext": "Napapansin ng guro na lagi siyang aktibo at pursigido sa klase.",
+        "chooseCorrectSentence": "Ang sigasig niya sa trabaho ang dahilan ng kanyang pag-angat.",
+        "distractors": [
+            "Ang katamaran niya sa trabaho ang dahilan ng kanyang pag-angat.",
+            "Ang pagpapabaya niya sa trabaho ang dahilan ng kanyang pag-angat.",
+            "Ang pag-iwas niya sa trabaho ang dahilan ng kanyang pag-angat."
+        ],
+        "explanation": "Ang 'sigasig' ang tama dahil ito ay tumutukoy sa matinding pagsisikap at tiyaga sa paggawa ng isang gawain.",
+        "incompletePhrase": "Napanatili niya ang sigasig dahil ________.",
+        "completeContext": "Pinagmumulan ng motibasyon.",
+        "sampleCompletions": "malinaw sa kanya kung bakit mahalaga ang kanyang ginagawa"
+    },
+    {
+        "item_id": "SC-LEX-170",
+        "lemma_id": "LEX-170",
+        "orderingCorrectSentence": "Tumangis ang bata nang mawala ang kanyang laruan.",
+        "chooseContext": "May masamang balitang dumating kaya hindi niya napigilan ang pag-iyak.",
+        "chooseCorrectSentence": "Ang pagtangis ay tanda ng malalim na hinagpis.",
+        "distractors": [
+            "Ang pagtawa ay tanda ng malalim na hinagpis.",
+            "Ang kasiyahan ay tanda ng malalim na hinagpis.",
+            "Ang kagalakan ay tanda ng malalim na hinagpis."
+        ],
+        "explanation": "Ang 'tangis/pagtangis' ang tama dahil ito ay tumutukoy sa malalim at masidhing pag-iyak.",
+        "incompletePhrase": "Sa kanyang pagtangis, naramdaman niyang ________.",
+        "completeContext": "Pagpapahayag ng matinding lungkot.",
+        "sampleCompletions": "wala nang lakas ang kanyang loob para magpanggap na okay"
     }
 ]
