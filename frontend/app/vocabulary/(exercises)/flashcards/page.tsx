@@ -12,7 +12,7 @@ import FlashcardCompletionModal from "@/components/vocabulary/flashcard-exercise
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { useSRSWithExercises } from "@/hooks/useSRS"; // ✅ FIXED IMPORT
+import { useSRSWithExercises } from "@/hooks/useSRS";
 import { SRS_GRADES } from "@/utils/srs";
 
 import type { VocabularyExerciseItem, LexiconItem } from "@/lib/api/exercises";
@@ -41,7 +41,6 @@ export default function FlashcardsPage() {
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
-  // ✅ FIX 1: Use correct SRS hook with proper return values
   const {
     dueExercises,
     grade: gradeSRS,
@@ -63,7 +62,6 @@ export default function FlashcardsPage() {
 
   const deckInitializedRef = useRef(false);
 
-  // ✅ FIX 2: Load flashcards from dueExercises
   useEffect(() => {
     async function loadFlashcards() {
       if (srsLoading || dueExercises.length === 0) return;
@@ -187,7 +185,6 @@ export default function FlashcardsPage() {
     setTimeout(() => setCurrentIndex(targetIndex + 1), 200);
   };
 
-  // ✅ FIX 3: Proper SRS grading
   const handleKnowIt = async () => {
     if (isProcessing) return;
 
@@ -197,10 +194,8 @@ export default function FlashcardsPage() {
 
     setIsProcessing(true);
     try {
-      // ✅ Grade SRS card as PERFECT
       await gradeSRS(targetWord.lemma_id, SRS_GRADES.PERFECT);
 
-      // ✅ Report performance
       await reportLexicalItemPerformance({
         module: "vocabulary",
         exerciseType: "flashcards",
@@ -235,10 +230,8 @@ export default function FlashcardsPage() {
 
     setIsProcessing(true);
     try {
-      // ✅ Grade SRS card as HARD
       await gradeSRS(targetWord.lemma_id, SRS_GRADES.HARD);
 
-      // ✅ Report performance
       await reportLexicalItemPerformance({
         module: "vocabulary",
         exerciseType: "flashcards",

@@ -12,8 +12,8 @@ import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type { QuizProgress as QuizProgressType } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { useSRSWithExercises } from "@/hooks/useSRS"; // ✅ SRS HOOK
-import { SRS_GRADES } from "@/utils/srs"; // ✅ SRS GRADES
+import { useSRSWithExercises } from "@/hooks/useSRS";
+import { SRS_GRADES } from "@/utils/srs";
 import {
   getVocabularyExercisesAdaptive,
   getLexiconData,
@@ -176,7 +176,6 @@ export default function ClosestMeaningQuizPage() {
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
-  // ✅ SRS HOOK
   const { grade: gradeSRS } = useSRSWithExercises({
     module: "vocabulary",
     targetDifficulty: "easy",
@@ -196,7 +195,6 @@ export default function ClosestMeaningQuizPage() {
     "easy" | "medium" | "hard"
   >("easy");
 
-  // ✅ Load quiz items with adaptive difficulty
   useEffect(() => {
     async function loadQuiz() {
       try {
@@ -390,7 +388,6 @@ export default function ClosestMeaningQuizPage() {
 
     const score = isCorrect ? 100 : 0;
 
-    // ✅ Report lexical performance
     try {
       await reportLexicalItemPerformance({
         module: "vocabulary",
@@ -405,7 +402,6 @@ export default function ClosestMeaningQuizPage() {
       console.error("Failed to record lexical performance", e);
     }
 
-    // ✅ SRS GRADING
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentQuiz.lemma_id, srsGrade);
 
