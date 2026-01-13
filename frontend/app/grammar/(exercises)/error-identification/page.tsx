@@ -11,8 +11,8 @@ import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { useSRSWithExercises } from "@/hooks/useSRS"; // ✅ SRS HOOK
-import { SRS_GRADES } from "@/utils/srs"; // ✅ SRS GRADES
+import { useSRSWithExercises } from "@/hooks/useSRS";
+import { SRS_GRADES } from "@/utils/srs";
 import {
   getGrammarExercisesAdaptive,
   GrammarExerciseItem,
@@ -156,7 +156,6 @@ export default function ErrorIdentificationPage() {
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
-  // ✅ SRS INTEGRATION
   const {
     dueExercises,
     grade: gradeSRS,
@@ -182,7 +181,6 @@ export default function ErrorIdentificationPage() {
     "easy" | "medium" | "hard"
   >("easy");
 
-  // ✅ Load questions from SRS due exercises
   useEffect(() => {
     async function loadQuestions() {
       if (srsLoading || dueExercises.length === 0) return;
@@ -227,7 +225,6 @@ export default function ErrorIdentificationPage() {
     );
   }
 
-  // ✅ LOADING STATE
   if (srsLoading || errorQuestions.length === 0) {
     return (
       <div className="h-screen bg-red-50 flex flex-col">
@@ -292,7 +289,6 @@ export default function ErrorIdentificationPage() {
 
     const score = isCorrect ? 100 : 0;
 
-    // ✅ Report lexical performance
     try {
       await reportLexicalItemPerformance({
         module: "grammar",
@@ -307,11 +303,9 @@ export default function ErrorIdentificationPage() {
       console.error("Failed to record grammar performance", e);
     }
 
-    // ✅ SRS GRADING
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentError.lemma_id, srsGrade);
 
-    // Update metrics with CURRENT difficulty
     addPerformanceMetrics("grammar", "error-identification", {
       score,
       difficulty: currentDifficulty,

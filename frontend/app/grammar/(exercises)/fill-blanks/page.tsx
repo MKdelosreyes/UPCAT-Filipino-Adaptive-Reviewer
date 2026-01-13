@@ -11,8 +11,8 @@ import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { useSRSWithExercises } from "@/hooks/useSRS"; // ✅ SRS HOOK
-import { SRS_GRADES } from "@/utils/srs"; // ✅ SRS GRADES
+import { useSRSWithExercises } from "@/hooks/useSRS";
+import { SRS_GRADES } from "@/utils/srs";
 import {
   getGrammarExercisesAdaptive,
   getLexiconData,
@@ -120,7 +120,6 @@ export default function GrammarFillBlanksPage() {
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
-  // ✅ SRS INTEGRATION
   const {
     dueExercises,
     grade: gradeSRS,
@@ -151,7 +150,6 @@ export default function GrammarFillBlanksPage() {
   const [finalScore, setFinalScore] = useState(0);
   const [finalCorrectCount, setFinalCorrectCount] = useState(0);
 
-  // ✅ Load questions from SRS due exercises
   useEffect(() => {
     async function loadQuestions() {
       if (srsLoading || dueExercises.length === 0) return;
@@ -200,7 +198,6 @@ export default function GrammarFillBlanksPage() {
     );
   }
 
-  // ✅ LOADING STATE
   if (srsLoading || fillBlanksQuestions.length === 0) {
     return (
       <div className="h-screen bg-green-50 flex flex-col">
@@ -264,7 +261,6 @@ export default function GrammarFillBlanksPage() {
       },
     ]);
 
-    // ✅ Report lexical performance
     try {
       await reportLexicalItemPerformance({
         module: "grammar",
@@ -279,7 +275,6 @@ export default function GrammarFillBlanksPage() {
       console.error("Failed to report performance:", error);
     }
 
-    // ✅ SRS GRADING
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentFillBlanks.lemma_id, srsGrade);
   };
