@@ -135,13 +135,16 @@ export function useDashboardAnalytics() {
         }
       } else if (module === "reading-comprehension") {
         const reading = moduleData as ReadingProgress;
-        if (reading["passage-questions"].status === "in-progress") attemptedQuizzes++; //maybe wrong
-        if (reading["summary-exercise"].status === "in-progress") attemptedQuizzes++; //maybe wrong
-
-        if (reading["passage-questions"].score !== null)
-          scores.push(reading["passage-questions"].score);
-        if (reading["summary-exercise"].score !== null)
-          scores.push(reading["summary-exercise"].score);
+        if (hasAttempted(reading["reading-passages"])) {
+          attemptedQuizzes++;
+          if (reading["reading-passages"].score !== null)
+            scores.push(reading["reading-passages"].score);
+        }
+        if (hasAttempted(reading.summarization)) {
+          attemptedQuizzes++;
+          if (reading.summarization.score !== null)
+            scores.push(reading.summarization.score);
+        }
       }
 
       const averageScore =
@@ -351,8 +354,8 @@ export function useDashboardAnalytics() {
     // Reading comprehension
     const readingData = progress["reading-comprehension"];
     const readingScores = [
-      readingData["passage-questions"].score,
-      readingData["summary-exercise"].score,
+      readingData["reading-passages"].score,
+      readingData.summarization.score,
     ].filter((s): s is number => s !== null);
     const readingAvg =
       readingScores.length > 0
@@ -360,9 +363,9 @@ export function useDashboardAnalytics() {
         : 0;
 
     const readingAttempted = [
-      readingData["passage-questions"],
-      readingData["summary-exercise"],
-    ].filter((ex) => ex.status === "in-progress").length; //maybe wrong
+      readingData["reading-passages"],
+      readingData.summarization,
+    ].filter((ex) => hasAttempted(ex)).length;
 
     skills.push({
       skill: "Reading Understanding",
@@ -475,25 +478,19 @@ export function useDashboardAnalytics() {
 
     // Count total attempts from quiz exercises only
     let totalAttempts = 0;
-    if (progress.vocabulary.quiz)
-      totalAttempts += progress.vocabulary.quiz.attempts;
-    if (progress.vocabulary.antonym)
-      totalAttempts += progress.vocabulary.antonym.attempts;
-    if (progress.grammar["error-identification"])
-      totalAttempts += progress.grammar["error-identification"].attempts;
-    if (progress.grammar["fill-blanks"])
-      totalAttempts += progress.grammar["fill-blanks"].attempts;
-    if (progress["sentence-construction"]["complete-sentence"])
-      totalAttempts +=
-        progress["sentence-construction"]["complete-sentence"].attempts;
-    if (progress["sentence-construction"]["sentence-ordering"])
-      totalAttempts +=
-        progress["sentence-construction"]["sentence-ordering"].attempts;
-    if (progress["reading-comprehension"]["passage-questions"])
-      totalAttempts +=
-        progress["reading-comprehension"]["passage-questions"].attempts;
-    if (progress["reading-comprehension"]["summary-exercise"].attempts)
-      totalAttempts += progress["reading-comprehension"]["summary-exercise"].attempts;
+    totalAttempts += progress.vocabulary.quiz.attempts;
+    totalAttempts += progress.vocabulary.antonym.attempts;
+    totalAttempts += progress.grammar["error-identification"].attempts;
+    totalAttempts += progress.grammar["fill-blanks"].attempts;
+    totalAttempts +=
+      progress["sentence-construction"]["complete-sentence"].attempts;
+    totalAttempts +=
+      progress["sentence-construction"]["sentence-ordering"].attempts;
+    totalAttempts +=
+      progress["sentence-construction"]["choose-sentence"].attempts;
+    totalAttempts +=
+      progress["reading-comprehension"]["reading-passages"].attempts;
+    totalAttempts += progress["reading-comprehension"].summarization.attempts;
 
     const daysSinceStart = 30;
     let studyFrequency: "daily" | "frequent" | "occasional" | "rare" = "rare";

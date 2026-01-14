@@ -12,16 +12,11 @@ import FlashcardCompletionModal from "@/components/vocabulary/flashcard-exercise
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { useSRS } from "@/hooks/useSRS";
+import { useSRSWithExercises } from "@/hooks/useSRS";
 import { SRS_GRADES } from "@/utils/srs";
 
-import {
-  getVocabularyExercisesAdaptive,
-  getLexiconData,
-  VocabularyExerciseItem,
-  LexiconItem,
-} from "@/lib/api/exercises";
-
+import type { VocabularyExerciseItem, LexiconItem } from "@/lib/api/exercises";
+import { getLexiconData } from "@/lib/api/exercises";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 
 type CardStatus = "unseen" | "learning" | "mastered";
@@ -43,61 +38,50 @@ interface CardState {
 
 export default function FlashcardsPage() {
   const { updateProgress } = useVocabularyProgress();
-  const { user, tokens } = useAuth();
+  const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
-  const [sessionWords, setSessionWords] = useState<FlashcardData[]>([]);
-  const [deck, setDeck] = useState<FlashcardData[]>([]); // ✅ frozen order for the session
-  const deckInitializedRef = useRef(false);
+  const {
+    dueExercises,
+    grade: gradeSRS,
+    isLoading: srsLoading,
+  } = useSRSWithExercises({
+    module: "vocabulary",
+    targetDifficulty: "easy",
+    limit: 15,
+  });
 
+  const [deck, setDeck] = useState<FlashcardData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [cardStates, setCardStates] = useState<CardState[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // SRS
-  const wordIds = useMemo(
-    () => sessionWords.map((w) => w.numericId),
-    [sessionWords]
-  );
-  const { dueIds, grade, isLoading: srsLoading } = useSRS(wordIds);
+  const deckInitializedRef = useRef(false);
 
-  // Load flashcards
   useEffect(() => {
-    async function loadExercises() {
+    async function loadFlashcards() {
+      if (srsLoading || dueExercises.length === 0) return;
+      if (deckInitializedRef.current) return;
+
       try {
-        setIsLoading(true);
-
-        const [vocabExercises, lexiconData] = await Promise.all([
-          getVocabularyExercisesAdaptive({
-            userId: user?.id,
-            targetDifficulty: "easy",
-            limit: 15,
-            accessToken: tokens?.access,
-          }),
-          getLexiconData(),
-        ]);
-
+        const lexiconData = await getLexiconData();
         const lexiconMap = new Map(
           lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
         );
 
-        const combinedData: FlashcardData[] = vocabExercises
+        const combinedData: FlashcardData[] = dueExercises
           .map((vocabItem: VocabularyExerciseItem) => {
             const lexiconEntry = lexiconMap.get(vocabItem.lemma_id);
             if (!lexiconEntry) return null;
 
-            // NOTE: numericId must match whatever backend expects as word_id.
-            // If your backend uses lemma_id as word_id, numeric extraction may be wrong.
-            // Keep as-is for now, but verify backend word_id format.
-            const numericId =
-              parseInt(vocabItem.lemma_id.replace(/\D/g, ""), 10) ||
-              parseInt(vocabItem.item_id.replace(/\D/g, ""), 10);
-
+            const numericId = parseInt(
+              vocabItem.lemma_id.replace(/\D/g, ""),
+              10
+            );
             if (!numericId) return null;
 
             return {
@@ -114,69 +98,32 @@ export default function FlashcardsPage() {
           })
           .filter((item): item is FlashcardData => item !== null);
 
-        if (combinedData.length === 0)
-          throw new Error("No flashcard data available");
+        if (combinedData.length === 0) {
+          setError("No due flashcards available");
+          return;
+        }
 
-        setSessionWords(combinedData);
+        setDeck(combinedData);
+        setCardStates(
+          combinedData.map((w) => ({
+            id: w.id,
+            status: "unseen",
+            flips: 0,
+          }))
+        );
+
+        deckInitializedRef.current = true;
         setError(null);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load flashcards."
-        );
-      } finally {
-        setIsLoading(false);
+        console.error("Failed to load flashcards:", err);
+        setError("Failed to load flashcards");
       }
     }
 
-    // reset session init when user/session changes
-    deckInitializedRef.current = false;
-    setDeck([]);
-    setCurrentIndex(0);
-    setIsFlipped(false);
-    setCardStates([]);
-    setShowCompletion(false);
-    setIsProcessing(false);
+    loadFlashcards();
+  }, [srsLoading, dueExercises]);
 
-    loadExercises();
-  }, [user?.id, tokens?.access]);
-
-  // ✅ Initialize deck ONCE (freeze order) after SRS has loaded
-  useEffect(() => {
-    if (deckInitializedRef.current) return;
-    if (sessionWords.length === 0) return;
-    if (srsLoading) return;
-
-    const dueSet = new Set(dueIds); // snapshot of due at session start
-    const initialDeck = [...sessionWords].sort((a, b) => {
-      const aDue = dueSet.has(a.numericId) ? 1 : 0;
-      const bDue = dueSet.has(b.numericId) ? 1 : 0;
-      return bDue - aDue; // due first
-    });
-
-    setDeck(initialDeck);
-    setCardStates(
-      initialDeck.map((w) => ({
-        id: w.id,
-        status: "unseen",
-        flips: 0,
-      }))
-    );
-
-    deckInitializedRef.current = true;
-
-    // IMPORTANT: intentionally NOT depending on dueIds to avoid re-sorting mid-session
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionWords, srsLoading]);
-
-  if (authLoading) {
-    return (
-      <div className="h-screen bg-red-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600" />
-      </div>
-    );
-  }
-
-  if (isLoading || srsLoading || !deckInitializedRef.current) {
+  if (authLoading || srsLoading || !deckInitializedRef.current) {
     return (
       <div className="h-screen bg-blue-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
@@ -184,17 +131,22 @@ export default function FlashcardsPage() {
     );
   }
 
-  if (error) {
+  if (error || deck.length === 0) {
     return (
       <div className="h-screen bg-blue-50 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
-          <p className="text-red-600 font-semibold mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
+          <p className="text-blue-900 font-semibold mb-2">
+            {error || "🎉 No flashcards due right now!"}
+          </p>
+          <p className="text-sm text-blue-600 mb-4">
+            Come back later for more practice.
+          </p>
+          <Link
+            href="/vocabulary"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Retry
-          </button>
+            Back to Vocabulary
+          </Link>
         </div>
       </div>
     );
@@ -242,7 +194,7 @@ export default function FlashcardsPage() {
 
     setIsProcessing(true);
     try {
-      await grade(targetWord.numericId, SRS_GRADES.CORRECT);
+      await gradeSRS(targetWord.lemma_id, SRS_GRADES.PERFECT);
 
       await reportLexicalItemPerformance({
         module: "vocabulary",
@@ -262,6 +214,8 @@ export default function FlashcardsPage() {
       });
 
       advanceFrom(targetIndex);
+    } catch (error) {
+      console.error("Failed to grade flashcard:", error);
     } finally {
       setIsProcessing(false);
     }
@@ -276,7 +230,7 @@ export default function FlashcardsPage() {
 
     setIsProcessing(true);
     try {
-      await grade(targetWord.numericId, SRS_GRADES.HARD);
+      await gradeSRS(targetWord.lemma_id, SRS_GRADES.HARD);
 
       await reportLexicalItemPerformance({
         module: "vocabulary",
@@ -297,6 +251,8 @@ export default function FlashcardsPage() {
       });
 
       advanceFrom(targetIndex);
+    } catch (error) {
+      console.error("Failed to grade flashcard:", error);
     } finally {
       setIsProcessing(false);
     }
@@ -316,15 +272,7 @@ export default function FlashcardsPage() {
   };
 
   const resetSession = () => {
-    deckInitializedRef.current = false;
-    setDeck([]);
-    setCurrentIndex(0);
-    setIsFlipped(false);
-    setCardStates([]);
-    setShowCompletion(false);
-    setIsProcessing(false);
-    setSessionStartTime(Date.now());
-    // re-init will happen from the init effect once srsLoading=false and sessionWords is present
+    window.location.reload();
   };
 
   return (
@@ -342,9 +290,9 @@ export default function FlashcardsPage() {
           <h1 className="text-xl md:text-2xl font-bold text-blue-900">
             Flashcards Lesson
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            {dueIds.length} due (live count)
-          </p>
+          {/* <p className="text-xs text-gray-500 mt-1">
+            {dueExercises.length} cards due for review
+          </p> */}
         </div>
 
         <button

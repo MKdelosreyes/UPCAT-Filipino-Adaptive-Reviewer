@@ -24,6 +24,8 @@ import {
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useSRSWithExercises } from "@/hooks/useSRS";
+import { SRS_GRADES } from "@/utils/srs";
 
 interface AntonymItem {
   id: string;
@@ -175,11 +177,15 @@ async function generateAntonymQuestionsFromService(
 
 export default function AntonymExercisePage() {
   const { updateProgress, getExerciseProgress } = useVocabularyProgress();
-  // const { getQuizProgress } = useVocabularyProgress();
-  // const exerciseProgress = getQuizProgress("quiz");
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
   const { user } = useAuth();
+
+  const { grade: gradeSRS } = useSRSWithExercises({
+    module: "vocabulary",
+    targetDifficulty: "easy",
+    limit: 15,
+  });
 
   const [questions, setQuestions] = useState<AntonymItem[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -195,7 +201,6 @@ export default function AntonymExercisePage() {
   >("easy");
   const { isLoading: authLoading } = useAuthGuard();
 
-  // ✅ Load questions with adaptive difficulty
   useEffect(() => {
     async function loadQuestions() {
       try {
@@ -386,7 +391,6 @@ export default function AntonymExercisePage() {
     const lowFreq = isLowFrequencyWord(currentAntonym.underlinedWord);
     const score = isCorrect ? 100 : 0;
 
-    // ✅ Report lexical performance
     try {
       await reportLexicalItemPerformance({
         module: "vocabulary",
@@ -400,6 +404,9 @@ export default function AntonymExercisePage() {
     } catch (e) {
       console.error("Failed to record antonym lexical performance", e);
     }
+
+    const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
+    await gradeSRS(currentAntonym.lemma_id, srsGrade);
 
     // Update metrics with CURRENT difficulty
     addPerformanceMetrics("vocabulary", "antonym", {

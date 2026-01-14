@@ -11,6 +11,8 @@ import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useSRSWithExercises } from "@/hooks/useSRS";
+import { SRS_GRADES } from "@/utils/srs";
 import {
   getGrammarExercisesAdaptive,
   getLexiconData,
@@ -100,7 +102,7 @@ function convertToFillBlanksFormat(
 
     processedItems.push({
       item_id: item.item_id,
-      lemma_id: item.lemma_id, // Added
+      lemma_id: item.lemma_id,
       sentence: item.fill_sentence,
       choices,
       correct_answer: correctAnswer,
@@ -118,6 +120,17 @@ export default function GrammarFillBlanksPage() {
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
+  const {
+    dueExercises,
+    grade: gradeSRS,
+    isLoading: srsLoading,
+  } = useSRSWithExercises({
+    module: "grammar",
+    exerciseType: "fill-blanks",
+    targetDifficulty: "easy",
+    limit: 15,
+  });
+
   const [fillBlanksQuestions, setFillBlanksQuestions] = useState<
     ProcessedFillBlanksItem[]
   >([]);
@@ -129,7 +142,6 @@ export default function GrammarFillBlanksPage() {
     []
   );
   const [showCompletion, setShowCompletion] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
@@ -138,83 +150,45 @@ export default function GrammarFillBlanksPage() {
   const [finalScore, setFinalScore] = useState(0);
   const [finalCorrectCount, setFinalCorrectCount] = useState(0);
 
-  // Load questions with adaptive difficulty
   useEffect(() => {
     async function loadQuestions() {
-      try {
-        setIsLoading(true);
+      if (srsLoading || dueExercises.length === 0) return;
 
-        // 1. Get performance history to determine difficulty
+      try {
         const history = getPerformanceHistory("grammar", "fill-blanks");
         const targetDifficulty =
           history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
         setCurrentDifficulty(targetDifficulty);
-        console.log(`🎯 Target difficulty: ${targetDifficulty}`);
 
-        // 2. Fetch adaptive grammar exercises and lexicon data
-        const [grammarExercises, lexiconData] = await Promise.all([
-          getGrammarExercisesAdaptive({
-            userId: user?.id,
-            targetDifficulty,
-            exerciseType: "fill-blanks", // Note: backend ignores this but kept for API compatibility
-            limit: 20, // Get more items for better variety
-          }),
-          getLexiconData(),
-        ]);
-
-        console.log(
-          "📚 Adaptive Fill-blanks Exercises:",
-          grammarExercises.length
-        );
-        console.log("📖 Loaded lexicon entries:", lexiconData.length);
-
-        if (grammarExercises.length === 0) {
-          throw new Error("No grammar exercises available");
-        }
-
-        // 3. Create lexicon map for distractor generation
+        // Fetch lexicon data for distractors
+        const lexiconData = await getLexiconData();
         const lexiconMap = new Map(
           lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
         );
 
-        // 4. Convert to fill-in-the-blanks format
+        // Convert due exercises to fill-blanks format
         const processedItems = convertToFillBlanksFormat(
-          grammarExercises,
+          dueExercises as GrammarExerciseItem[],
           lexiconMap
         );
 
         if (processedItems.length === 0) {
-          throw new Error(
-            "No fill-in-the-blanks exercises could be generated. Please check that lexicon entries have sufficient surface forms."
-          );
+          setError("No exercises available");
+          return;
         }
 
-        console.log("Processed fill-blanks items:", processedItems.length);
-
-        // 5. Shuffle and select 10 questions
-        const shuffled = [...processedItems].sort(() => Math.random() - 0.5);
-        const selected = shuffled.slice(0, Math.min(10, shuffled.length));
-
-        setFillBlanksQuestions(selected);
-        setAnswers(Array(selected.length).fill(null));
+        setFillBlanksQuestions(processedItems);
+        setAnswers(Array(processedItems.length).fill(null));
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load exercises:", err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load exercises. Please try again."
-        );
-      } finally {
-        setIsLoading(false);
+        setError("Failed to load exercises");
       }
     }
 
-    if (!authLoading) {
-      loadQuestions();
-    }
-  }, [user?.id, authLoading, getPerformanceHistory]);
+    loadQuestions();
+  }, [srsLoading, dueExercises]);
 
   if (authLoading) {
     return (
@@ -224,7 +198,7 @@ export default function GrammarFillBlanksPage() {
     );
   }
 
-  if (isLoading) {
+  if (srsLoading || fillBlanksQuestions.length === 0) {
     return (
       <div className="h-screen bg-green-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
@@ -246,48 +220,18 @@ export default function GrammarFillBlanksPage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-green-600 font-semibold">Loading exercises...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || fillBlanksQuestions.length === 0) {
-    return (
-      <div className="h-screen bg-green-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
-          <Link
-            href="/grammar"
-            className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
-
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-green-900">
-              Complete the Sentence
-            </h1>
-          </div>
-
-          <div className="w-20"></div>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center max-w-md px-4">
-            <p className="text-green-600 font-semibold mb-4">
-              {error || "No exercises available"}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-            >
-              Retry
-            </button>
-          </div>
+          {srsLoading ? (
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          ) : (
+            <div className="text-center">
+              <p className="text-lg text-green-900 mb-2">
+                🎉 No exercises due right now!
+              </p>
+              <p className="text-sm text-green-600">
+                Come back later for more practice.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -317,7 +261,6 @@ export default function GrammarFillBlanksPage() {
       },
     ]);
 
-    // Report lexical performance
     try {
       await reportLexicalItemPerformance({
         module: "grammar",
@@ -331,6 +274,9 @@ export default function GrammarFillBlanksPage() {
     } catch (error) {
       console.error("Failed to report performance:", error);
     }
+
+    const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
+    await gradeSRS(currentFillBlanks.lemma_id, srsGrade);
   };
 
   const handleNext = () => {
@@ -386,51 +332,8 @@ export default function GrammarFillBlanksPage() {
     setShowCompletion(true);
   };
 
-  const resetExercise = async () => {
-    try {
-      setIsLoading(true);
-
-      const history = getPerformanceHistory("grammar", "fill-blanks");
-      const targetDifficulty =
-        history.length > 0 ? history[history.length - 1].difficulty : "easy";
-
-      setCurrentDifficulty(targetDifficulty);
-
-      const [grammarExercises, lexiconData] = await Promise.all([
-        getGrammarExercisesAdaptive({
-          userId: user?.id,
-          targetDifficulty,
-          exerciseType: "fill-blanks",
-          limit: 20,
-        }),
-        getLexiconData(),
-      ]);
-
-      const lexiconMap = new Map(
-        lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
-      );
-
-      const processedItems = convertToFillBlanksFormat(
-        grammarExercises,
-        lexiconMap
-      );
-      const shuffled = [...processedItems].sort(() => Math.random() - 0.5);
-      const selected = shuffled.slice(0, Math.min(10, shuffled.length));
-
-      setFillBlanksQuestions(selected);
-      setCurrentQuestion(0);
-      setSelectedAnswer(null);
-      setShowResult(false);
-      setAnswers(Array(selected.length).fill(null));
-      setDetailedAnswers([]);
-      setShowCompletion(false);
-      setFinalScore(0);
-      setFinalCorrectCount(0);
-    } catch (err) {
-      console.error("Failed to reload exercises:", err);
-    } finally {
-      setIsLoading(false);
-    }
+  const resetExercise = () => {
+    window.location.reload();
   };
 
   return (
@@ -449,12 +352,12 @@ export default function GrammarFillBlanksPage() {
           <h1 className="text-xl md:text-2xl font-bold text-green-900">
             Complete the Sentence
           </h1>
-          {/* Show current difficulty */}
           <p className="text-xs text-green-600 mt-1">
             Difficulty:{" "}
             <span className="font-semibold capitalize">
               {currentDifficulty}
-            </span>
+            </span>{" "}
+            | {fillBlanksQuestions.length} exercises due
           </p>
         </div>
 

@@ -293,19 +293,20 @@ def update_exercise_progress(request, module_name, exercise_type):
         # Get or create module progress
         module_progress, _ = ModuleProgress.objects.get_or_create(
             user=request.user,
-            module=module_name
+            module=module_name,
+            defaults={'completion_percentage': 0}
         )
 
         # Get or create exercise progress
-        exercise_progress, _ = ExerciseProgress.objects.get_or_create(
+        exercise_progress, created = ExerciseProgress.objects.get_or_create(
             module_progress=module_progress,
             exercise_type=exercise_type
         )
 
-        # Update exercise progress
         data = request.data
-        exercise_progress.status = data.get('status', exercise_progress.status)
         is_lesson = is_lesson_exercise(module_name, exercise_type)
+
+        exercise_progress.status = 'in-progress'
 
         if not is_lesson:
             # For quizzes: increment attempts and update scores
@@ -316,24 +317,30 @@ def update_exercise_progress(request, module_name, exercise_type):
                 if exercise_progress.best_score is None or data['score'] > exercise_progress.best_score:
                     exercise_progress.best_score = data['score']
 
-            exercise_progress.last_difficulty = data.get(
-                'lastDifficulty', exercise_progress.last_difficulty)
+            if 'lastDifficulty' in data:
+                exercise_progress.last_difficulty = data['lastDifficulty']
+
+            if not exercise_progress.first_attempt_at and exercise_progress.attempts > 0:
+                exercise_progress.first_attempt_at = timezone.now()
         else:
             # For lessons: track time spent and items reviewed
             if 'timeSpent' in data:
-                exercise_progress.time_spent = data.get('timeSpent', 0)
+                exercise_progress.time_spent += data.get('timeSpent', 0)
+
             if 'cardsReviewed' in data:
                 exercise_progress.cards_reviewed = data.get('cardsReviewed', 0)
+
             if 'lessonsViewed' in data:
                 exercise_progress.lessons_viewed = data.get('lessonsViewed', 0)
 
         if data.get('completedAt'):
             exercise_progress.last_completed_at = data['completedAt']
-        if not exercise_progress.first_attempt_at:
-            exercise_progress.first_attempt_at = timezone.now()
+        else:
+            exercise_progress.last_completed_at = timezone.now()
 
         exercise_progress.save()
 
+        # Add performance metrics for quizzes
         if not is_lesson and 'performanceMetrics' in data:
             metrics = data['performanceMetrics']
             PerformanceMetrics.objects.create(
@@ -345,37 +352,33 @@ def update_exercise_progress(request, module_name, exercise_type):
                 error_tags=metrics.get('errorTags', [])
             )
 
-        # Update module progress
         module_progress.last_accessed_at = timezone.now()
 
-        # Calculate completion percentage
         all_exercises = ExerciseProgress.objects.filter(
             module_progress=module_progress)
 
-        # Only count quiz exercises for completion
         quiz_exercises = [ex for ex in all_exercises if not is_lesson_exercise(
             module_name, ex.exercise_type)]
 
         if quiz_exercises:
-            # Calculate weighted completion: (average_score * completion_rate)
-            completed_count = sum(
-                1 for ex in quiz_exercises if ex.status == 'completed')
-            completion_rate = completed_count / len(quiz_exercises)
+            # Calculate based on best scores and attempts
+            total_score = 0
+            total_weight = 0
 
-            # Get average score of completed quizzes (80% threshold for "passing")
-            completed_quizzes = [
-                ex for ex in quiz_exercises if ex.status == 'completed' and ex.best_score is not None]
-            if completed_quizzes:
-                avg_score = sum(
-                    ex.best_score for ex in completed_quizzes) / len(completed_quizzes)
-                # Weight: 50% completion rate + 50% score performance
-                module_progress.completion_percentage = int(
-                    (completion_rate * 50) + (min(avg_score, 100) / 100 * 50)
-                )
+            for ex in quiz_exercises:
+                if ex.best_score is not None:
+                    # Weight: exercises with more attempts have more weight
+                    weight = min(ex.attempts, 5)  # Cap at 5 attempts
+                    total_score += ex.best_score * weight
+                    total_weight += weight
+
+            if total_weight > 0:
+                avg_score = total_score / total_weight
+                # Completion = average performance across quizzes
+                module_progress.completion_percentage = min(
+                    int(avg_score), 100)
             else:
-                # No scores yet, just use completion rate
-                module_progress.completion_percentage = int(
-                    completion_rate * 50)
+                module_progress.completion_percentage = 0
         else:
             module_progress.completion_percentage = 0
 

@@ -44,11 +44,24 @@ export interface CompleteSentenceItem {
   subskill: string;
 }
 
+export interface ChooseSentenceItem {
+  id: string;
+  skill: string;
+  exerciseType: "choose_sentence";
+  difficulty: "easy" | "medium" | "hard";
+  context: string;
+  choices: string[];
+  correctAnswer: string;
+  subskill: string;
+  explanation: string;
+}
+
 export type SentenceConstructionItem = 
   | SentenceOrderingItem 
   | FillMissingWordsItem 
   | CreateSentenceItem
-  | CompleteSentenceItem;
+  | CompleteSentenceItem
+  | ChooseSentenceItem;
 
 export const sentenceConstructionData: SentenceConstructionItem[] = [
   {
@@ -208,5 +221,110 @@ export const sentenceConstructionData: SentenceConstructionItem[] = [
     "correctCompletions": ["pagkakaiba-iba ng resulta ay maaaring mangyari", "hindi ninyo maaabot ang layunin", "magiging mahirap ang gawain"],
     "explanation": "Ang 'kung' ay nagpapakita ng kondisyon, kaya ang pagkumpleto ay dapat magbigay ng posibleng resulta o epekto.",
     "subskill": "kondisyonal_na_pagpapahayag"
+  },
+  {
+    "id": "SC-CHOOSE-001",
+    "skill": "sentence_construction",
+    "exerciseType": "choose_sentence",
+    "difficulty": "easy",
+    "context": "Ang pangungusap ay nagpapakita ng isang utos o bilin.",
+    "choices": [
+      "Magbasa ka ng libro ngayon.",
+      "Ngayon ay magbasa ka ng libro.",
+      "Ka ay magbasa ng libro ngayon."
+    ],
+    "correctAnswer": "Magbasa ka ng libro ngayon.",
+    "subskill": "ayos_ng_pangungusap",
+    "explanation": "Sa imperatibong pangungusap, ang pandiwa ay nasa unahan."
+  },
+  {
+    "id": "SC-CHOOSE-002",
+    "skill": "sentence_construction",
+    "exerciseType": "choose_sentence",
+    "difficulty": "medium",
+    "context": "Ang pangungusap ay naglalarawan ng isang bagay na maaaring mangyari kung may kondisyon.",
+    "choices": [
+      "Kung mag-aaral ka nang mabuti, papasa ka.",
+      "Papasa ka kung mag-aaral ka nang mabuti.",
+      "Ka ay papasa kung mag-aaral nang mabuti."
+    ],
+    "correctAnswer": "Kung mag-aaral ka nang mabuti, papasa ka.",
+    "subskill": "ugnayan_ng_pangungusap",
+    "explanation": "Ang kondisyonal na pangungusap ay nagsisimula sa 'kung' na sinusundan ng bunga."
+  },
+  {
+    "id": "SC-CHOOSE-003",
+    "skill": "sentence_construction",
+    "exerciseType": "choose_sentence",
+    "difficulty": "easy",
+    "context": "Ang pangungusap ay naglalarawan ng isang bagay na maaaring mangyari sa hinaharap.",
+    "choices": [
+      "Bibili ako ng bagong libro bukas.",
+      "Bukas ay bibili ako ng bagong libro.",
+      "Ako ay bibili ng bagong libro bukas."
+    ],
+    "correctAnswer": "Bibili ako ng bagong libro bukas.",
+    "subskill": "ayos_ng_pangungusap",
+    "explanation": "Sa aktibong boses, ang pandiwa ay nasa unahan ng paksa."
+  },
+  {
+    "id": "SC-CHOOSE-004",
+    "skill": "sentence_construction",
+    "exerciseType": "choose_sentence",
+    "difficulty": "medium",
+    "context": "Ang pangungusap ay naglalarawan ng isang bagay na maaaring mangyari sa kasalukuyan.",
+    "choices": [
+      "Siya ay kumakanta sa entablado.",
+      "Kumakanta siya sa entablado.",
+      "Kumakanta sa entablado siya."
+    ],
+    "correctAnswer": "Kumakanta siya sa entablado.",
+    "subskill": "ayos_ng_pangungusap",
+    "explanation": "Sa aktibong boses, ang pandiwa ay nasa unahan ng paksa."
+  },
+  {
+    "id": "SC-CHOOSE-005",
+    "skill": "sentence_construction",
+    "exerciseType": "choose_sentence",
+    "difficulty": "easy",
+    "context": "Ang pangungusap ay naglalarawan ng isang bagay na maaaring mangyari sa nakaraan.",
+    "choices": [
+      "Kumain na kami ng hapunan kahapon.",
+      "Kahapon ay kumain na kami ng hapunan.",
+      "Kami ay kumain na ng hapunan kahapon."
+    ],
+    "correctAnswer": "Kumain na kami ng hapunan kahapon.",
+    "subskill": "ayos_ng_pangungusap",
+    "explanation": "Sa aktibong boses, ang pandiwa ay nasa unahan ng paksa."
+  },
+  {
+    "id": "SC-CHOOSE-006",
+    "skill": "sentence_construction",
+    "exerciseType": "choose_sentence",
+    "difficulty": "hard",
+    "context": "Ang pangungusap ay nagpapakita ng dahilan at bunga.",
+    "choices": [
+      "Dahil sa ulan, hindi kami lumabas.",
+      "Hindi kami lumabas dahil sa ulan.",
+      "Sa ulan ay hindi kami lumabas."
+    ],
+    "correctAnswer": "Dahil sa ulan, hindi kami lumabas.",
+    "subskill": "ugnayan_ng_pangungusap",
+    "explanation": "Ang 'dahil' ay nagpapakita ng sanhi at dapat sundan ng bunga."
+  },
+  {
+    "id": "SC-CHOOSE-007",
+    "skill": "sentence_construction",
+    "exerciseType": "choose_sentence",
+    "difficulty": "medium",
+    "context": "Ipinapakita ng pangungusap ang aksyon ng guro sa klase.",
+    "choices": [
+      "Ang guro ay nagbigay ng aral sa klase.",
+      "Nagbigay ang guro ng aral sa klase.",
+      "Nagbigay ng aral ang guro sa klase."
+    ],
+    "correctAnswer": "Nagbigay ang guro ng aral sa klase.",
+    "subskill": "ayos_ng_pangungusap",
+    "explanation": "Ang tamang ayos ay pandiwa-paksa-layon para sa aktibong boses."
   }
 ] as const;

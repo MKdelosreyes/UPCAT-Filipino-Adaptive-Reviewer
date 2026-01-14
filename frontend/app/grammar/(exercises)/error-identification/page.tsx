@@ -10,13 +10,15 @@ import ErrorCompletionModal from "@/components/grammar/error-identification/Erro
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useSRSWithExercises } from "@/hooks/useSRS";
+import { SRS_GRADES } from "@/utils/srs";
 import {
   getGrammarExercisesAdaptive,
   GrammarExerciseItem,
 } from "@/lib/api/exercises";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
 import type { QuizProgress } from "@/contexts/LearningProgressContext";
 
 interface ErrorAnswer {
@@ -24,6 +26,7 @@ interface ErrorAnswer {
   selectedAnswer: string;
   correctAnswer: string;
   sentence: string;
+  lemmaId: string;
 }
 
 interface ProcessedErrorItem {
@@ -151,6 +154,18 @@ export default function ErrorIdentificationPage() {
   const { addPerformanceMetrics, getPerformanceHistory } =
     useLearningProgress();
   const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
+
+  const {
+    dueExercises,
+    grade: gradeSRS,
+    isLoading: srsLoading,
+  } = useSRSWithExercises({
+    module: "grammar",
+    exerciseType: "error_identification",
+    targetDifficulty: "easy",
+    limit: 15,
+  });
 
   const [errorQuestions, setErrorQuestions] = useState<ProcessedErrorItem[]>(
     []
@@ -161,99 +176,46 @@ export default function ErrorIdentificationPage() {
   const [answers, setAnswers] = useState<(boolean | null)[]>([]);
   const [detailedAnswers, setDetailedAnswers] = useState<ErrorAnswer[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
-  const { isLoading: authLoading } = useAuthGuard();
 
-  // ✅ Load questions with adaptive difficulty
   useEffect(() => {
     async function loadQuestions() {
-      try {
-        setIsLoading(true);
+      if (srsLoading || dueExercises.length === 0) return;
 
-        // ✅ 1. Get performance history and progress
-        const performanceHistory = getPerformanceHistory(
+      try {
+        const history = getPerformanceHistory(
           "grammar",
           "error-identification"
         );
-        const exerciseProgress = getExerciseProgress("error-identification");
-
-        console.log("📊 Error ID Performance History:", performanceHistory);
-        console.log("📈 Error ID Exercise Progress:", exerciseProgress);
-
-        // ✅ 2. Determine target difficulty
-        let targetDifficulty: "easy" | "medium" | "hard" = "easy";
-
-        if (performanceHistory.length > 0) {
-          const evaluation = evaluateUserPerformance(performanceHistory);
-          targetDifficulty = evaluation.nextDifficulty;
-          console.log(
-            "🎯 Evaluated Target Difficulty:",
-            targetDifficulty,
-            "| Tags:",
-            evaluation.tags
-          );
-        } else {
-          // Type guard to check if it's QuizProgress
-          if ("lastDifficulty" in exerciseProgress) {
-            targetDifficulty =
-              (exerciseProgress as QuizProgress).lastDifficulty || "easy";
-          } else {
-            targetDifficulty = "easy";
-          }
-          console.log("🆕 First Session - Using difficulty:", targetDifficulty);
-        }
+        const targetDifficulty =
+          history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
         setCurrentDifficulty(targetDifficulty);
 
-        // ✅ 3. Fetch adaptive grammar exercises
-        console.log(
-          "🔄 Fetching adaptive error identification exercises with difficulty:",
-          targetDifficulty
+        // Convert due exercises to error format
+        const processedItems = convertToErrorFormat(
+          dueExercises as GrammarExerciseItem[]
         );
 
-        console.log("🔍 User ID:", user?.id);
-        console.log("🔍 User ID type:", typeof user?.id);
-        console.log("🔍 Target difficulty:", targetDifficulty);
-
-        const exercises = await getGrammarExercisesAdaptive({
-          userId: user?.id,
-          targetDifficulty,
-          exerciseType: "error_identification",
-          limit: 15,
-        });
-
-        console.log("📚 Adaptive Error ID Exercises:", exercises.length);
-
-        if (exercises.length === 0) {
-          throw new Error("No grammar exercises available for this difficulty");
+        if (processedItems.length === 0) {
+          setError("No exercises available");
+          return;
         }
 
-        // ✅ 4. Convert to error format
-        const processedItems = convertToErrorFormat(exercises);
-        const shuffled = [...processedItems].sort(() => Math.random() - 0.5);
-        const selected = shuffled.slice(0, Math.min(10, shuffled.length));
-
-        setErrorQuestions(selected);
-        setAnswers(Array(selected.length).fill(null));
+        setErrorQuestions(processedItems);
+        setAnswers(Array(processedItems.length).fill(null));
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load exercises:", err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load exercises. Please try again."
-        );
-      } finally {
-        setIsLoading(false);
+        setError("Failed to load exercises");
       }
     }
 
     loadQuestions();
-  }, [user?.id]);
+  }, [srsLoading, dueExercises]);
 
   if (authLoading) {
     return (
@@ -263,46 +225,7 @@ export default function ErrorIdentificationPage() {
     );
   }
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="h-screen bg-red-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-red-200">
-          <Link
-            href="/grammar"
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
-
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-red-900">
-              Error Identification
-            </h1>
-            <p className="text-xs text-gray-500 mt-1">
-              Difficulty:{" "}
-              <span className="font-semibold capitalize">
-                {currentDifficulty}
-              </span>
-            </p>
-          </div>
-
-          <div className="w-20"></div>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-            <p className="text-red-600 font-semibold">Loading exercises...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error || errorQuestions.length === 0) {
+  if (srsLoading || errorQuestions.length === 0) {
     return (
       <div className="h-screen bg-red-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-red-200">
@@ -324,17 +247,18 @@ export default function ErrorIdentificationPage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center max-w-md px-4">
-            <p className="text-red-600 font-semibold mb-4">
-              {error || "No exercises available"}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              Retry
-            </button>
-          </div>
+          {srsLoading ? (
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+          ) : (
+            <div className="text-center">
+              <p className="text-lg text-red-900 mb-2">
+                🎉 No exercises due right now!
+              </p>
+              <p className="text-sm text-red-600">
+                Come back later for more practice.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -359,12 +283,12 @@ export default function ErrorIdentificationPage() {
         selectedAnswer: answer,
         correctAnswer: currentError.correct_answer,
         sentence: currentError.sentence,
+        lemmaId: currentError.lemma_id,
       },
     ]);
 
     const score = isCorrect ? 100 : 0;
 
-    // ✅ Report lexical performance
     try {
       await reportLexicalItemPerformance({
         module: "grammar",
@@ -379,7 +303,9 @@ export default function ErrorIdentificationPage() {
       console.error("Failed to record grammar performance", e);
     }
 
-    // Update metrics with CURRENT difficulty
+    const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
+    await gradeSRS(currentError.lemma_id, srsGrade);
+
     addPerformanceMetrics("grammar", "error-identification", {
       score,
       difficulty: currentDifficulty,
@@ -443,31 +369,8 @@ export default function ErrorIdentificationPage() {
     setShowCompletion(true);
   };
 
-  const resetExercise = async () => {
-    try {
-      setIsLoading(true);
-      const exercises = await getGrammarExercisesAdaptive({
-        userId: user?.id,
-        targetDifficulty: currentDifficulty,
-        exerciseType: "error_identification",
-        limit: 15,
-      });
-      const processedItems = convertToErrorFormat(exercises);
-      const shuffled = [...processedItems].sort(() => Math.random() - 0.5);
-      const selected = shuffled.slice(0, Math.min(10, shuffled.length));
-
-      setErrorQuestions(selected);
-      setCurrentQuestion(0);
-      setSelectedAnswer(null);
-      setShowResult(false);
-      setAnswers(Array(selected.length).fill(null));
-      setDetailedAnswers([]);
-      setShowCompletion(false);
-    } catch (err) {
-      console.error("Failed to reload exercises:", err);
-    } finally {
-      setIsLoading(false);
-    }
+  const resetExercise = () => {
+    window.location.reload();
   };
 
   return (
@@ -490,7 +393,8 @@ export default function ErrorIdentificationPage() {
             Difficulty:{" "}
             <span className="font-semibold capitalize">
               {currentDifficulty}
-            </span>
+            </span>{" "}
+            | {errorQuestions.length} exercises due
           </p>
         </div>
 

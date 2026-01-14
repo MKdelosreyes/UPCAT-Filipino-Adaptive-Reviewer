@@ -1,0 +1,16 @@
+item_id: string;
+lemma_id: string;
+
+// Sentence Ordering fields (exerciseType: "sentence_ordering")
+correctSentence: string; // The properly ordered sentence
+
+// Complete Sentence fields (exerciseType: "complete_sentence")
+incompletePhrase?: string; // Partial sentence to complete
+context?: string; // Context of the sentence
+sampleCompletions?: string; // Sample of acceptable completion
+
+// Choose the Best Sentence fields (exerciseType: "choose_sentence")
+context?: string; // Context or scenario for the sentence choice
+correctSentence: string; // The correct sentence to choose
+distractors: string[]; // Wrong sentence options
+explanation?: string; // Explanation for the correct choice
