@@ -119,14 +119,8 @@ export default function LessonCardsPage() {
       correctCount,
     });
 
-<<<<<<< HEAD
     updateProgress("lesson-cards", {
       status: "in-progress",
-=======
-    // ✅ Update as LESSON progress (no scoring, no performance metrics)
-    updateProgress("lesson-cards", {
-      status: "completed",
->>>>>>> c657bb5 (merged with main)
       completedAt: new Date().toISOString(),
       timeSpent,
       lessonsViewed: sentenceQuestions.length,

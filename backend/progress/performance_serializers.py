@@ -8,7 +8,7 @@ class LexicalPerformanceEventSerializer(serializers.Serializer):
     """
 
     module = serializers.ChoiceField(
-        choices=["vocabulary", "grammar", "sentence-construction"]
+        choices=["vocabulary", "grammar", "sentence-construction", "reading-comprehension"]
     )
 
     exercise_type = serializers.ChoiceField(
@@ -19,6 +19,7 @@ class LexicalPerformanceEventSerializer(serializers.Serializer):
             "antonym",
             "error-identification",
             "fill-blanks",
+            "passage-questions",
         ]
     )
 

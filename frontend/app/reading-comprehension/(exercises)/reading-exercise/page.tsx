@@ -2,13 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, BookOpen } from "lucide-react";
+import { ArrowLeft, BookOpen, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import ComprehensionQuestion from "@/components/reading-comprehension/ComprehensionQuestion";
-import ReadingProgress from "@/components/reading-comprehension/ReadingProgress";
 import ReadingCompletionModal from "@/components/reading-comprehension/ReadingCompletionModal";
-import { readingPassages } from "@/data/reading-comprehension-dataset";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
+import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import type { QuizProgress } from "@/contexts/LearningProgressContext";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  getReadingComprehensionExercisesAdaptive,
+  type ReadingPassage,
+} from "@/lib/api/exercises";
+import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
+import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 interface QuestionAnswer {
   isCorrect: boolean;
@@ -37,18 +45,28 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function ReadingExercisePage() {
-  const { updateProgress } = useReadingProgress();
+  const { updateProgress, getExerciseProgress } = useReadingProgress();
+  const { addPerformanceMetrics, getPerformanceHistory } = useLearningProgress();
+  const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
   
-  const [currentPassage, setCurrentPassage] = useState<typeof readingPassages[0] | null>(null);
+  const [passages, setPassages] = useState<ReadingPassage[]>([]);
+  const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
   const [shuffledQuestions, setShuffledQuestions] = useState<ShuffledQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(boolean | null)[]>([]);
   const [detailedAnswers, setDetailedAnswers] = useState<QuestionAnswer[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
+  const [allAnswers, setAllAnswers] = useState<boolean[]>([]); // Track all answers across all passages
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentDifficulty, setCurrentDifficulty] = useState<
+    "easy" | "medium" | "hard"
+  >("easy");
 
   // Function to shuffle choices while tracking the correct answer
-  const shuffleQuestions = (passage: typeof readingPassages[0]) => {
+  const shuffleQuestions = (passage: ReadingPassage) => {
     // Shuffle choices within each question (but keep question order)
     const shuffled = passage.comprehensionQuestions.map((q) => {
       const choicesWithIndex = q.choices.map((choice, index) => ({
@@ -73,17 +91,129 @@ export default function ReadingExercisePage() {
     setShuffledQuestions(shuffled);
   };
 
-  // Initialize passage on client side only
+  // ✅ Load passages with adaptive difficulty
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * readingPassages.length);
-    const passage = readingPassages[randomIndex];
-    setCurrentPassage(passage);
-    shuffleQuestions(passage);
-    setAnswers(Array(passage.comprehensionQuestions.length).fill(null));
-  }, []);
+    async function loadPassages() {
+      try {
+        setIsLoading(true);
+
+        const performanceHistory = getPerformanceHistory(
+          "reading-comprehension",
+          "passage-questions"
+        );
+        const exerciseProgress = getExerciseProgress("passage-questions");
+
+        console.log("📊 Reading Performance History:", performanceHistory);
+        console.log("📈 Reading Exercise Progress:", exerciseProgress);
+
+        let targetDifficulty: "easy" | "medium" | "hard" = "easy";
+
+        if (performanceHistory.length > 0) {
+          const evaluation = evaluateUserPerformance(performanceHistory);
+          targetDifficulty = evaluation.nextDifficulty;
+          console.log(
+            "🎯 Evaluated Target Difficulty:",
+            targetDifficulty,
+            "| Tags:",
+            evaluation.tags
+          );
+        } else {
+          if ("lastDifficulty" in exerciseProgress) {
+            targetDifficulty =
+              (exerciseProgress as QuizProgress).lastDifficulty || "easy";
+          } else {
+            targetDifficulty = "easy";
+          }
+          console.log("🆕 First Session - Using difficulty:", targetDifficulty);
+        }
+
+        setCurrentDifficulty(targetDifficulty);
+
+        console.log(
+          "🔄 Fetching adaptive reading passages with difficulty:",
+          targetDifficulty
+        );
+
+        const readingPassages = await getReadingComprehensionExercisesAdaptive({
+          userId: user?.id,
+          targetDifficulty,
+          limit: 3,
+        });
+
+        console.log("📚 Adaptive Reading Passages:", readingPassages.length);
+
+        if (readingPassages.length === 0) {
+          throw new Error("No reading passages available for this difficulty");
+        }
+
+        setPassages(readingPassages);
+        
+        // Initialize first passage
+        shuffleQuestions(readingPassages[0]);
+        setAnswers(Array(readingPassages[0].comprehensionQuestions.length).fill(null));
+        setError(null);
+      } catch (err) {
+        console.error("❌ Failed to load reading passages:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load reading passages. Please try again."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadPassages();
+  }, [user?.id]);
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   // Show loading state while initializing
-  if (!currentPassage || shuffledQuestions.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="h-screen bg-blue-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+          <Link
+            href="/reading-comprehension"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Link>
+
+          <div className="text-center flex-1 px-4">
+            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+              Reading Comprehension
+            </h1>
+            <p className="text-xs text-gray-500 mt-1">
+              Difficulty:{" "}
+              <span className="font-semibold capitalize">
+                {currentDifficulty}
+              </span>
+            </p>
+          </div>
+
+          <div className="w-20"></div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-blue-600 font-semibold">Loading passages...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || passages.length === 0) {
     return (
       <div className="h-screen bg-blue-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
@@ -105,7 +235,17 @@ export default function ReadingExercisePage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="text-center max-w-md px-4">
+            <p className="text-blue-600 font-semibold mb-4">
+              {error || "No reading passages available"}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -114,7 +254,7 @@ export default function ReadingExercisePage() {
   const currentQ = shuffledQuestions[currentQuestion];
   const isQuestionAnswered = answers[currentQuestion] !== null;
 
-  const handleSelectAnswer = (answerIndex: number) => {
+  const handleSelectAnswer = async (answerIndex: number) => {
     if (isQuestionAnswered) return; // Prevent re-answering
 
     setSelectedAnswer(answerIndex);
@@ -134,6 +274,30 @@ export default function ReadingExercisePage() {
         questionId: currentQ.id,
       },
     ]);
+
+    const score = isCorrect ? 100 : 0;
+
+    // ✅ Report reading comprehension performance
+    try {
+      await reportLexicalItemPerformance({
+        module: "reading-comprehension",
+        exerciseType: "passage-questions",
+        lemmaId: currentQ.id,
+        correctAnswer: currentQ.correctAnswer.toString(),
+        userAnswer: answerIndex.toString(),
+        difficultyShown: currentDifficulty,
+        score,
+      });
+    } catch (e) {
+      console.error("Failed to record reading comprehension performance", e);
+    }
+
+    // Update metrics with CURRENT difficulty
+    // addPerformanceMetrics("reading-comprehension", "passage-questions", {
+    //   score,
+    //   difficulty: currentDifficulty,
+    //   timestamp: new Date().toISOString(),
+    // });
   };
 
   const handleNext = () => {
@@ -149,8 +313,25 @@ export default function ReadingExercisePage() {
           : null
       );
     } else {
-      // Last question - complete exercise
-      completeExercise();
+      // Finished current passage's questions
+      // Store all answers from this passage
+      const currentPassageAnswers = answers.filter((a): a is boolean => a !== null);
+      setAllAnswers([...allAnswers, ...currentPassageAnswers]);
+      
+      // Check if there are more passages
+      if (currentPassageIndex < passages.length - 1) {
+        // Move to next passage
+        const nextPassageIndex = currentPassageIndex + 1;
+        setCurrentPassageIndex(nextPassageIndex);
+        shuffleQuestions(passages[nextPassageIndex]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setAnswers(Array(passages[nextPassageIndex].comprehensionQuestions.length).fill(null));
+        setDetailedAnswers([]);
+      } else {
+        // All passages complete
+        completeExercise();
+      }
     }
   };
 
@@ -170,43 +351,83 @@ export default function ReadingExercisePage() {
   };
 
   const completeExercise = () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round(
-      (correctCount / shuffledQuestions.length) * 100
-    );
+    // Combine all answers from all passages
+    const currentPassageAnswers = answers.filter((a): a is boolean => a !== null);
+    const finalAllAnswers = [...allAnswers, ...currentPassageAnswers];
+    
+    const correctCount = finalAllAnswers.filter((a) => a === true).length;
+    const totalQuestions = finalAllAnswers.length;
+    const sessionScore = Math.round((correctCount / totalQuestions) * 100);
 
-    // ✅ Update progress with completion status
-    updateProgress("passage-questions", {
-      status: "completed",
-      score: score,
-      completedAt: new Date().toISOString(),
-      attempts: 1,
-      lastDifficulty: "easy", // You can make this dynamic later
-      errorTags: [],
-    });
+    const finalMetrics = {
+      difficulty: currentDifficulty,
+      score: sessionScore,
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log("📊 Reading Session Completed - Metrics:", finalMetrics);
+
+    // addPerformanceMetrics("reading-comprehension", "passage-questions", finalMetrics);
+
+    const history = getPerformanceHistory("reading-comprehension", "passage-questions");
+    const allHistory = [...history, finalMetrics];
+    // const evaluation = evaluateUserPerformance(allHistory);
+
+    // console.log(
+    //   "🎯 Next Reading Difficulty:",
+    //   evaluation.nextDifficulty,
+    //   "| Error Tags:",
+    //   evaluation.tags
+    // );
+
+    // updateProgress("passage-questions", {
+    //   status: "in-progress",
+    //   score: sessionScore,
+    //   completedAt: new Date().toISOString(),
+    //   attempts: (history.length || 0) + 1,
+    //   lastDifficulty: evaluation.nextDifficulty,
+    //   errorTags: evaluation.tags,
+    // });
 
     setShowCompletion(true);
   };
 
-  const resetExercise = () => {
-    const randomIndex = Math.floor(Math.random() * readingPassages.length);
-    const passage = readingPassages[randomIndex];
-    setCurrentPassage(passage);
-    shuffleQuestions(passage);
-    setCurrentQuestion(0);
-    setSelectedAnswer(null);
-    setAnswers(Array(passage.comprehensionQuestions.length).fill(null));
-    setDetailedAnswers([]);
-    setShowCompletion(false);
+  const resetExercise = async () => {
+    try {
+      setIsLoading(true);
+      const readingPassages = await getReadingComprehensionExercisesAdaptive({
+        userId: user?.id,
+        targetDifficulty: currentDifficulty,
+        limit: 3,
+      });
+      setPassages(readingPassages);
+      setCurrentPassageIndex(0);
+      shuffleQuestions(readingPassages[0]);
+      setCurrentQuestion(0);
+      setSelectedAnswer(null);
+      setAnswers(Array(readingPassages[0].comprehensionQuestions.length).fill(null));
+      setDetailedAnswers([]);
+      setAllAnswers([]);
+      setShowCompletion(false);
+    } catch (err) {
+      console.error("Failed to reload exercise:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const canGoNext =
     isQuestionAnswered &&
-    currentQuestion < shuffledQuestions.length - 1;
+    (currentQuestion < shuffledQuestions.length - 1 || currentPassageIndex < passages.length - 1);
   const canFinish =
     isQuestionAnswered &&
-    currentQuestion === shuffledQuestions.length - 1;
+    currentQuestion === shuffledQuestions.length - 1 &&
+    currentPassageIndex === passages.length - 1;
   const canGoPrevious = currentQuestion > 0;
+  
+  const currentPassage = passages[currentPassageIndex];
+  const totalQuestionsCompleted = allAnswers.length + answers.filter(a => a !== null).length;
+  const totalQuestions = passages.reduce((sum, p) => sum + p.comprehensionQuestions.length, 0);
 
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden flex flex-col">
@@ -227,15 +448,23 @@ export default function ReadingExercisePage() {
               Reading Comprehension
             </h1>
           </div>
-          <p className="text-xs text-gray-600 mt-1">{currentPassage.title}</p>
+          <p className="text-xs text-gray-600 mt-1">
+            {currentPassage.title} • Passage {currentPassageIndex + 1} of {passages.length}
+          </p>
+          <p className="text-xs text-gray-500">
+            Difficulty:{" "}
+            <span className="font-semibold capitalize">
+              {currentDifficulty}
+            </span>
+          </p>
         </div>
 
         <button
           onClick={resetExercise}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm transition-colors"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm"
         >
           <RotateCcw className="w-4 h-4" />
-          <span className="hidden md:inline">New Passage</span>
+          <span className="hidden md:inline">Reset</span>
         </button>
       </div>
 
@@ -276,11 +505,27 @@ export default function ReadingExercisePage() {
 
           {/* Right Panel - Questions */}
           <div className="flex flex-col gap-4 overflow-y-auto">
-            {/* <ReadingProgress
-              currentQuestion={currentQuestion}
-              totalQuestions={shuffledQuestions.length}
-              answers={answers}
-            /> */}
+            {/* Progress Indicator */}
+            <div className="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-blue-900">
+                  Overall Progress
+                </span>
+                <span className="text-sm font-bold text-blue-600">
+                  {totalQuestionsCompleted} / {totalQuestions}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(totalQuestionsCompleted / totalQuestions) * 100}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Passage {currentPassageIndex + 1} of {passages.length} • 
+                Question {currentQuestion + 1} of {shuffledQuestions.length}
+              </p>
+            </div>
 
             <motion.div
               key={currentQuestion}
@@ -303,7 +548,8 @@ export default function ReadingExercisePage() {
                 canGoPrevious={canGoPrevious}
                 canGoNext={canGoNext || canFinish}
                 onPrevious={handlePrevious}
-                onNext={canFinish ? completeExercise : handleNext}
+                onNext={handleNext}
+                passageTitle={currentPassage.title}
               />
             </motion.div>
           </div>
@@ -313,13 +559,13 @@ export default function ReadingExercisePage() {
       <ReadingCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length /
-            shuffledQuestions.length) *
+          (allAnswers.filter((a) => a === true).length /
+            allAnswers.length) *
             100
         )}
-        correctCount={answers.filter((a) => a === true).length}
-        totalQuestions={shuffledQuestions.length}
-        passageTitle={currentPassage.title}
+        correctCount={allAnswers.filter((a) => a === true).length}
+        totalQuestions={allAnswers.length}
+        passageTitle={`${passages.length} Reading Passages`}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}
       />

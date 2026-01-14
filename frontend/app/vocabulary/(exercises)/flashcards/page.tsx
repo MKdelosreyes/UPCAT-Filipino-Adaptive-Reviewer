@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-<<<<<<< HEAD
 import { ArrowLeft, CheckCircle, RotateCcw, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -16,26 +15,14 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSRS } from "@/hooks/useSRS";
 import { SRS_GRADES } from "@/utils/srs";
 
-=======
-import Flashcard from "@/components/vocabulary/flashcard-exercise/Flashcard";
-import FlashcardProgress from "@/components/vocabulary/flashcard-exercise/FlashcardProgress";
-import FlashcardCompletionModal from "@/components/vocabulary/flashcard-exercise/FlashcardCompletionModal";
-import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
-import { useAuth } from "@/contexts/AuthContext";
->>>>>>> c657bb5 (merged with main)
 import {
   getVocabularyExercisesAdaptive,
   getLexiconData,
   VocabularyExerciseItem,
   LexiconItem,
 } from "@/lib/api/exercises";
-<<<<<<< HEAD
 
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
-=======
-import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
->>>>>>> c657bb5 (merged with main)
 
 type CardStatus = "unseen" | "learning" | "mastered";
 
@@ -45,10 +32,7 @@ interface FlashcardData {
   word: string;
   meaning: string;
   example: string;
-<<<<<<< HEAD
   numericId: number;
-=======
->>>>>>> c657bb5 (merged with main)
 }
 
 interface CardState {
@@ -58,7 +42,6 @@ interface CardState {
 }
 
 export default function FlashcardsPage() {
-<<<<<<< HEAD
   const { updateProgress } = useVocabularyProgress();
   const { user, tokens } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
@@ -67,12 +50,6 @@ export default function FlashcardsPage() {
   const [deck, setDeck] = useState<FlashcardData[]>([]); // ✅ frozen order for the session
   const deckInitializedRef = useRef(false);
 
-=======
-  const { updateProgress, getExerciseProgress } = useVocabularyProgress();
-  const { user, tokens } = useAuth();
-
-  const [sessionWords, setSessionWords] = useState<FlashcardData[]>([]);
->>>>>>> c657bb5 (merged with main)
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [cardStates, setCardStates] = useState<CardState[]>([]);
@@ -81,7 +58,6 @@ export default function FlashcardsPage() {
   const [error, setError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
   const [isProcessing, setIsProcessing] = useState(false);
-<<<<<<< HEAD
 
   // SRS
   const wordIds = useMemo(
@@ -91,40 +67,21 @@ export default function FlashcardsPage() {
   const { dueIds, grade, isLoading: srsLoading } = useSRS(wordIds);
 
   // Load flashcards
-=======
-  const { isLoading: authLoading } = useAuthGuard();
-
-  // ✅ Load flashcards (no difficulty needed - it's a lesson!)
->>>>>>> c657bb5 (merged with main)
   useEffect(() => {
     async function loadExercises() {
       try {
         setIsLoading(true);
 
-<<<<<<< HEAD
         const [vocabExercises, lexiconData] = await Promise.all([
           getVocabularyExercisesAdaptive({
             userId: user?.id,
             targetDifficulty: "easy",
-=======
-        // ✅ For lessons, we don't need adaptive difficulty
-        // Just fetch a set of vocabulary items (can be random or ordered)
-        const [vocabExercises, lexiconData] = await Promise.all([
-          getVocabularyExercisesAdaptive({
-            userId: user?.id,
-            targetDifficulty: "easy", // Lessons can start with easier words
->>>>>>> c657bb5 (merged with main)
             limit: 15,
             accessToken: tokens?.access,
           }),
           getLexiconData(),
         ]);
 
-<<<<<<< HEAD
-=======
-        console.log("📚 Flashcard Lesson:", vocabExercises.length, "cards");
-
->>>>>>> c657bb5 (merged with main)
         const lexiconMap = new Map(
           lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
         );
@@ -134,7 +91,6 @@ export default function FlashcardsPage() {
             const lexiconEntry = lexiconMap.get(vocabItem.lemma_id);
             if (!lexiconEntry) return null;
 
-<<<<<<< HEAD
             // NOTE: numericId must match whatever backend expects as word_id.
             // If your backend uses lemma_id as word_id, numeric extraction may be wrong.
             // Keep as-is for now, but verify backend word_id format.
@@ -144,8 +100,6 @@ export default function FlashcardsPage() {
 
             if (!numericId) return null;
 
-=======
->>>>>>> c657bb5 (merged with main)
             return {
               id: vocabItem.item_id,
               lemma_id: vocabItem.lemma_id,
@@ -155,15 +109,11 @@ export default function FlashcardsPage() {
                 vocabItem.sentence_example_1 ||
                 vocabItem.sentence_example_2 ||
                 "No example available",
-<<<<<<< HEAD
               numericId,
-=======
->>>>>>> c657bb5 (merged with main)
             };
           })
           .filter((item): item is FlashcardData => item !== null);
 
-<<<<<<< HEAD
         if (combinedData.length === 0)
           throw new Error("No flashcard data available");
 
@@ -172,34 +122,12 @@ export default function FlashcardsPage() {
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load flashcards."
-=======
-        if (combinedData.length === 0) {
-          throw new Error("No flashcard data available");
-        }
-
-        setSessionWords(combinedData);
-        setCardStates(
-          combinedData.map((word) => ({
-            id: word.id,
-            status: "unseen" as CardStatus,
-            flips: 0,
-          }))
-        );
-        setError(null);
-      } catch (err) {
-        console.error("❌ Failed to load flashcards:", err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load flashcards. Please try again."
->>>>>>> c657bb5 (merged with main)
         );
       } finally {
         setIsLoading(false);
       }
     }
 
-<<<<<<< HEAD
     // reset session init when user/session changes
     deckInitializedRef.current = false;
     setDeck([]);
@@ -241,50 +169,6 @@ export default function FlashcardsPage() {
   }, [sessionWords, srsLoading]);
 
   if (authLoading) {
-=======
-    loadExercises();
-  }, [user?.id, tokens?.access]);
-
-  if (authLoading) {
-    return (
-      <div className="h-screen bg-red-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="h-screen bg-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-blue-600 font-semibold">Loading flashcards...</p>
-          {/* <p className="text-sm text-gray-500 mt-2">Lesson Mode 📚</p> */}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-screen bg-blue-50 flex items-center justify-center">
-        <div className="text-center max-w-md px-4">
-          <p className="text-red-600 font-semibold mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const currentWord = sessionWords[currentIndex];
-
-  if (!currentWord) {
->>>>>>> c657bb5 (merged with main)
     return (
       <div className="h-screen bg-red-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600" />
@@ -309,33 +193,15 @@ export default function FlashcardsPage() {
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-<<<<<<< HEAD
             Retry
           </button>
-=======
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
-              Flashcards Lesson
-            </h1>
-          </div>
-          <div className="w-20"></div>
-        </div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-blue-600">Loading session...</div>
->>>>>>> c657bb5 (merged with main)
         </div>
       </div>
     );
   }
-<<<<<<< HEAD
 
   const currentWord = deck[currentIndex];
   const isLastCard = currentIndex === deck.length - 1;
-=======
->>>>>>> c657bb5 (merged with main)
 
   const masteredCount = cardStates.filter(
     (c) => c.status === "mastered"
@@ -346,7 +212,6 @@ export default function FlashcardsPage() {
 
   const handleFlip = () => {
     if (isProcessing) return;
-<<<<<<< HEAD
     setCardStates((prev) => {
       const next = [...prev];
       if (next[currentIndex])
@@ -361,82 +226,6 @@ export default function FlashcardsPage() {
 
   const advanceFrom = (targetIndex: number) => {
     if (targetIndex === deck.length - 1) {
-=======
-
-    const newStates = [...cardStates];
-    newStates[currentIndex].flips++;
-    setCardStates(newStates);
-    setIsFlipped(!isFlipped);
-  };
-
-  const handleKnowIt = async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
-
-    try {
-      // ✅ Report lexical performance for tracking
-      await reportLexicalItemPerformance({
-        module: "vocabulary",
-        exerciseType: "flashcards",
-        lemmaId: currentWord.lemma_id,
-        correctAnswer: currentWord.word,
-        userAnswer: currentWord.word,
-        difficultyShown: "easy", // Lessons don't have adaptive difficulty
-        score: 100,
-      });
-
-      const newStates = [...cardStates];
-      newStates[currentIndex].status = "mastered";
-      setCardStates(newStates);
-      nextCard();
-    } catch (error) {
-      console.error("Failed to report performance:", error);
-      const newStates = [...cardStates];
-      newStates[currentIndex].status = "mastered";
-      setCardStates(newStates);
-      nextCard();
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleStillLearning = async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
-
-    try {
-      await reportLexicalItemPerformance({
-        module: "vocabulary",
-        exerciseType: "flashcards",
-        lemmaId: currentWord.lemma_id,
-        correctAnswer: currentWord.word,
-        userAnswer: "",
-        difficultyShown: "easy",
-        score: 0,
-      });
-
-      const newStates = [...cardStates];
-      if (newStates[currentIndex].status === "unseen") {
-        newStates[currentIndex].status = "learning";
-      }
-      setCardStates(newStates);
-      nextCard();
-    } catch (error) {
-      console.error("Failed to report performance:", error);
-      const newStates = [...cardStates];
-      if (newStates[currentIndex].status === "unseen") {
-        newStates[currentIndex].status = "learning";
-      }
-      setCardStates(newStates);
-      nextCard();
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const nextCard = () => {
-    if (isLastCard) {
->>>>>>> c657bb5 (merged with main)
       completeSession();
       return;
     }
@@ -515,29 +304,12 @@ export default function FlashcardsPage() {
 
   const completeSession = () => {
     const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
-<<<<<<< HEAD
 
     updateProgress("flashcards", {
       status: "in-progress",
       completedAt: new Date().toISOString(),
       timeSpent,
       cardsReviewed: deck.length,
-=======
-    const cardsReviewed = sessionWords.length;
-
-    console.log("✅ Flashcard Lesson Completed:", {
-      timeSpent,
-      cardsReviewed,
-      masteredCount,
-    });
-
-    // ✅ Update as LESSON progress (no scoring, no performance metrics)
-    updateProgress("flashcards", {
-      status: "completed",
-      completedAt: new Date().toISOString(),
-      timeSpent,
-      cardsReviewed,
->>>>>>> c657bb5 (merged with main)
     });
 
     setShowCompletion(true);
@@ -548,24 +320,11 @@ export default function FlashcardsPage() {
     setDeck([]);
     setCurrentIndex(0);
     setIsFlipped(false);
-<<<<<<< HEAD
     setCardStates([]);
     setShowCompletion(false);
     setIsProcessing(false);
     setSessionStartTime(Date.now());
     // re-init will happen from the init effect once srsLoading=false and sessionWords is present
-=======
-    setCardStates(
-      sessionWords.map((word) => ({
-        id: word.id,
-        status: "unseen" as CardStatus,
-        flips: 0,
-      }))
-    );
-    setShowCompletion(false);
-    setIsProcessing(false);
-    setSessionStartTime(Date.now());
->>>>>>> c657bb5 (merged with main)
   };
 
   return (
@@ -583,36 +342,22 @@ export default function FlashcardsPage() {
           <h1 className="text-xl md:text-2xl font-bold text-blue-900">
             Flashcards Lesson
           </h1>
-<<<<<<< HEAD
           <p className="text-xs text-gray-500 mt-1">
             {dueIds.length} due (live count)
           </p>
-=======
-          <p className="text-xs text-gray-500 mt-1">Study mode</p>
->>>>>>> c657bb5 (merged with main)
         </div>
 
         <button
           onClick={resetSession}
           disabled={isProcessing}
-<<<<<<< HEAD
           className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm disabled:opacity-50"
-=======
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
->>>>>>> c657bb5 (merged with main)
         >
           <RotateCcw className="w-4 h-4" />
           <span className="hidden md:inline">Reset</span>
         </button>
       </div>
 
-<<<<<<< HEAD
       <div className="flex-1 flex flex-col px-4 md:px-8 py-4 md:py-6 gap-3 md:gap-4 max-w-4xl mx-auto w-full min-h-0 overflow-y-auto md:overflow-hidden">
-=======
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col px-4 md:px-8 py-4 md:py-6 gap-3 md:gap-4 max-w-4xl mx-auto w-full min-h-0 overflow-y-auto scrollbar-blue md:overflow-hidden">
-        {/* Progress */}
->>>>>>> c657bb5 (merged with main)
         <div className="flex-shrink-0">
           <FlashcardProgress
             current={currentIndex}
@@ -623,10 +368,6 @@ export default function FlashcardsPage() {
           />
         </div>
 
-<<<<<<< HEAD
-=======
-        {/* Flashcard */}
->>>>>>> c657bb5 (merged with main)
         <div className="flex-shrink-0 md:flex-1 flex items-center justify-center md:min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
@@ -649,7 +390,6 @@ export default function FlashcardsPage() {
           </AnimatePresence>
         </div>
 
-<<<<<<< HEAD
         <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-2xl mx-auto w-full">
           <motion.button
             whileHover={!isProcessing ? { scale: 1.02 } : {}}
@@ -676,31 +416,6 @@ export default function FlashcardsPage() {
                 : isLastCard
                 ? "Finish"
                 : "I Know This"}
-=======
-        {/* Buttons */}
-        <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-2xl mx-auto w-full">
-          <motion.button
-            whileHover={!isProcessing ? { scale: 1.05 } : {}}
-            whileTap={!isProcessing ? { scale: 0.95 } : {}}
-            onClick={handleStillLearning}
-            disabled={isProcessing}
-            className="flex items-center justify-center gap-2 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-orange-300 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <X className="w-5 h-5" />
-            <span>{isProcessing ? "..." : "Still Learning"}</span>
-          </motion.button>
-
-          <motion.button
-            whileHover={!isProcessing ? { scale: 1.05 } : {}}
-            whileTap={!isProcessing ? { scale: 0.95 } : {}}
-            onClick={handleKnowIt}
-            disabled={isProcessing}
-            className="flex items-center justify-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 font-bold py-3 px-8 rounded-xl shadow-lg transition-colors border-2 border-green-300 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CheckCircle className="w-5 h-5" />
-            <span>
-              {isProcessing ? "..." : isLastCard ? "Finish" : "I Know This"}
->>>>>>> c657bb5 (merged with main)
             </span>
           </motion.button>
         </div>

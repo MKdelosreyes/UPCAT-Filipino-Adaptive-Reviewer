@@ -19,7 +19,7 @@ export type SentenceExercise =
   | "complete-sentence"
   | "sentence-ordering"
   | "choose-sentence";
-export type ReadingExercise = "passage-questions" | "comprehension";
+export type ReadingExercise = "passage-questions" | "summary-exercise";
 
 export type ExerciseType =
   | VocabularyExercise
@@ -34,25 +34,6 @@ export type ModuleType =
   | "reading-comprehension";
 
 export type ExerciseStatus = "not-started" | "in-progress";
-
-// Different interfaces for lessons vs quizzes
-export interface LessonProgress {
-  status: ExerciseStatus;
-  completedAt: string | null;
-  timeSpent: number; // in seconds
-  cardsReviewed?: number; // for flashcards
-  lessonsViewed?: number; // for lesson cards
-}
-
-export interface QuizProgress {
-  status: ExerciseStatus;
-  score: number | null;
-  completedAt: string | null;
-  attempts: number;
-  lastDifficulty: "easy" | "medium" | "hard";
-  errorTags: string[];
-  performanceHistory: PerformanceMetrics[];
-}
 
 // Different interfaces for lessons vs quizzes
 export interface LessonProgress {
@@ -105,7 +86,7 @@ export interface SentenceProgress {
 
 export interface ReadingProgress {
   "passage-questions": QuizProgress;
-  comprehension: QuizProgress;
+  "summary-exercise": QuizProgress;
   lastAccessedAt: string | null;
 }
 
@@ -222,7 +203,7 @@ const createDefaultSentenceProgress = (): SentenceProgress => ({
 
 const createDefaultReadingProgress = (): ReadingProgress => ({
   "passage-questions": { ...defaultQuizProgress, status: "not-started" },
-  comprehension: { ...defaultQuizProgress, status: "not-started" },
+  "summary-exercise": { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
 });
 
@@ -298,7 +279,7 @@ export function LearningProgressProvider({
       }
     } else if (module === "reading-comprehension") {
       const readingData = moduleData as ReadingProgress;
-      if (exercise === "passage-questions" || exercise === "comprehension") {
+      if (exercise === "passage-questions" || exercise === "summary-exercise") {
         return readingData[exercise];
       }
     }
@@ -414,7 +395,7 @@ export function LearningProgressProvider({
         };
       } else if (
         module === "reading-comprehension" &&
-        (exercise === "passage-questions" || exercise === "comprehension")
+        (exercise === "passage-questions" || exercise === "summary-exercise")
       ) {
         const moduleProgress = { ...prev[module] } as ReadingProgress;
 
@@ -650,7 +631,7 @@ export function LearningProgressProvider({
       case "sentence-construction":
         return ["complete-sentence", "sentence-ordering", "choose-sentence"];
       case "reading-comprehension":
-        return ["passage-questions", "comprehension"];
+        return ["passage-questions", "summary-exercise"];
       default:
         return [];
     }
@@ -845,122 +826,7 @@ export function LearningProgressProvider({
         };
       } else if (
         module === "reading-comprehension" &&
-        (exercise === "passage-questions" || exercise === "comprehension")
-      ) {
-        const moduleProgress = { ...prev[module] } as ReadingProgress;
-        const quizProgress = moduleProgress[exercise];
-
-        quizProgress.performanceHistory = [
-          ...quizProgress.performanceHistory,
-          metrics,
-        ];
-        quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      }
-
-      return prev;
-    });
-
-    if (user && tokens) {
-      try {
-        await ProgressAPI.updateExerciseProgress(module, exercise, {
-          lastDifficulty: metrics.difficulty,
-          performanceMetrics: {
-            difficulty: metrics.difficulty,
-            score: metrics.score,
-            missedLowFreq: metrics.missedLowFreq,
-            similarChoiceErrors: metrics.similarChoiceErrors,
-            errorTags: [],
-          },
-        });
-      } catch (err) {
-        console.error("Failed to add performance metrics:", err);
-      }
-    }
-  };
-
-  const getPerformanceHistory = (
-    module: ModuleType,
-    exercise: ExerciseType
-  ): PerformanceMetrics[] => {
-    const exerciseProgress = getExerciseProgressTyped(module, exercise);
-
-    if (exerciseProgress && "performanceHistory" in exerciseProgress) {
-      return (exerciseProgress as QuizProgress).performanceHistory || [];
-    }
-
-    return [];
-  };
-
-  const addPerformanceMetrics = async (
-    module: ModuleType,
-    exercise: Exclude<
-      ExerciseType,
-      VocabularyLessonExercise | GrammarLessonExercise
-    >,
-    metrics: PerformanceMetrics
-  ) => {
-    setProgress((prev) => {
-      // const moduleProgress = { ...prev[module] };
-
-      if (
-        module === "vocabulary" &&
-        (exercise === "quiz" || exercise === "antonym")
-      ) {
-        const moduleProgress = { ...prev[module] } as VocabularyProgress;
-        const quizProgress = moduleProgress[exercise];
-
-        quizProgress.performanceHistory = [
-          ...quizProgress.performanceHistory,
-          metrics,
-        ];
-        quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      } else if (
-        module === "grammar" &&
-        (exercise === "error-identification" || exercise === "fill-blanks")
-      ) {
-        const moduleProgress = { ...prev[module] } as GrammarProgress;
-        const quizProgress = moduleProgress[exercise];
-
-        quizProgress.performanceHistory = [
-          ...quizProgress.performanceHistory,
-          metrics,
-        ];
-        quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      } else if (
-        module === "sentence-construction" &&
-        (exercise === "complete-sentence" || exercise === "sentence-ordering")
-      ) {
-        const moduleProgress = { ...prev[module] } as SentenceProgress;
-        const quizProgress = moduleProgress[exercise];
-
-        quizProgress.performanceHistory = [
-          ...quizProgress.performanceHistory,
-          metrics,
-        ];
-        quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      } else if (
-        module === "reading-comprehension" &&
-        (exercise === "passage-questions" || exercise === "comprehension")
+        (exercise === "passage-questions" || exercise === "summary-exercise")
       ) {
         const moduleProgress = { ...prev[module] } as ReadingProgress;
         const quizProgress = moduleProgress[exercise];

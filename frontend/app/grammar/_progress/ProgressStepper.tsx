@@ -56,16 +56,6 @@ export default function GrammarProgressStepper() {
               ? getExerciseMastery(progress as QuizProgress)
               : null;
 
-          // ✅ FIX: Lessons don't have performance history
-          const hasStarted = isLesson
-            ? isCompleted
-            : (progress as QuizProgress).performanceHistory?.length > 0;
-
-          const mastery =
-            !isLesson && hasStarted
-              ? getExerciseMastery(progress as QuizProgress)
-              : null;
-
           return (
             <div key={step.id} className="flex flex-col items-center">
               <motion.div

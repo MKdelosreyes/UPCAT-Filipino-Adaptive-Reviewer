@@ -15,7 +15,7 @@ export default function ReadingProgressStepper() {
   
   // Count completed exercises
   const completedCount = steps.filter(
-    (step) => getExerciseProgress(step.key).status === "completed"
+    (step) => getExerciseProgress(step.key).status === "in-progress" // maybe wrong
   ).length;
 
   return (
@@ -36,7 +36,7 @@ export default function ReadingProgressStepper() {
         {/* Steps */}
         {steps.map((step) => {
           const exerciseProgress = getExerciseProgress(step.key);
-          const isCompleted = exerciseProgress.status === "completed";
+          const isCompleted = exerciseProgress.status === "in-progress"; // maybe wrong
 
           return (
             <div key={step.id} className="flex flex-col items-center">

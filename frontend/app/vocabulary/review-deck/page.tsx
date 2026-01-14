@@ -331,6 +331,7 @@ export default function ReviewDeckPage() {
             <RotateCcw className="w-4 h-4" />
             <span className="hidden md:inline">Reset</span>
           </button>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -343,11 +344,7 @@ export default function ReviewDeckPage() {
             masteredCount={masteredCount}
             learningCount={learningCount}
             wordId={currentWord.lemma_id}
-<<<<<<< HEAD
-        />
-=======
           />
->>>>>>> c657bb5 (merged with main)
         </div>
 
         {/* Flashcard */}
@@ -398,7 +395,6 @@ export default function ReviewDeckPage() {
           </motion.button>
         </div>
       </div>
-    </div>
     </div>
   );
 }

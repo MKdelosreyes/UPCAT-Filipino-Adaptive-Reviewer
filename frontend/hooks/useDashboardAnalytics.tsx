@@ -135,9 +135,8 @@ export function useDashboardAnalytics() {
         }
       } else if (module === "reading-comprehension") {
         const reading = moduleData as ReadingProgress;
-        if (reading["passage-questions"].status === "completed")
-          completedQuizzes++;
-        if (reading["summary-exercise"].status === "completed") completedQuizzes++;
+        if (reading["passage-questions"].status === "in-progress") attemptedQuizzes++; //maybe wrong
+        if (reading["summary-exercise"].status === "in-progress") attemptedQuizzes++; //maybe wrong
 
         if (reading["passage-questions"].score !== null)
           scores.push(reading["passage-questions"].score);
@@ -363,7 +362,7 @@ export function useDashboardAnalytics() {
     const readingAttempted = [
       readingData["passage-questions"],
       readingData["summary-exercise"],
-    ].filter((ex) => ex.status === "completed").length;
+    ].filter((ex) => ex.status === "in-progress").length; //maybe wrong
 
     skills.push({
       skill: "Reading Understanding",

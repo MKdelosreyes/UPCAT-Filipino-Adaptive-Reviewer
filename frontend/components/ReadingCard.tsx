@@ -38,7 +38,7 @@ export default function ReadingCard({
 
   const exerciseProgress = getExerciseProgress(exerciseType);
   const isLocked = !canAccessExercise(exerciseType);
-  const isCompleted = exerciseProgress.status === "completed";
+  const isCompleted = exerciseProgress.status === "in-progress"; // maybe wrong
   const isRecommended = getNextRecommended() === exerciseType;
 
   const exerciseMastery = getExerciseMastery(exerciseProgress);
