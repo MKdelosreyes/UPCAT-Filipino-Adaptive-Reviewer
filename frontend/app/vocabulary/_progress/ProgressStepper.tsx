@@ -25,10 +25,10 @@ export default function ProgressStepper() {
   ).length;
 
   return (
-    <div className="w-full max-w-3xl mx-auto mb-8">
-      <div className="flex items-center justify-between relative">
+    <div className="w-full max-w-7xl mx-auto mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative">
         {/* Progress Line */}
-        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
+        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10 hidden md:block">
           <div
             className="h-full bg-yellow-600 transition-all duration-500"
             style={{
@@ -51,12 +51,12 @@ export default function ProgressStepper() {
               : null;
 
           return (
-            <div key={step.id} className="flex flex-col items-center relative">
+            <div key={step.id} className="flex flex-col items-center relative w-full">
               {/* Circle */}
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 ${
                   hasStarted
-                    ? "bg-yellow-600 text-white"
+                    ? "bg-yellow-400 text-white"
                     : "bg-yellow-100 text-yellow-600 border-2 border-yellow-300"
                 }`}
               >
@@ -69,7 +69,7 @@ export default function ProgressStepper() {
 
               {/* Label */}
               <span
-                className={`mt-2 text-xs md:text-sm font-medium text-center max-w-[80px] ${
+                className={`mt-2 text-xs md:text-sm font-medium text-center w-full ${
                   hasStarted ? "text-yellow-900" : "text-gray-600"
                 }`}
               >

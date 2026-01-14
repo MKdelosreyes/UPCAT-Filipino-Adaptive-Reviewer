@@ -41,7 +41,7 @@ export default function ProgressOverview() {
         text: "text-blue-800",
         progress: "bg-blue-500",
       },
-      pink: {
+      purple: {
         bg: "bg-purple-100",
         border: "border-purple-300",
         text: "text-purple-800",
@@ -147,7 +147,7 @@ export default function ProgressOverview() {
                           ? "#22c55e"
                           : module.color === "blue"
                           ? "#3b82f6"
-                          : "#ec4899",
+                          : "#8b5cf6",
                     }}
                   />
                   <span className="text-sm font-semibold text-gray-800">
@@ -182,7 +182,7 @@ export default function ProgressOverview() {
                         ? "#22c55e"
                         : module.color === "blue"
                         ? "#3b82f6"
-                        : "#ec4899",
+                        : "#8b5cf6",
                   }}
                 />
               </div>

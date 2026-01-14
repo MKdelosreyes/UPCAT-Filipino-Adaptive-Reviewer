@@ -72,7 +72,7 @@ export default function SentenceConstructionPage() {
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
           <SentenceConstructionCard
             name="Sentence Ordering"
             description="Drag and drop words to form correct sentences"
@@ -88,14 +88,6 @@ export default function SentenceConstructionPage() {
             color="bg-blue-50"
             url="/sentence-construction/choose-sentence"
             exerciseType="choose-sentence"
-          />
-          <SentenceConstructionCard
-            name="Create a Sentence"
-            description="Write your own sentences with AI review"
-            imagePath="/art/card3.png"
-            color="bg-blue-50"
-            url="/sentence-construction/create"
-            exerciseType="complete-sentence"
           />
         </div>
       </div>
