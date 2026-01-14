@@ -166,6 +166,22 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
                         f"✅ Retrieved grammar context with mistakes ({len(rag_context)} chars)")
                 else:
                     print("⚠️ No RAG context found")
+            
+            elif mode == "reading-comprehension":
+                # Reading comprehension context
+                rag_query = f"Reading comprehension: {word}. Passage: {sentence}"
+                rag_context = rag.get_context(
+                    rag_query,
+                    context_type="vocabulary",
+                    top_k=2,
+                    min_similarity=0.3,
+                    include_mistakes=False
+                )
+                if rag_context:
+                    print(
+                        f"✅ Retrieved reading context ({len(rag_context)} chars)")
+                else:
+                    print("⚠️ No RAG context found")
         except Exception as e:
             print(f"⚠️ Error getting RAG context: {e}")
             import traceback
@@ -270,6 +286,30 @@ Using the grammar rules and common mistakes above, magbigay ng 4 na punto:
 
 Make the explanations short and clear."""
 
+    elif mode == "reading-comprehension":
+        prompt = f"""{system_instruction}
+
+{rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
+
+**Student's Answer:**
+- Tanong: {word}
+- Tamang sagot: {correct}"""
+
+        if selected:
+            prompt += f"\n- Napili ng estudyante: {selected}"
+        
+        if sentence:
+            prompt += f"\n- Pamagat ng teksto: {sentence}"
+
+        prompt += f"""
+
+Using the reference materials above, magbigay ng maikling paliwanag:
+1) Bakit "{correct}" ang tamang sagot sa tanong
+2) Bakit mali ang napiling sagot ng estudyante
+3) Anong mahahalagang detalye sa teksto ang hindi napansin ng estudyante
+
+Make the explanation concise and educational in Filipino. 2-3 sentences total."""
+
     else:
         prompt += f"""{system_instruction}
 
@@ -322,6 +362,16 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "definition": definition,
                 "sentence": request.sentence or "",
                 "example": grammar_explanation
+            }
+        
+        elif request.mode == "reading-comprehension":
+            # For reading comprehension, word = question, sentence = passage title
+            prompt_data = {
+                "mode": request.mode,
+                "word": request.word,
+                "correct": request.correct,
+                "selected": request.selected,
+                "sentence": request.sentence or ""
             }
 
         else:

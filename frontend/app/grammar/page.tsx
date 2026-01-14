@@ -36,7 +36,7 @@ export default function GrammarPage() {
           {/* Back Button - Left */}
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm transition-colors"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -70,7 +70,7 @@ export default function GrammarPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-green-900 mb-2 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2 text-center">
             Grammar Activities
           </h1>
           <p className="text-center text-gray-600 mb-6">

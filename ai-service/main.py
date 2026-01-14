@@ -17,17 +17,21 @@ try:
     from data.lexicon import lexicon_data
     from data.grammar_core import grammar_data
     from data.sentence_construction_core import sentence_construction_data
+    from data.reading_comprehension_core import reading_comprehension_data
     print(f"✅ Loaded {len(vocabulary_data)} vocabulary items")
     print(f"✅ Loaded {len(lexicon_data)} lexicon items")
     print(f"✅ Loaded {len(grammar_data)} grammar items")
     print(
         f"✅ Loaded {len(sentence_construction_data)} sentence construction items")
+    print(
+        f"✅ Loaded {len(reading_comprehension_data)} reading comprehension passages")
 except ImportError as e:
     print(f"⚠️ Error loading data modules: {e}")
     vocabulary_data = []
     lexicon_data = []
     grammar_data = []
     sentence_construction_data = []
+    reading_comprehension_data = []
 
 groq_api_key = os.getenv("GROQ_API_KEY")
 if not groq_api_key or groq_api_key == "your-api-key-here":
@@ -70,6 +74,13 @@ try:
 except ImportError as e:
     print(f"⚠️ Error loading tips handler: {e}")
     handle_tips = None
+
+try:
+    from handlers.summary_checker import handle_summary_check
+    print("✅ Loaded summary_checker handler")
+except ImportError as e:
+    print(f"⚠️ Error loading summary_checker handler: {e}")
+    handle_summary_check = None
 
 try:
     from utils.token_counter import get_token_counter
@@ -155,6 +166,13 @@ class SentenceConstructionExercisesRequest(BaseModel):
     exercise_type: Optional[str] = None  # "ordering", "choose", "complete"
     limit: int = 15
 
+
+class ReadingComprehensionRequest(BaseModel):
+    """Request model for reading comprehension exercises endpoint."""
+    user_id: Optional[int] = None
+    target_difficulty: Optional[str] = None
+    limit: int = 3
+
     @field_validator('user_id', mode='before')
     @classmethod
     def parse_user_id(cls, v):
@@ -170,14 +188,6 @@ class SentenceConstructionExercisesRequest(BaseModel):
     def validate_difficulty(cls, v):
         if v is not None and v not in ['easy', 'medium', 'hard']:
             raise ValueError('target_difficulty must be easy, medium, or hard')
-        return v
-
-    @field_validator('exercise_type')
-    @classmethod
-    def validate_exercise_type(cls, v):
-        if v is not None and v not in ['ordering', 'choose', 'complete']:
-            raise ValueError(
-                'exercise_type must be ordering, choose, or complete')
         return v
 
 
@@ -197,6 +207,26 @@ class ConfusableWord(BaseModel):
 class ConfusablesResponse(BaseModel):
     """Response model for confusables endpoint."""
     results: List[ConfusableWord]
+
+
+class SummaryCheckRequest(BaseModel):
+    """Request model for summary checking endpoint."""
+    passage_text: str
+    user_summary: str
+    passage_title: Optional[str] = "Reading Passage"
+    difficulty: Optional[str] = "medium"
+
+
+class SummaryCheckResponse(BaseModel):
+    """Response model for summary checking endpoint."""
+    overall_score: int  # 0-100
+    feedback: str
+    strengths: List[str]
+    improvements: List[str]
+    key_points_covered: int
+    key_points_total: int
+    # {coverage: X, accuracy: Y, clarity: Z, completeness: W}
+    detailed_scores: dict
 
 
 class HealthResponse(BaseModel):
@@ -494,6 +524,34 @@ async def generate_tips(request: TipsRequest):
         print(f"❌ Error in /tips endpoint: {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to generate tips: {str(e)}")
+
+
+@app.post("/summary/check", response_model=SummaryCheckResponse)
+async def check_summary(request: SummaryCheckRequest):
+    """
+    Evaluate a user's summary of a reading passage.
+
+    - **passage_text**: The original passage text
+    - **user_summary**: The student's written summary
+    - **passage_title**: Optional title of the passage
+    - **difficulty**: Optional difficulty level (easy/medium/hard)
+
+    Returns detailed scores, feedback, strengths, and areas for improvement.
+    """
+    if not handle_summary_check:
+        raise HTTPException(
+            status_code=503,
+            detail="Summary checker service not available"
+        )
+
+    try:
+        return await handle_summary_check(request)
+    except Exception as e:
+        print(f"❌ Error in /summary/check endpoint: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to check summary: {str(e)}"
+        )
 
 
 @app.post("/confusables", response_model=ConfusablesResponse)
@@ -840,6 +898,74 @@ async def get_lexicon_exercises():
     if not lexicon_data:
         raise HTTPException(status_code=404, detail="Lexicon data not loaded")
     return {"exercises": lexicon_data, "count": len(lexicon_data)}
+
+
+@app.post("/exercises/reading-comprehension")
+async def get_reading_comprehension_exercises_adaptive(
+    request: ReadingComprehensionRequest,
+    authorization: Optional[str] = Header(None)
+):
+    """Get reading comprehension passages with adaptive difficulty."""
+    if not reading_comprehension_data:
+        raise HTTPException(
+            status_code=404, detail="Reading comprehension data not loaded")
+
+    user_id = request.user_id
+    target_difficulty = request.target_difficulty
+    limit = request.limit
+
+    # Filter by difficulty if specified
+    filtered_passages = reading_comprehension_data
+    if target_difficulty:
+        # Since the Python data doesn't have difficulty field, we'll assign based on word count
+        # easy: < 300 words, medium: 300-700, hard: > 700
+        if target_difficulty == "easy":
+            filtered_passages = [
+                p for p in reading_comprehension_data if p["wordCount"] < 300]
+        elif target_difficulty == "medium":
+            filtered_passages = [
+                p for p in reading_comprehension_data if 300 <= p["wordCount"] <= 700]
+        elif target_difficulty == "hard":
+            filtered_passages = [
+                p for p in reading_comprehension_data if p["wordCount"] > 700]
+
+    # If no passages match the difficulty, use all
+    if not filtered_passages:
+        filtered_passages = reading_comprehension_data
+
+    # Shuffle and select
+    shuffled = filtered_passages.copy()
+    random.shuffle(shuffled)
+    selected = shuffled[:limit]
+
+    # Transform to match frontend interface
+    passages = []
+    for passage in selected:
+        # Determine difficulty based on word count if not specified
+        word_count = passage["wordCount"]
+        difficulty = target_difficulty or (
+            "easy" if word_count < 300 else "medium" if word_count <= 700 else "hard")
+
+        passages.append({
+            "passage_id": passage["item_id"],
+            "title": passage.get("title", f"Passage {passage['item_id']}"),
+            "text": passage["text"],
+            "difficulty": difficulty,
+            "wordCount": word_count,
+            "comprehensionQuestions": [
+                {
+                    "id": q["id"],
+                    "question": q["question"],
+                    "type": "multiple-choice",
+                    "choices": q["choices"],
+                    "correctAnswer": q["correctAnswer"],
+                    "explanation": q["explanation"]
+                }
+                for q in passage["questions"]
+            ]
+        })
+
+    return {"passages": passages, "count": len(passages)}
 
 
 @app.get("/debug/data-status")
