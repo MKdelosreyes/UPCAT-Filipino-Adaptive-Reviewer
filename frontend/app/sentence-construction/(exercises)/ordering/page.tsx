@@ -217,7 +217,13 @@ export default function SentenceOrderingPage() {
   };
 
   const resetExercise = () => {
-    window.location.reload();
+    // Reset all local state to restart current exercises
+    setCurrentQuestion(0);
+    setShowResult(false);
+    setAnswers(Array(dueExercises.length).fill(null));
+    setDetailedAnswers([]);
+    setShowCompletion(false);
+    setIsCorrect(null);
   };
 
   return (
@@ -278,7 +284,7 @@ export default function SentenceOrderingPage() {
           />
         </motion.div>
 
-        {showResult ? (
+        {showResult && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -288,16 +294,12 @@ export default function SentenceOrderingPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
             >
               {isLastQuestion ? "Finish Exercise" : "Next Question"}
               <ChevronRight className="w-5 h-5" />
             </motion.button>
           </motion.div>
-        ) : (
-          <div className="text-center text-xs text-orange-600">
-            🔄 Drag and drop words to arrange them in the correct order
-          </div>
         )}
       </div>
 

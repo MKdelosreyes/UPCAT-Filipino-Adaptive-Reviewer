@@ -196,6 +196,9 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
     # System instruction for Groq
     system_instruction = """You are a Filipino language tutor for UPCAT preparation. Use the provided reference materials to give accurate, evidence-based explanations. Be concise and educational. Respond in Filipino."""
 
+    # Initialize prompt variable
+    prompt = ""
+
     # Build prompts based on mode
     if mode == "quiz":
         prompt = f"""{system_instruction}
@@ -319,8 +322,33 @@ Based on the official explanation provided above, magbigay ng maikling paliwanag
 
 Keep it concise and educational in Filipino. 2-3 sentences total."""
 
+    elif mode == "sentence-ordering":
+        # For sentence ordering exercises
+        user_sentence = data.get("selected", "")
+        official_explanation = data.get("explanation", "")
+        
+        prompt = f"""{system_instruction}
+
+{rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
+
+**Student's Answer:**
+- Tamang pagkakasunod-sunod: {correct}
+- Pagkakasunod-sunod ng estudyante: {user_sentence}"""
+        
+        if official_explanation:
+            prompt += f"\n\n**Official Explanation (Use this as the foundation of your answer):**\n{official_explanation}"
+
+        prompt += f"""
+
+Magbigay ng maikling paliwanag sa Filipino na:
+1) Ipaliwanag kung bakit "{correct}" ang tamang pagkakasunod-sunod ng mga salita
+2) Ituro kung ano ang mali sa pagkakasunod-sunod ng estudyante: "{user_sentence}"
+3) Banggitin ang mga mahahalagang grammar rules o sentence structure na dapat sundin
+
+Keep it concise and educational in Filipino. 2-3 sentences total."""
+
     else:
-        prompt += f"""{system_instruction}
+        prompt = f"""{system_instruction}
 
 Explain why "{correct}" is the correct answer.
 The student selected "{selected}".
@@ -381,6 +409,16 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "correct": request.correct,
                 "selected": request.selected,
                 "sentence": request.sentence or "",
+                "explanation": request.explanation or ""
+            }
+        
+        elif request.mode == "sentence-ordering":
+            # For sentence ordering, word is not needed, correct = correct sentence, selected = user's sentence
+            prompt_data = {
+                "mode": request.mode,
+                "word": request.word or "",
+                "correct": request.correct,
+                "selected": request.selected,
                 "explanation": request.explanation or ""
             }
 
