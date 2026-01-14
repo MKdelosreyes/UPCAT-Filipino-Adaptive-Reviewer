@@ -122,7 +122,7 @@ export default function FillBlanksQuestion({
                   className={
                     selectedAnswer === correctAnswer
                       ? "text-green-600 font-bold"
-                      : "text-red-600 font-bold"
+                      : "text-amber-600 font-bold"
                   }
                 >
                   {selectedAnswer}
@@ -173,7 +173,7 @@ export default function FillBlanksQuestion({
                     showCorrect
                       ? "bg-green-100 border-green-500"
                       : showWrong
-                      ? "bg-red-100 border-red-500"
+                      ? "bg-amber-100 border-amber-500"
                       : isSelected
                       ? "bg-green-50 border-green-400"
                       : "bg-white border-green-200 hover:border-green-400"
@@ -186,7 +186,7 @@ export default function FillBlanksQuestion({
                         showCorrect
                           ? "bg-green-500 text-white"
                           : showWrong
-                          ? "bg-red-500 text-white"
+                          ? "bg-amber-500 text-white"
                           : isSelected
                           ? "bg-green-400 text-white"
                           : "bg-green-100 text-green-700"
@@ -206,7 +206,7 @@ export default function FillBlanksQuestion({
                         {isCorrect ? (
                           <Check className="w-6 h-6 text-green-600" />
                         ) : (
-                          isSelected && <X className="w-6 h-6 text-red-600" />
+                          isSelected && <X className="w-6 h-6 text-amber-600" />
                         )}
                       </div>
                     )}

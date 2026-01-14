@@ -1,5 +1,6 @@
 import { motion, Variants } from "framer-motion";
 import type { ReactNode } from "react";
+import type { ModuleType } from "@/contexts/LearningProgressContext";
 
 type DashboardCardProps = {
   children: ReactNode;
@@ -9,6 +10,7 @@ type DashboardCardProps = {
   description: string;
   color: string;
   href?: string;
+  moduleType?: ModuleType;
 };
 
 const cardVariants: Variants = {
@@ -36,7 +38,24 @@ const DashboardCard = ({
   skill,
   description,
   color,
+  moduleType,
 }: DashboardCardProps) => {
+  // Get colors based on module type
+  const getModuleColors = () => {
+    if (!moduleType) {
+      return { border: 'border-blue-300', borderHover: 'hover:border-blue-500', borderActive: 'active:border-blue-600', hoverBg: 'hover:bg-blue-50', textColor: 'text-blue-600' };
+    }
+    const colorMap = {
+      vocabulary: { border: 'border-yellow-300', borderHover: 'hover:border-yellow-500', borderActive: 'active:border-yellow-600', hoverBg: 'hover:bg-yellow-50', textColor: 'text-yellow-600' },
+      grammar: { border: 'border-green-300', borderHover: 'hover:border-green-500', borderActive: 'active:border-green-600', hoverBg: 'hover:bg-green-50', textColor: 'text-green-600' },
+      'sentence-construction': { border: 'border-blue-300', borderHover: 'hover:border-blue-500', borderActive: 'active:border-blue-600', hoverBg: 'hover:bg-blue-50', textColor: 'text-blue-600' },
+      'reading-comprehension': { border: 'border-purple-300', borderHover: 'hover:border-purple-500', borderActive: 'active:border-purple-600', hoverBg: 'hover:bg-purple-50', textColor: 'text-purple-600' },
+    };
+    return colorMap[moduleType] || colorMap.vocabulary;
+  };
+
+  const moduleColors = getModuleColors();
+
   return (
     <div className="flex flex-col p-3 md:p-4 border border-gray-200 bg-white shadow-lg md:shadow-xl rounded-2xl md:rounded-3xl w-full">
       <motion.div
@@ -44,10 +63,10 @@ const DashboardCard = ({
         animate="visible"
         variants={cardVariants}
         className={`
-        bg-white border-4 md:border-5 border-blue-300 rounded-2xl md:rounded-3xl
+        bg-white border-4 md:border-5 ${moduleColors.border} rounded-2xl md:rounded-3xl
         p-4 md:p-6 flex flex-col h-full
         transition-all duration-300
-        hover:bg-blue-50 hover:border-blue-500 active:border-blue-600
+        ${moduleColors.hoverBg} ${moduleColors.borderHover} ${moduleColors.borderActive}
         ${className}
       `}
       >
@@ -55,7 +74,7 @@ const DashboardCard = ({
       </motion.div>
       <div className="flex flex-col gap-2 md:gap-3 p-1.5 md:p-2">
         <div
-          className={`py-0.5 md:py-1 w-fit px-2 md:px-3 text-center text-xs font-semibold text-blue-600 ${color} rounded-full md:rounded-4xl`}
+          className={`py-0.5 md:py-1 w-fit px-2 md:px-3 text-center text-xs font-semibold ${moduleColors.textColor} ${color} rounded-full md:rounded-4xl`}
         >
           {skill}
         </div>

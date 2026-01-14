@@ -49,7 +49,7 @@ export default function Home() {
 
   const stats = [
     { value: "200+", label: "Filipino Words" },
-    { value: "6", label: "Practice Exercises" },
+    { value: "9", label: "Practice Exercises" },
     { value: "4", label: "Core Modules" },
     { value: "AI", label: "Powered Learning" },
   ];

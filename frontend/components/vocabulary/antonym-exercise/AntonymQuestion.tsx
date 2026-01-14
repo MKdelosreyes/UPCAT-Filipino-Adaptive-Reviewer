@@ -192,10 +192,10 @@ export default function AntonymQuestion({
                     showCorrect
                       ? "bg-green-100 border-green-500"
                       : showWrong
-                      ? "bg-red-100 border-red-500"
+                      ? "bg-yellow-100 border-yellow-400"
                       : isSelected
-                      ? "bg-red-500 text-white"
-                      : "bg-red-100 text-red-700"
+                      ? "bg-yellow-500 text-white"
+                      : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -205,10 +205,10 @@ export default function AntonymQuestion({
                         showCorrect
                           ? "bg-green-500 text-white"
                           : showWrong
-                          ? "bg-red-500 text-white"
+                          ? "bg-yellow-500 text-white"
                           : isSelected
-                          ? "bg-orange-500 text-white"
-                          : "bg-orange-100 text-orange-700"
+                          ? "bg-yellow-600 text-white"
+                          : "bg-yellow-100 text-yellow-700"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}
@@ -225,7 +225,7 @@ export default function AntonymQuestion({
                         {isCorrect ? (
                           <Check className="w-6 h-6 text-green-600" />
                         ) : (
-                          isSelected && <X className="w-6 h-6 text-red-600" />
+                          isSelected && <X className="w-6 h-6 text-white" />
                         )}
                       </div>
                     )}

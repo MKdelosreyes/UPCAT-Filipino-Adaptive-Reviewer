@@ -165,7 +165,7 @@ export default function Flashcard({
                 {word}
               </h2>
             </div>
-            <p className="absolute bottom-6 text-blue-500 text-xs md:text-sm animate-pulse">
+            <p className="absolute bottom-6 text-yellow-500 text-xs md:text-sm animate-pulse">
               Click to see meaning →
             </p>
           </div>

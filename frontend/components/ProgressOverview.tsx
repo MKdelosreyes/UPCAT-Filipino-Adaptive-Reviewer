@@ -42,10 +42,10 @@ export default function ProgressOverview() {
         progress: "bg-blue-500",
       },
       pink: {
-        bg: "bg-pink-100",
-        border: "border-pink-300",
-        text: "text-pink-800",
-        progress: "bg-pink-500",
+        bg: "bg-purple-100",
+        border: "border-purple-300",
+        text: "text-purple-800",
+        progress: "bg-purple-500",
       },
     };
     return colorMap[color] || colorMap.blue;

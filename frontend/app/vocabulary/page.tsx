@@ -14,16 +14,16 @@ export default function VocabularyPage() {
 
   const masteryColors = {
     beginner: "bg-gray-100 text-gray-700 border-gray-300",
-    developing: "bg-blue-100 text-blue-700 border-blue-300",
-    proficient: "bg-blue-100 text-blue-700 border-blue-300",
+    developing: "bg-yellow-100 text-yellow-700 border-yellow-300",
+    proficient: "bg-yellow-100 text-yellow-700 border-yellow-300",
     advanced: "bg-orange-100 text-orange-700 border-orange-300",
     master: "bg-yellow-100 text-yellow-700 border-yellow-400",
   };
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-red-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="h-screen bg-yellow-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
       </div>
     );
   }
@@ -36,7 +36,7 @@ export default function VocabularyPage() {
           {/* Back Button - Left */}
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors"
+            className="inline-flex items-center gap-2 text-yellow-600 hover:text-yellow-700 font-semibold text-sm transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -70,7 +70,7 @@ export default function VocabularyPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-yellow-900 mb-2 text-center">
             Vocabulary Activities
           </h1>
           <p className="text-center text-gray-600 mb-6">
@@ -95,7 +95,7 @@ export default function VocabularyPage() {
             name="What is its Closest Meaning"
             description="Test your knowledge with word definitions"
             imagePath="/art/card2.png"
-            color="bg-blue-50"
+            color="bg-yellow-50"
             url="/vocabulary/what-is-its-closest-meaning"
             exerciseType="quiz"
           />

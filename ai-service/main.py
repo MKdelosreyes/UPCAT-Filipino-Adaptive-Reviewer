@@ -220,14 +220,13 @@ class SummaryCheckRequest(BaseModel):
 
 class SummaryCheckResponse(BaseModel):
     """Response model for summary checking endpoint."""
-    overall_score: int  # 0-100
+    quality_level: str  # "needs-work", "developing", "good", "excellent"
     feedback: str
     strengths: List[str]
     improvements: List[str]
-    key_points_covered: int
-    key_points_total: int
-    # {coverage: X, accuracy: Y, clarity: Z, completeness: W}
-    detailed_scores: dict
+    coverage_feedback: str
+    clarity_feedback: str
+    completeness_feedback: str
 
 
 class HealthResponse(BaseModel):

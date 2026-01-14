@@ -24,7 +24,7 @@ export default function ReadingProgressStepper() {
         {/* Progress Line */}
         <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
           <motion.div
-            className="h-full bg-blue-500"
+            className="h-full bg-purple-500"
             initial={{ width: "0%" }}
             animate={{
               width: `${(completedCount / steps.length) * 100}%`,
@@ -44,7 +44,7 @@ export default function ReadingProgressStepper() {
                 whileHover={{ scale: 1.1 }}
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
                   isCompleted
-                    ? "bg-blue-500 border-blue-500 text-white"
+                    ? "bg-purple-500 border-purple-500 text-white"
                     : "bg-white border-gray-300 text-gray-500"
                 }`}
               >
@@ -52,7 +52,7 @@ export default function ReadingProgressStepper() {
               </motion.div>
               <p
                 className={`mt-2 text-xs font-medium ${
-                  isCompleted ? "text-blue-700" : "text-gray-500"
+                  isCompleted ? "text-purple-700" : "text-gray-500"
                 }`}
               >
                 {step.name}

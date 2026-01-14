@@ -28,9 +28,9 @@ export default function OrderingProgress({
           <span className="font-semibold">Progress</span>
           <span className="font-semibold">{Math.round(progress)}%</span>
         </div>
-        <div className="w-full h-2.5 bg-orange-100 rounded-full overflow-hidden">
+        <div className="w-full h-2.5 bg-blue-100 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-orange-400 to-orange-600"
+            className="h-full bg-gradient-to-r from-blue-400 to-blue-600"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
@@ -48,9 +48,9 @@ export default function OrderingProgress({
               {correctCount}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 bg-red-100 px-3 py-1.5 rounded-full">
-            <X size={14} className="text-red-600" />
-            <span className="text-xs font-semibold text-red-700">
+          <div className="flex items-center gap-1.5 bg-amber-100 px-3 py-1.5 rounded-full">
+            <X size={14} className="text-amber-600" />
+            <span className="text-xs font-semibold text-amber-700">
               {wrongCount}
             </span>
           </div>
@@ -68,11 +68,11 @@ export default function OrderingProgress({
                 key={index}
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
                   isCurrent
-                    ? "border-orange-500 bg-orange-100 text-orange-700 scale-110"
+                    ? "border-blue-500 bg-blue-100 text-blue-700 scale-110"
                     : isCorrect
                     ? "border-green-500 bg-green-100 text-green-700"
                     : isAnswered
-                    ? "border-red-500 bg-red-100 text-red-700"
+                    ? "border-amber-500 bg-amber-100 text-amber-700"
                     : "border-gray-300 bg-white text-gray-400"
                 }`}
               >
@@ -101,9 +101,9 @@ export default function OrderingProgress({
               Correct: {correctCount}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 bg-red-100 px-3 py-1.5 rounded-full">
-            <X size={14} className="text-red-600" />
-            <span className="text-xs font-semibold text-red-700">
+          <div className="flex items-center gap-1.5 bg-amber-100 px-3 py-1.5 rounded-full">
+            <X size={14} className="text-amber-600" />
+            <span className="text-xs font-semibold text-amber-700">
               Wrong: {wrongCount}
             </span>
           </div>
@@ -121,11 +121,11 @@ export default function OrderingProgress({
                 key={index}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
                   isCurrent
-                    ? "border-orange-500 bg-orange-100 text-orange-700 scale-110"
+                    ? "border-blue-500 bg-blue-100 text-blue-700 scale-110"
                     : isCorrect
                     ? "border-green-500 bg-green-100 text-green-700"
                     : isAnswered
-                    ? "border-red-500 bg-red-100 text-red-700"
+                    ? "border-amber-500 bg-amber-100 text-amber-700"
                     : "border-gray-300 bg-white text-gray-400"
                 }`}
               >

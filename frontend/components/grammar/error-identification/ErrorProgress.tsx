@@ -28,9 +28,9 @@ export default function ErrorProgress({
           <span className="font-semibold">Progress</span>
           <span className="font-semibold">{Math.round(progress)}%</span>
         </div>
-        <div className="w-full h-2.5 bg-red-100 rounded-full overflow-hidden">
+        <div className="w-full h-2.5 bg-green-100 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-red-400 to-red-600"
+            className="h-full bg-gradient-to-r from-green-400 to-green-600"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
@@ -67,7 +67,7 @@ export default function ErrorProgress({
                 key={index}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
                   isCurrent
-                    ? "border-red-500 bg-red-100 text-red-700 scale-110"
+                    ? "border-green-500 bg-green-100 text-green-700 scale-110"
                     : isCorrect
                     ? "border-green-500 bg-green-100 text-green-700"
                     : isAnswered

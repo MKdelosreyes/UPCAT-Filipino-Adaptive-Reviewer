@@ -57,8 +57,8 @@ export default function FlashcardCompletionModal({
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 space-y-6">
               {/* Icon */}
               <div className="flex justify-center">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                  <BookOpen className="w-12 h-12 text-blue-600" />
+                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <BookOpen className="w-12 h-12 text-yellow-600" />
                 </div>
               </div>
 
@@ -131,7 +131,7 @@ export default function FlashcardCompletionModal({
                 {completionRate >= 70 ? (
                   <Link
                     href="/vocabulary/what-is-its-closest-meaning"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
+                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
                   >
                     Continue to Quiz →
                   </Link>

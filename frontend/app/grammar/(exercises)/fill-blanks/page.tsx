@@ -192,8 +192,8 @@ export default function GrammarFillBlanksPage() {
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-red-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="h-screen bg-green-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }

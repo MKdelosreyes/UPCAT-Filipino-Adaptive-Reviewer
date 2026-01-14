@@ -56,13 +56,13 @@ else:
         difficulty: Optional[str] = "medium"
     
     class SummaryCheckResponse(BaseModel):
-        overall_score: int
+        quality_level: str  # "needs-work", "developing", "good", "excellent"
         feedback: str
         strengths: List[str]
         improvements: List[str]
-        key_points_covered: int
-        key_points_total: int
-        detailed_scores: dict
+        coverage_feedback: str
+        clarity_feedback: str
+        completeness_feedback: str
 
 
 # ============================================================
@@ -75,28 +75,41 @@ def build_summary_evaluation_prompt(data: dict) -> tuple:
     summary = data["user_summary"]
     title = data.get("passage_title", "Reading Passage")
 
-    system_instruction = """You are a strict Filipino reading teacher evaluating student summaries. Be rigorous and fair in your grading."""
+    system_instruction = """You are an encouraging Filipino reading teacher evaluating student summaries. Focus on understanding and effort, not perfection. Be supportive but honest."""
 
     user_prompt = f"""Main Idea: {main_idea}
 
 Student Summary: {summary}
 
-GRADING CRITERIA (be strict):
-- Nonsensical/gibberish answers: 0-10 points
-- Off-topic or irrelevant: 10-30 points  
-- Partially captures main idea but lacks detail: 40-60 points
-- Good coverage with minor gaps: 70-85 points
-- Excellent, comprehensive summary: 90-100 points
+EVALUATION CRITERIA (be lenient and encouraging):
+- Completely off-topic or nonsensical: "needs-work"
+- Shows some understanding of the topic, even if incomplete: "developing"
+- Captures the main idea reasonably well: "good"
+- Demonstrates strong understanding and clear expression: "excellent"
 
-The summary MUST directly address the main idea with relevant content. Generic responses, single words, or unrelated text should receive very low scores (0-20).
+GRADING GUIDANCE:
+- If the student shows ANY grasp of the main idea, they deserve at least "developing"
+- Focus on what they GOT RIGHT, not what's missing
+- "good" should be given liberally if they understand the core concept
+- Only use "needs-work" for truly off-topic or incomprehensible responses
 
-Return JSON only (strengths and improvements MUST be arrays, even if empty):
+Provide DESCRIPTIVE feedback focusing on:
+1. Coverage - Did they capture the main idea? What did they understand?
+2. Clarity - Is their summary understandable?
+3. Completeness - What did they include? What could enhance their summary?
+
+Return JSON only (use Filipino for all text):
 {{
-  "overall_score": <score 0-100>,
-  "strengths": ["what they did well"] or [] if no strengths,
-  "improvements": ["specific issues to fix"],
-  "feedback": "brief comment explaining the score"
+  "quality_level": "needs-work" | "developing" | "good" | "excellent",
+  "feedback": "brief overall assessment (encouraging tone)",
+  "strengths": ["what they did well - always find at least one strength unless needs-work"],
+  "improvements": ["specific areas to improve - be gentle and constructive"],
+  "coverage_feedback": "What main ideas did they capture? Be positive.",
+  "clarity_feedback": "How clear is their summary? Acknowledge effort.",
+  "completeness_feedback": "What's included? What could enhance it? Be encouraging."
 }}
+
+Be descriptive, specific, and ENCOURAGING. No numbers or percentages.
 """
 
     return (system_instruction, user_prompt)
@@ -157,30 +170,25 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
             
             result = json.loads(response_text)
             
-            score = int(result.get("overall_score", 0))
+            quality_level = result.get("quality_level", "needs-work")
             
             # Ensure strengths and improvements are always lists
             strengths = result.get("strengths", [])
             if not isinstance(strengths, list):
-                strengths = [strengths] if strengths and strengths.lower() not in ["no", "none", "n/a"] else []
+                strengths = [strengths] if strengths and strengths.lower() not in ["no", "none", "n/a", "wala"] else []
             
             improvements = result.get("improvements", [])
             if not isinstance(improvements, list):
                 improvements = [improvements] if improvements else []
             
             return SummaryCheckResponse(
-                overall_score=score,
+                quality_level=quality_level,
                 feedback=result.get("feedback", ""),
-                strengths=strengths[:2],
-                improvements=improvements[:2],
-                key_points_covered=1 if score >= 70 else 0,
-                key_points_total=1,
-                detailed_scores={
-                    "coverage": score,
-                    "accuracy": score,
-                    "clarity": score,
-                    "completeness": score
-                }
+                strengths=strengths[:3],
+                improvements=improvements[:3],
+                coverage_feedback=result.get("coverage_feedback", ""),
+                clarity_feedback=result.get("clarity_feedback", ""),
+                completeness_feedback=result.get("completeness_feedback", "")
             )
 
         except json.JSONDecodeError as e:

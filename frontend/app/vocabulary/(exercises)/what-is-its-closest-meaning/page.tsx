@@ -273,7 +273,7 @@ export default function ClosestMeaningQuizPage() {
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-blue-50 flex items-center justify-center">
+      <div className="h-screen bg-yellow-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -282,7 +282,7 @@ export default function ClosestMeaningQuizPage() {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="h-screen bg-blue-50 flex flex-col">
+      <div className="h-screen bg-yellow-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
           <Link
             href="/vocabulary"
@@ -309,8 +309,8 @@ export default function ClosestMeaningQuizPage() {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-blue-600 font-semibold">Loading quiz...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
+            <p className="text-yellow-600 font-semibold">Loading quiz...</p>
           </div>
         </div>
       </div>
@@ -320,7 +320,7 @@ export default function ClosestMeaningQuizPage() {
   // Show error state
   if (error || questions.length === 0) {
     return (
-      <div className="h-screen bg-blue-50 flex flex-col">
+      <div className="h-screen bg-yellow-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
           <Link
             href="/vocabulary"
@@ -506,7 +506,7 @@ export default function ClosestMeaningQuizPage() {
   };
 
   return (
-    <div className="h-screen bg-blue-50 overflow-auto flex flex-col scrollbar-blue">
+    <div className="h-screen bg-yellow-50 overflow-auto flex flex-col scrollbar-yellow">
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
         <Link
