@@ -75,26 +75,27 @@ def build_summary_evaluation_prompt(data: dict) -> tuple:
     summary = data["user_summary"]
     title = data.get("passage_title", "Reading Passage")
 
-    system_instruction = """You are a Filipino language teacher grading student summaries. Be brief, encouraging, and specific."""
+    system_instruction = """You are a strict Filipino reading teacher evaluating student summaries. Be rigorous and fair in your grading."""
 
-    user_prompt = f"""**Pamagat:** {title}
+    user_prompt = f"""Main Idea: {main_idea}
 
-**Pangunahing Ideya (Main Idea):**
-{main_idea}
+Student Summary: {summary}
 
-**Buod ng Estudyante (Student Summary):**
-{summary}
+GRADING CRITERIA (be strict):
+- Nonsensical/gibberish answers: 0-10 points
+- Off-topic or irrelevant: 10-30 points  
+- Partially captures main idea but lacks detail: 40-60 points
+- Good coverage with minor gaps: 70-85 points
+- Excellent, comprehensive summary: 90-100 points
 
----
+The summary MUST directly address the main idea with relevant content. Generic responses, single words, or unrelated text should receive very low scores (0-20).
 
-**TASK:** Compare the student's summary with the main idea above. Grade how well they captured the key points.
-
-**Return JSON only:**
+Return JSON only (strengths and improvements MUST be arrays, even if empty):
 {{
-  "overall_score": <0-100 score based on how well summary matches main idea>,
-  "strengths": ["1-2 things they did well"],
-  "improvements": ["1-2 suggestions"],
-  "feedback": "1-2 encouraging sentences in Filipino"
+  "overall_score": <score 0-100>,
+  "strengths": ["what they did well"] or [] if no strengths,
+  "improvements": ["specific issues to fix"],
+  "feedback": "brief comment explaining the score"
 }}
 """
 
@@ -117,8 +118,11 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
             )
 
         # Build evaluation prompt
+        # Use main_idea if provided, otherwise use passage_text
+        main_idea = request.main_idea if request.main_idea else request.passage_text
+        
         system_instruction, user_prompt = build_summary_evaluation_prompt({
-            "main_idea": request.main_idea,
+            "main_idea": main_idea,
             "user_summary": request.user_summary,
             "passage_title": request.passage_title,
         })
@@ -155,11 +159,20 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
             
             score = int(result.get("overall_score", 0))
             
+            # Ensure strengths and improvements are always lists
+            strengths = result.get("strengths", [])
+            if not isinstance(strengths, list):
+                strengths = [strengths] if strengths and strengths.lower() not in ["no", "none", "n/a"] else []
+            
+            improvements = result.get("improvements", [])
+            if not isinstance(improvements, list):
+                improvements = [improvements] if improvements else []
+            
             return SummaryCheckResponse(
                 overall_score=score,
                 feedback=result.get("feedback", ""),
-                strengths=result.get("strengths", [])[:2],
-                improvements=result.get("improvements", [])[:2],
+                strengths=strengths[:2],
+                improvements=improvements[:2],
                 key_points_covered=1 if score >= 70 else 0,
                 key_points_total=1,
                 detailed_scores={
@@ -174,15 +187,10 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
             print(f"⚠️ Failed to parse JSON response: {e}")
             print(f"Raw response: {response_text}")
             
-            # Fallback: Return basic response
-            return SummaryCheckResponse(
-                overall_score=70,
-                feedback="Summary received and reviewed. Good effort!",
-                strengths=["Clear writing"],
-                improvements=["Try to include more key points"],
-                key_points_covered=0,
-                key_points_total=0,
-                detailed_scores={"coverage": 70, "accuracy": 70, "clarity": 70, "completeness": 70}
+            # Fallback: Indicate AI error
+            raise HTTPException(
+                status_code=503,
+                detail="AI is having trouble processing your summary. Please try submitting again."
             )
 
     except HTTPException:
