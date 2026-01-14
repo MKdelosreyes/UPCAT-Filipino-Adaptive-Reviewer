@@ -213,6 +213,7 @@ class SummaryCheckRequest(BaseModel):
     """Request model for summary checking endpoint."""
     passage_text: str
     user_summary: str
+    main_idea: Optional[str] = None
     passage_title: Optional[str] = "Reading Passage"
     difficulty: Optional[str] = "medium"
 

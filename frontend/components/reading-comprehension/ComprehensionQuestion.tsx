@@ -65,6 +65,7 @@ export default function ComprehensionQuestion({
           correct: choices[correctAnswer],
           selected: selectedAnswer !== null ? choices[selectedAnswer] : undefined,
           sentence: passageTitle,
+          explanation: fallbackExplanation,
         };
         
         console.log("📤 Request data:", requestData);

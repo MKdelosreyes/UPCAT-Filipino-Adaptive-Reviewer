@@ -20,11 +20,13 @@ try:
     from data.vocabulary_core import vocabulary_data
     from data.lexicon import lexicon_data
     from data.grammar_core import grammar_data
+    from data.reading_comprehension_core import reading_comprehension_data
 except ImportError as e:
     print(f"⚠️ Error importing data in explain handler: {e}")
     vocabulary_data = []
     lexicon_data = []
     grammar_data = []
+    reading_comprehension_data = []
 
 try:
     from groq import Groq
@@ -54,6 +56,7 @@ class ExplainRequest(BaseModel):
     correct: str
     selected: Optional[str] = None
     sentence: Optional[str] = None
+    explanation: Optional[str] = None
 
 
 class ExplainResponse(BaseModel):
@@ -287,6 +290,9 @@ Using the grammar rules and common mistakes above, magbigay ng 4 na punto:
 Make the explanations short and clear."""
 
     elif mode == "reading-comprehension":
+        # Include the official explanation from the question data if available
+        official_explanation = data.get("explanation", "")
+        
         prompt = f"""{system_instruction}
 
 {rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
@@ -300,15 +306,18 @@ Make the explanations short and clear."""
         
         if sentence:
             prompt += f"\n- Pamagat ng teksto: {sentence}"
+        
+        if official_explanation:
+            prompt += f"\n\n**Official Explanation (Use this as the foundation of your answer):**\n{official_explanation}"
 
         prompt += f"""
 
-Using the reference materials above, magbigay ng maikling paliwanag:
-1) Bakit "{correct}" ang tamang sagot sa tanong
-2) Bakit mali ang napiling sagot ng estudyante
-3) Anong mahahalagang detalye sa teksto ang hindi napansin ng estudyante
+Based on the official explanation provided above, magbigay ng maikling paliwanag sa Filipino na:
+1) Ipaliwanag kung bakit "{correct}" ang tamang sagot (use the official explanation as reference)
+2) Ituro kung bakit mali ang napiling sagot ng estudyante: "{selected}"
+3) Banggitin ang mahahalagang punto mula sa official explanation na dapat maintindihan pero huwag mismo banggitin na galing ito sa official explanation.
 
-Make the explanation concise and educational in Filipino. 2-3 sentences total."""
+Keep it concise and educational in Filipino. 2-3 sentences total."""
 
     else:
         prompt += f"""{system_instruction}
@@ -371,7 +380,8 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "word": request.word,
                 "correct": request.correct,
                 "selected": request.selected,
-                "sentence": request.sentence or ""
+                "sentence": request.sentence or "",
+                "explanation": request.explanation or ""
             }
 
         else:

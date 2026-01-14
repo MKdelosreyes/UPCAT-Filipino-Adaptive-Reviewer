@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen, Send, RotateCcw } from "lucide-react";
 import Link from "next/link";
+import ReadingCompletionModal from "@/components/reading-comprehension/ReadingCompletionModal";
 import ReadingProgress from "@/components/reading-comprehension/ReadingProgress";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
@@ -38,6 +39,7 @@ export default function SummaryExercisePage() {
   const [allScores, setAllScores] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showingFeedback, setShowingFeedback] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(false);
 
   // ✅ Load passages with adaptive difficulty
   useEffect(() => {
@@ -257,51 +259,51 @@ export default function SummaryExercisePage() {
   };
 
   const handleNextPassage = () => {
-    if (currentPassageIndex < passages.length - 1) {
-      // Move to next passage
-      setCurrentPassageIndex(prev => prev + 1);
-      setSummary("");
-      setIsSubmitted(false);
-      setWordCount(0);
-      setError(null);
-      setShowingFeedback(false);
-    } else {
-      // All passages complete - mark as finished
-      const avgScore = Math.round(allScores.reduce((sum, s) => sum + s, 0) / allScores.length);
-      
-      const finalMetrics = {
-        difficulty: currentDifficulty,
-        score: avgScore,
-        timestamp: new Date().toISOString(),
-      };
+    // Move to next passage
+    setCurrentPassageIndex(prev => prev + 1);
+    setSummary("");
+    setIsSubmitted(false);
+    setWordCount(0);
+    setError(null);
+    setShowingFeedback(false);
+  };
 
-      console.log("📊 Summary Session Completed - Metrics:", finalMetrics);
+  const handleFinishExercise = () => {
+    // All passages complete - mark as finished
+    const avgScore = Math.round(allScores.reduce((sum, s) => sum + s, 0) / allScores.length);
+    
+    const finalMetrics = {
+      difficulty: currentDifficulty,
+      score: avgScore,
+      timestamp: new Date().toISOString(),
+    };
 
-      // addPerformanceMetrics("reading-comprehension", "summary-exercise", finalMetrics);
+    console.log("📊 Summary Session Completed - Metrics:", finalMetrics);
 
-      const history = getPerformanceHistory("reading-comprehension", "summary-exercise");
-      const allHistory = [...history, finalMetrics];
-      // const evaluation = evaluateUserPerformance(allHistory);
+    // addPerformanceMetrics("reading-comprehension", "summary-exercise", finalMetrics);
 
-      // console.log(
-      //   "🎯 Next Summary Difficulty:",
-      //   evaluation.nextDifficulty,
-      //   "| Error Tags:",
-      //   evaluation.tags
-      // );
-      
-      // updateProgress("summary-exercise", {
-      //   status: "in-progress",
-      //   score: avgScore,
-      //   completedAt: new Date().toISOString(),
-      //   attempts: (history.length || 0) + 1,
-      //   lastDifficulty: evaluation.nextDifficulty,
-      //   errorTags: evaluation.tags,
-      // });
-      
-      // Show completion state
-      setShowingFeedback(true);
-    }
+    const history = getPerformanceHistory("reading-comprehension", "summary-exercise");
+    const allHistory = [...history, finalMetrics];
+    // const evaluation = evaluateUserPerformance(allHistory);
+
+    // console.log(
+    //   "🎯 Next Summary Difficulty:",
+    //   evaluation.nextDifficulty,
+    //   "| Error Tags:",
+    //   evaluation.tags
+    // );
+    
+    // updateProgress("summary-exercise", {
+    //   status: "in-progress",
+    //   score: avgScore,
+    //   completedAt: new Date().toISOString(),
+    //   attempts: (history.length || 0) + 1,
+    //   lastDifficulty: evaluation.nextDifficulty,
+    //   errorTags: evaluation.tags,
+    // });
+    
+    // Show completion modal
+    setShowCompletion(true);
   };
 
   const resetExercise = async () => {
@@ -348,6 +350,7 @@ export default function SummaryExercisePage() {
       setAllScores([]);
       setError(null);
       setShowingFeedback(false);
+      setShowCompletion(false);
     } catch (err) {
       console.error("Failed to reload exercise:", err);
     } finally {
@@ -600,7 +603,7 @@ export default function SummaryExercisePage() {
                 </motion.div>
               )}
 
-              {/* Submit/Next Button */}
+              {/* Submit/Next/Finish Button */}
               {!isSubmitted ? (
                 <motion.button
                   whileHover={canSubmit ? { scale: 1.02 } : {}}
@@ -629,48 +632,45 @@ export default function SummaryExercisePage() {
                     </>
                   )}
                 </motion.button>
+              ) : isLastPassage ? (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleFinishExercise}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg transition-all duration-200"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Finish Exercise
+                </motion.button>
               ) : (
-                <div className="space-y-3">
-                  {!isLastPassage && (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleNextPassage}
-                      className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-200"
-                    >
-                      Next Passage
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </motion.button>
-                  )}
-                  
-                  {allComplete && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300"
-                    >
-                      <p className="text-center text-lg font-bold text-green-900 mb-2">
-                        🎉 All Passages Complete!
-                      </p>
-                      <p className="text-center text-sm text-green-800 mb-3">
-                        Final Average Score: {Math.round(allScores.reduce((sum, s) => sum + s, 0) / allScores.length)}%
-                      </p>
-                      <button
-                        onClick={resetExercise}
-                        className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
-                      >
-                        Start New Exercise
-                      </button>
-                    </motion.div>
-                  )}
-                </div>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleNextPassage}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-200"
+                >
+                  Next Passage
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </motion.button>
               )}
             </motion.div>
           </div>
         </div>
       </div>
+
+      <ReadingCompletionModal
+        isOpen={showCompletion}
+        score={allScores.length > 0 ? Math.round(allScores.reduce((sum, s) => sum + s, 0) / allScores.length) : 0}
+        correctCount={allScores.filter(s => s >= 70).length}
+        totalQuestions={passages.length}
+        passageTitle={`${passages.length} Summary Exercises`}
+        onClose={() => setShowCompletion(false)}
+        onRetake={resetExercise}
+      />
     </div>
   );
 }
