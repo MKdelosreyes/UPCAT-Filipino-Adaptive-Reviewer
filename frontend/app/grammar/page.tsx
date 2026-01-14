@@ -70,7 +70,7 @@ export default function GrammarPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-green-900 mb-2 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-green-700 mb-2 text-center">
             Grammar Activities
           </h1>
           <p className="text-center text-gray-600 mb-6">
@@ -82,7 +82,7 @@ export default function GrammarPage() {
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-7xl mx-auto">
           <GrammarCard
             name="Lesson Cards"
             description="Learn proper sentence structure through lessons"

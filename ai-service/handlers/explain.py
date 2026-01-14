@@ -347,6 +347,33 @@ Magbigay ng maikling paliwanag sa Filipino na:
 
 Keep it concise and educational in Filipino. 2-3 sentences total."""
 
+    elif mode == "choose-sentence":
+        # For choose sentence exercises
+        context = data.get("sentence", "")
+        user_choice = data.get("selected", "")
+        official_explanation = data.get("explanation", "")
+        
+        prompt = f"""{system_instruction}
+
+{rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
+
+**Student's Answer:**
+- Konteksto: {context}
+- Tamang pangungusap: {correct}
+- Napiling pangungusap ng estudyante: {user_choice}"""
+        
+        if official_explanation:
+            prompt += f"\n\n**Official Explanation (Use this as the foundation of your answer):**\n{official_explanation}"
+
+        prompt += f"""
+
+Magbigay ng maikling paliwanag sa Filipino na:
+1) Ipaliwanag kung bakit "{correct}" ang pinakamainam na pangungusap para sa konteksto
+2) Ituro kung bakit hindi angkop ang napiling pangungusap ng estudyante: "{user_choice}"
+3) Banggitin ang mga mahahalagang sentence construction principles o context clues
+
+Keep it concise and educational in Filipino. 2-3 sentences total."""
+
     else:
         prompt = f"""{system_instruction}
 
@@ -419,6 +446,17 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "word": request.word or "",
                 "correct": request.correct,
                 "selected": request.selected,
+                "explanation": request.explanation or ""
+            }
+        
+        elif request.mode == "choose-sentence":
+            # For choose sentence, sentence = context, correct = correct sentence, selected = user's choice
+            prompt_data = {
+                "mode": request.mode,
+                "word": request.word or "",
+                "correct": request.correct,
+                "selected": request.selected,
+                "sentence": request.sentence or "",
                 "explanation": request.explanation or ""
             }
 

@@ -24,9 +24,10 @@ interface Card {
 
 interface CardCarouselProps {
   skill_cards?: Card[];
+  onIndexChange?: (index: number) => void;
 }
 
-const CardCarousel = ({ skill_cards = [] }: CardCarouselProps) => {
+const CardCarousel = ({ skill_cards = [], onIndexChange }: CardCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -93,6 +94,15 @@ const CardCarousel = ({ skill_cards = [] }: CardCarouselProps) => {
 
     return () => controls.stop();
   }, [currentIndex, x, cardWidth, containerWidth]);
+
+  // Notify parent about current index so parent can react (e.g. change border color)
+  useEffect(() => {
+    try {
+      onIndexChange?.(currentIndex);
+    } catch (e) {
+      // noop
+    }
+  }, [currentIndex, onIndexChange]);
 
   // Swipe handlers with better mobile support
   const swipeHandlers = useSwipeable({

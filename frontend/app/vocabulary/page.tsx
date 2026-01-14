@@ -70,7 +70,7 @@ export default function VocabularyPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-yellow-900 mb-2 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-yellow-600 mb-2 text-center">
             Vocabulary Activities
           </h1>
           <p className="text-center text-gray-600 mb-6">
@@ -82,7 +82,7 @@ export default function VocabularyPage() {
         </div>
 
         {/* Cards - ✅ UPDATED: Only 3 cards now */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-7xl mx-auto">
           <VocabularyCard
             name="Flashcards"
             description="Learn vocabulary through interactive flashcards"

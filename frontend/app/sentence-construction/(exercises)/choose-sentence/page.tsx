@@ -63,20 +63,31 @@ export default function ChooseSentencePage() {
     }
   }, [dueExercises.length]);
 
+  // Compute choices early (unconditionally) so hooks order doesn't change
+  const choices = useMemo(() => {
+    if (dueExercises.length === 0) return [];
+    const currentExercise = dueExercises[currentQuestion] as SentenceConstructionExerciseItem;
+    const allChoices = [
+      currentExercise.chooseCorrectSentence,
+      ...currentExercise.distractors,
+    ];
+    return shuffleArray(allChoices);
+  }, [dueExercises, currentQuestion]);
+
   if (srsLoading || dueExercises.length === 0) {
     return (
-      <div className="h-screen bg-orange-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-orange-200">
+      <div className="h-screen bg-blue-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
           <Link
             href="/sentence-construction"
-            className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold text-sm"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-orange-900">
+            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
               Choose the Best Sentence
             </h1>
           </div>
@@ -86,13 +97,13 @@ export default function ChooseSentencePage() {
 
         <div className="flex-1 flex items-center justify-center">
           {srsLoading ? (
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           ) : (
             <div className="text-center">
-              <p className="text-lg text-orange-900 mb-2">
+              <p className="text-lg text-blue-900 mb-2">
                 🎉 No exercises due right now!
               </p>
-              <p className="text-sm text-orange-600">
+              <p className="text-sm text-blue-600">
                 Come back later for more practice.
               </p>
             </div>
@@ -106,14 +117,6 @@ export default function ChooseSentencePage() {
     currentQuestion
   ] as SentenceConstructionExerciseItem;
   const isLastQuestion = currentQuestion === dueExercises.length - 1;
-
-  const choices = useMemo(() => {
-    const allChoices = [
-      currentExercise.chooseCorrectSentence,
-      ...currentExercise.distractors,
-    ];
-    return shuffleArray(allChoices);
-  }, [currentExercise]);
 
   const handleSelectAnswer = async (answer: string) => {
     setSelectedAnswer(answer);
@@ -224,21 +227,21 @@ export default function ChooseSentencePage() {
   };
 
   return (
-    <div className="h-screen bg-orange-50 overflow-auto flex flex-col scrollbar-orange">
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-orange-200">
+    <div className="h-screen bg-blue-50 overflow-auto flex flex-col scrollbar-blue">
+      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
         <Link
           href="/sentence-construction"
-          className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold text-sm"
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-orange-900">
+          <h1 className="text-xl md:text-2xl font-bold text-blue-900">
             Choose the Best Sentence
           </h1>
-          <p className="text-xs text-orange-600 mt-1">
+          <p className="text-xs text-blue-600 mt-1">
             {dueExercises.length} exercises due for review
           </p>
         </div>
@@ -279,7 +282,7 @@ export default function ChooseSentencePage() {
           />
         </motion.div>
 
-        {showResult ? (
+        {showResult && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -289,16 +292,12 @@ export default function ChooseSentencePage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
             >
               {isLastQuestion ? "Finish Exercise" : "Next Question"}
               <ChevronRight className="w-5 h-5" />
             </motion.button>
           </motion.div>
-        ) : (
-          <div className="text-center text-xs text-orange-600">
-            📝 Choose the best sentence that matches the context
-          </div>
         )}
       </div>
 

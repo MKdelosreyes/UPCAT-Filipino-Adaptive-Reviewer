@@ -112,7 +112,7 @@ export default function GrammarCard({
 
             {/* Content */}
             <div className="p-5 bg-white/80 backdrop-blur-sm">
-              <h3 className="text-xl font-bold text-green-900 mb-2">{name}</h3>
+              <h3 className="text-xl font-bold text-green-700 mb-2">{name}</h3>
               <p className="text-sm text-gray-700 mb-3">{description}</p>
 
               {/* Progress Info */}

@@ -28,10 +28,10 @@ export default function GrammarProgressStepper() {
   ).length;
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between relative">
+    <div className="w-full max-w-7xl mx-auto mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative">
         {/* Progress Line */}
-        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
+        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10 hidden md:block">
           <motion.div
             className="h-full bg-green-500"
             initial={{ width: "0%" }}
@@ -57,7 +57,7 @@ export default function GrammarProgressStepper() {
               : null;
 
           return (
-            <div key={step.id} className="flex flex-col items-center">
+            <div key={step.id} className="flex flex-col items-center w-full relative">
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
@@ -73,7 +73,7 @@ export default function GrammarProgressStepper() {
                 )}
               </motion.div>
               <p
-                className={`mt-2 text-xs font-medium ${
+                className={`mt-2 text-xs font-medium text-center w-full ${
                   hasStarted ? "text-green-700" : "text-gray-500"
                 }`}
               >
