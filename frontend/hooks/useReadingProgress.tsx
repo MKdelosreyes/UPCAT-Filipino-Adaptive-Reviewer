@@ -140,7 +140,9 @@ export function useReadingProgress() {
   };
 
   // ✅ FIX: Only accepts QuizProgress now
-  const getExerciseMastery = (exerciseProgress: QuizProgress): ExerciseMastery => {
+  const getExerciseMastery = (
+    exerciseProgress: QuizProgress
+  ): ExerciseMastery => {
     // ✅ Safety check for performanceHistory
     if (
       !exerciseProgress.performanceHistory ||
@@ -218,7 +220,8 @@ export function useReadingProgress() {
     },
 
     getOverallProgress: () => getModuleProgress("reading-comprehension"),
-    getNextRecommended: () => getNextRecommendedContext("reading-comprehension"),
+    getNextRecommended: () =>
+      getNextRecommendedContext("reading-comprehension"),
     canAccessExercise: (exercise: ReadingExercise) =>
       canAccessExerciseContext("reading-comprehension", exercise),
     getReadingMastery,
