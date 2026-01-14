@@ -60,8 +60,8 @@ export function useDashboardInsights() {
     } else if (module === "reading-comprehension") {
       const reading = moduleData as ReadingProgress;
       allHistory = [
-        ...reading["passage-questions"].performanceHistory,
-        ...reading.comprehension.performanceHistory,
+        ...reading["reading-passages"].performanceHistory,
+        ...reading.summarization.performanceHistory,
       ];
     }
 
@@ -97,8 +97,8 @@ export function useDashboardInsights() {
     } else if (module === "reading-comprehension") {
       const reading = moduleData as ReadingProgress;
       difficulties = [
-        reading["passage-questions"].lastDifficulty,
-        reading.comprehension.lastDifficulty,
+        reading["reading-passages"].lastDifficulty,
+        reading.summarization.lastDifficulty,
       ];
     }
 

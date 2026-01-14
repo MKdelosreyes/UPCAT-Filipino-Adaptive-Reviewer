@@ -66,22 +66,23 @@ class ExerciseProgress(models.Model):
 
     EXERCISE_TYPES = [
         # Vocabulary
-        ('flashcards', 'Flashcards (Lesson)'),           # Lesson type
-        ('quiz', 'What is its Closest Meaning'),         # Quiz type
-        ('antonym', 'Antonym of the Word'),              # Quiz type
+        ('flashcards', 'Flashcards (Lesson)'),
+        ('quiz', 'What is its Closest Meaning'),
+        ('antonym', 'Antonym of the Word'),
 
         # Grammar
-        ('lesson-cards', 'Grammar Lesson Cards'),        # Lesson type
-        ('error-identification', 'Error Identification'),  # Quiz type
-        ('fill-blanks', 'Fill the Blanks'),              # Quiz type
+        ('lesson-cards', 'Grammar Lesson Cards'),
+        ('error-identification', 'Error Identification'),
+        ('fill-blanks', 'Fill the Blanks'),
 
         # Sentence Construction
         ('complete-sentence', 'Complete the Sentence'),
         ('sentence-ordering', 'Sentence Ordering'),
+        ('choose-sentence', 'Choose the Sentence'),
 
         # Reading Comprehension
-        ('passage-questions', 'Passage Questions'),
-        ('comprehension', 'Reading Comprehension'),
+        ('reading-passages', 'Reading Passages'),
+        ('summarization', 'Summarization'),
     ]
 
     LESSON_EXERCISES = ['flashcards', 'lesson-cards']
@@ -98,10 +99,8 @@ class ExerciseProgress(models.Model):
         choices=[
             ('not-started', 'Not Started'),
             ('in-progress', 'In Progress'),
-            ('completed', 'Completed'),
-            ('locked', 'Locked'),
         ],
-        default='locked'
+        default='not-started'
     )
 
     # Lesson-specific fields
@@ -128,13 +127,6 @@ class ExerciseProgress(models.Model):
     last_completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    time_spent = models.IntegerField(
-        default=0, help_text="Time spent in seconds")
-    cards_reviewed = models.IntegerField(
-        null=True, blank=True, help_text="For flashcards")
-    lessons_viewed = models.IntegerField(
-        null=True, blank=True, help_text="For lesson cards")
 
     class Meta:
         db_table = 'exercise_progress'

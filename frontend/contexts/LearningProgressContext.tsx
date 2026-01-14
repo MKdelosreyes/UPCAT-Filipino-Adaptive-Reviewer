@@ -19,7 +19,7 @@ export type SentenceExercise =
   | "complete-sentence"
   | "sentence-ordering"
   | "choose-sentence";
-export type ReadingExercise = "passage-questions" | "comprehension";
+export type ReadingExercise = "reading-passages" | "summarization";
 
 export type ExerciseType =
   | VocabularyExercise
@@ -85,8 +85,8 @@ export interface SentenceProgress {
 }
 
 export interface ReadingProgress {
-  "passage-questions": QuizProgress;
-  comprehension: QuizProgress;
+  "reading-passages": QuizProgress;
+  summarization: QuizProgress;
   lastAccessedAt: string | null;
 }
 
@@ -202,8 +202,8 @@ const createDefaultSentenceProgress = (): SentenceProgress => ({
 });
 
 const createDefaultReadingProgress = (): ReadingProgress => ({
-  "passage-questions": { ...defaultQuizProgress, status: "not-started" },
-  comprehension: { ...defaultQuizProgress, status: "not-started" },
+  "reading-passages": { ...defaultQuizProgress, status: "not-started" },
+  summarization: { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
 });
 
@@ -279,7 +279,7 @@ export function LearningProgressProvider({
       }
     } else if (module === "reading-comprehension") {
       const readingData = moduleData as ReadingProgress;
-      if (exercise === "passage-questions" || exercise === "comprehension") {
+      if (exercise === "reading-passages" || exercise === "summarization") {
         return readingData[exercise];
       }
     }
@@ -395,7 +395,7 @@ export function LearningProgressProvider({
         };
       } else if (
         module === "reading-comprehension" &&
-        (exercise === "passage-questions" || exercise === "comprehension")
+        (exercise === "reading-passages" || exercise === "summarization")
       ) {
         const moduleProgress = { ...prev[module] } as ReadingProgress;
 
@@ -453,10 +453,10 @@ export function LearningProgressProvider({
           } else if (exType === "quiz" || exType === "antonym") {
             vocabProgress[exType] = {
               status: exercise.status as ExerciseStatus,
-              score: exercise.last_score,
+              score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: exercise.last_difficulty as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as any,
               errorTags: [],
               performanceHistory: exercise.performance_history.map((p) => ({
                 difficulty: p.difficulty as any,
@@ -469,6 +469,7 @@ export function LearningProgressProvider({
           }
         });
 
+        vocabProgress.lastAccessedAt = module.last_accessed_at;
         frontendProgress.vocabulary = vocabProgress;
       } else if (moduleKey === "grammar") {
         const grammarProgress: GrammarProgress = createDefaultGrammarProgress();
@@ -489,10 +490,10 @@ export function LearningProgressProvider({
           ) {
             grammarProgress[exType] = {
               status: exercise.status as ExerciseStatus,
-              score: exercise.last_score,
+              score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: exercise.last_difficulty as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as any,
               errorTags: [],
               performanceHistory: exercise.performance_history.map((p) => ({
                 difficulty: p.difficulty as any,
@@ -505,6 +506,7 @@ export function LearningProgressProvider({
           }
         });
 
+        grammarProgress.lastAccessedAt = module.last_accessed_at;
         frontendProgress.grammar = grammarProgress;
       } else if (moduleKey === "sentence-construction") {
         const sentenceProgress: SentenceProgress =
@@ -519,10 +521,10 @@ export function LearningProgressProvider({
           ) {
             sentenceProgress[exType] = {
               status: exercise.status as ExerciseStatus,
-              score: exercise.last_score,
+              score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: exercise.last_difficulty as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as any,
               errorTags: [],
               performanceHistory: exercise.performance_history.map((p) => ({
                 difficulty: p.difficulty as any,
@@ -535,9 +537,36 @@ export function LearningProgressProvider({
           }
         });
 
+        sentenceProgress.lastAccessedAt = module.last_accessed_at;
         frontendProgress["sentence-construction"] = sentenceProgress;
+      } else if (moduleKey === "reading-comprehension") {
+        const readingProgress: ReadingProgress = createDefaultReadingProgress();
+
+        module.exercises.forEach((exercise) => {
+          const exType = exercise.exercise_type;
+
+          if (exType === "reading-passages" || exType === "summarization") {
+            readingProgress[exType] = {
+              status: exercise.status as ExerciseStatus,
+              score: exercise.best_score,
+              completedAt: exercise.last_completed_at,
+              attempts: exercise.attempts,
+              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              errorTags: [],
+              performanceHistory: exercise.performance_history.map((p) => ({
+                difficulty: p.difficulty as any,
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })),
+            };
+          }
+        });
+
+        readingProgress.lastAccessedAt = module.last_accessed_at;
+        frontendProgress["reading-comprehension"] = readingProgress;
       }
-      // Add similar logic for reading-comprehension
     });
 
     return frontendProgress;
@@ -631,7 +660,7 @@ export function LearningProgressProvider({
       case "sentence-construction":
         return ["complete-sentence", "sentence-ordering", "choose-sentence"];
       case "reading-comprehension":
-        return ["passage-questions", "comprehension"];
+        return ["reading-passages", "summarization"];
       default:
         return [];
     }
@@ -826,7 +855,7 @@ export function LearningProgressProvider({
         };
       } else if (
         module === "reading-comprehension" &&
-        (exercise === "passage-questions" || exercise === "comprehension")
+        (exercise === "reading-passages" || exercise === "summarization")
       ) {
         const moduleProgress = { ...prev[module] } as ReadingProgress;
         const quizProgress = moduleProgress[exercise];
