@@ -9,7 +9,7 @@ const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localho
 
 // Types
 export interface ExplainRequest {
-  mode: "quiz" | "antonym" | "error-identification" | "fill-blanks" | "complete-sentence" | "reading-comprehension";
+  mode: "quiz" | "antonym" | "error-identification" | "fill-blanks" | "complete-sentence" | "reading-comprehension" | "sentence-construction";
   word: string;
   correct: string;
   selected?: string;

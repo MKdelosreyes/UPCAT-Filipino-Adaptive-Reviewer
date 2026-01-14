@@ -20,11 +20,13 @@ try:
     from data.vocabulary_core import vocabulary_data
     from data.lexicon import lexicon_data
     from data.grammar_core import grammar_data
+    from data.sentence_construction_core import sentence_construction_data
 except ImportError as e:
     print(f"⚠️ Error importing data in explain handler: {e}")
     vocabulary_data = []
     lexicon_data = []
     grammar_data = []
+    sentence_construction_data = []
 
 try:
     from groq import Groq
@@ -119,6 +121,18 @@ def get_grammar_explanation(word: str):
         return ""
 
 
+def get_sentence_construction_data(item_id: str):
+    """Find sentence construction data by item_id"""
+    try:
+        for entry in sentence_construction_data:
+            if entry.get("item_id") == item_id:
+                return entry
+        return None
+    except Exception as e:
+        print(f"⚠️ Error in get_sentence_construction_data: {e}")
+        return None
+
+
 def build_explanation_prompt_with_rag(data: dict) -> str:
     """
     Generate explanation prompt with RAG context including common mistakes
@@ -180,6 +194,22 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
                 if rag_context:
                     print(
                         f"✅ Retrieved reading context ({len(rag_context)} chars)")
+                else:
+                    print("⚠️ No RAG context found")
+            
+            elif mode == "sentence-construction":
+                # Sentence construction context
+                rag_query = f"Sentence construction: {word}. Context: {sentence}"
+                rag_context = rag.get_context(
+                    rag_query,
+                    context_type="vocabulary",  # Use vocabulary context for sentence construction
+                    top_k=2,
+                    min_similarity=0.4,
+                    include_mistakes=True
+                )
+                if rag_context:
+                    print(
+                        f"✅ Retrieved sentence construction context with mistakes ({len(rag_context)} chars)")
                 else:
                     print("⚠️ No RAG context found")
         except Exception as e:
@@ -310,6 +340,30 @@ Using the reference materials above, magbigay ng maikling paliwanag:
 
 Make the explanation concise and educational in Filipino. 2-3 sentences total."""
 
+    elif mode == "sentence-construction":
+        prompt = f"""{system_instruction}
+
+{rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
+
+**Student's Answer:**
+- Exercise: {word}
+- Tamang sagot: {correct}"""
+
+        if selected:
+            prompt += f"\n- Napili ng estudyante: {selected}"
+        
+        if sentence:
+            prompt += f"\n- Konteksto: {sentence}"
+
+        prompt += f"""
+
+Using the reference materials above, magbigay ng malinaw na paliwanag:
+1) Bakit "{correct}" ang tamang sagot
+2) Ano ang tuntunin ng grammar/sentence construction na ginamit
+3) Bakit mali ang napiling sagot ng estudyante (kung mayroon)
+
+Make the explanation educational and concise in Filipino. 2-3 sentences total."""
+
     else:
         prompt += f"""{system_instruction}
 
@@ -372,6 +426,20 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "correct": request.correct,
                 "selected": request.selected,
                 "sentence": request.sentence or ""
+            }
+
+        elif request.mode == "sentence-construction":
+            # For sentence construction, word = exercise description, sentence = context
+            sc_data = get_sentence_construction_data(request.word)
+            explanation = sc_data.get("explanation", "") if sc_data else ""
+            
+            prompt_data = {
+                "mode": request.mode,
+                "word": request.word,
+                "correct": request.correct,
+                "selected": request.selected,
+                "sentence": request.sentence or "",
+                "explanation": explanation
             }
 
         else:

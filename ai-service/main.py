@@ -190,13 +190,13 @@ class ReadingComprehensionRequest(BaseModel):
             raise ValueError('target_difficulty must be easy, medium, or hard')
         return v
 
-    @field_validator('exercise_type')
-    @classmethod
-    def validate_exercise_type(cls, v):
-        if v is not None and v not in ['ordering', 'choose', 'complete']:
-            raise ValueError(
-                'exercise_type must be ordering, choose, or complete')
-        return v
+    # @field_validator('exercise_type')
+    # @classmethod
+    # def validate_exercise_type(cls, v):
+    #     if v is not None and v not in ['ordering', 'choose', 'complete']:
+    #         raise ValueError(
+    #             'exercise_type must be ordering, choose, or complete')
+    #     return v
 
 
 class ConfusablesRequest(BaseModel):
