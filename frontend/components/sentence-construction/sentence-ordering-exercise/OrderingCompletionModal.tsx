@@ -163,13 +163,13 @@ export default function OrderingCompletionModal({
                   </div>
 
                   {/* Stats */}
-                  <div className="space-y-3 bg-orange-50 rounded-2xl p-6">
+                  <div className="space-y-3 bg-blue-50 rounded-2xl p-6">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-700 font-medium flex items-center gap-2">
-                        <Award className="w-5 h-5 text-orange-600" />
+                        <Award className="w-5 h-5 text-blue-600" />
                         Score
                       </span>
-                      <span className="text-2xl font-bold text-orange-600">
+                      <span className="text-2xl font-bold text-blue-600">
                         {score}%
                       </span>
                     </div>
@@ -185,8 +185,8 @@ export default function OrderingCompletionModal({
                   </div>
 
                   {/* Performance Message */}
-                  <div className="text-center p-4 bg-purple-50 rounded-xl">
-                    <p className="text-sm text-purple-800 font-medium">
+                  <div className="text-center p-4 bg-blue-50 rounded-xl">
+                    <p className="text-sm text-blue-800 font-medium">
                       {getPerformanceMessage()}
                     </p>
                   </div>

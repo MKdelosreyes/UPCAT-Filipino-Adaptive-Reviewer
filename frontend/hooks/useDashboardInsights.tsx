@@ -138,7 +138,7 @@ export function useDashboardInsights() {
         level: "advanced",
         difficulty: "hard",
         icon: "🏆",
-        color: "bg-orange-100 text-orange-700 border-orange-300",
+        color: "bg-blue-100 text-blue-700 border-blue-300",
       };
     }
 

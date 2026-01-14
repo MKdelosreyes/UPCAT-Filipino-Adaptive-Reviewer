@@ -79,18 +79,13 @@ export interface SummaryCheckRequest {
 }
 
 export interface SummaryCheckResponse {
-  overall_score: number;
+  quality_level: 'needs-work' | 'developing' | 'good' | 'excellent';
   feedback: string;
   strengths: string[];
   improvements: string[];
-  key_points_covered: number;
-  key_points_total: number;
-  detailed_scores: {
-    coverage: number;
-    accuracy: number;
-    clarity: number;
-    completeness: number;
-  };
+  coverage_feedback: string;
+  clarity_feedback: string;
+  completeness_feedback: string;
 }
 
 export async function sendChatMessage(

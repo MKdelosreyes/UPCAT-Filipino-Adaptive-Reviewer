@@ -66,14 +66,14 @@ export default function SentenceConstructionCard({
           <div
             className={`relative rounded-3xl shadow-lg overflow-hidden border-2 transition-all ${
               hasStarted
-                ? "border-orange-400 bg-orange-50"
-                : "border-orange-200 hover:border-orange-400"
+                ? "border-blue-400 bg-blue-50"
+                : "border-blue-200 hover:border-blue-400"
             } ${color}`}
           >
             {/* Mastery Badge */}
             {exerciseMastery && (
               <div className="absolute top-3 right-3 z-10">
-                <div className="bg-orange-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
+                <div className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
                   <span>{exerciseMastery.icon}</span>
                   <span className="capitalize">{exerciseMastery.level}</span>
                 </div>
@@ -93,7 +93,7 @@ export default function SentenceConstructionCard({
 
             {/* Content */}
             <div className="p-5 bg-white/80 backdrop-blur-sm">
-              <h3 className="text-xl font-bold text-orange-900 mb-2">{name}</h3>
+              <h3 className="text-xl font-bold text-blue-900 mb-2">{name}</h3>
               <p className="text-sm text-gray-700 mb-3">{description}</p>
 
               {/* Progress Info */}
@@ -102,9 +102,9 @@ export default function SentenceConstructionCard({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-orange-600" />
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
                         <div>
-                          <p className="font-semibold text-orange-700">
+                          <p className="font-semibold text-blue-700">
                             Avg: {exerciseMastery.avgScore}%
                           </p>
                           <p className="text-gray-600 text-xs capitalize">
@@ -114,7 +114,7 @@ export default function SentenceConstructionCard({
                       </div>
                       <div className="text-right">
                         {exerciseProgress.score !== null && (
-                          <p className="font-semibold text-orange-700">
+                          <p className="font-semibold text-blue-700">
                             Best: {exerciseProgress.score}%
                           </p>
                         )}
@@ -133,9 +133,9 @@ export default function SentenceConstructionCard({
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <Play className="w-5 h-5 text-orange-600" />
+                    <Play className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="font-semibold text-orange-700">
+                      <p className="font-semibold text-blue-700">
                         Ready to Start
                       </p>
                       <p className="text-gray-600">

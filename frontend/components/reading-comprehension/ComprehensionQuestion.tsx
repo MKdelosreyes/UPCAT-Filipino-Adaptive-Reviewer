@@ -130,11 +130,11 @@ export default function ComprehensionQuestion({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border-2 border-blue-300 p-6 md:p-8 h-full flex flex-col">
+    <div className="bg-white rounded-2xl shadow-lg border-2 border-purple-300 p-6 md:p-8 h-full flex flex-col">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-semibold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+          <span className="text-sm font-semibold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">
             Question {questionNumber} of {totalQuestions}
           </span>
           <span className="text-xs font-medium text-purple-600 bg-purple-100 px-3 py-1 rounded-full">
@@ -142,7 +142,7 @@ export default function ComprehensionQuestion({
           </span>
         </div>
 
-        <h2 className="text-xl md:text-2xl font-bold text-blue-900 leading-relaxed">
+        <h2 className="text-xl md:text-2xl font-bold text-purple-900 leading-relaxed">
           {question}
         </h2>
       </div>
@@ -169,10 +169,10 @@ export default function ComprehensionQuestion({
                   shouldShowCorrect
                     ? "bg-green-50 border-green-500 text-green-900"
                     : shouldShowIncorrect
-                    ? "bg-red-50 border-red-500 text-red-900"
+                    ? "bg-amber-50 border-amber-500 text-amber-900"
                     : isSelected
-                    ? "bg-blue-100 border-blue-500 text-blue-900"
-                    : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300"
+                    ? "bg-purple-100 border-purple-500 text-purple-900"
+                    : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300"
                 }
                 ${showResult ? "cursor-not-allowed" : "cursor-pointer"}
               `}
@@ -196,22 +196,22 @@ export default function ComprehensionQuestion({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-xl mb-6 bg-red-50 border-2 border-red-300"
+          className="p-5 rounded-xl mb-6 bg-amber-50 border-2 border-amber-300"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Lightbulb className="w-5 h-5 text-red-600" />
-            <p className="text-sm font-bold text-red-900">
+            <Lightbulb className="w-5 h-5 text-amber-600" />
+            <p className="text-sm font-bold text-amber-900">
               Why you were wrong:
             </p>
           </div>
           {isLoadingExplanation ? (
             <div className="flex items-center gap-2 py-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-              <p className="text-sm text-red-700 italic">Generating explanation...</p>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600"></div>
+              <p className="text-sm text-amber-700 italic">Generating explanation...</p>
             </div>
           ) : (
             <div
-              className="text-sm text-red-800 leading-relaxed"
+              className="text-sm text-amber-800 leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: explanation
                   .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
@@ -224,7 +224,7 @@ export default function ComprehensionQuestion({
       )}
 
       {/* Navigation Arrows */}
-      <div className="flex items-center justify-between gap-4 pt-4 border-t-2 border-blue-100">
+      <div className="flex items-center justify-between gap-4 pt-4 border-t-2 border-purple-100">
         <motion.button
           whileHover={canGoPrevious ? { scale: 1.05 } : {}}
           whileTap={canGoPrevious ? { scale: 0.95 } : {}}
@@ -235,7 +235,7 @@ export default function ComprehensionQuestion({
             transition-all duration-200
             ${
               canGoPrevious
-                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                ? "bg-purple-600 hover:bg-purple-700 text-white"
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }
           `}
@@ -245,7 +245,7 @@ export default function ComprehensionQuestion({
         </motion.button>
 
         <div className="text-center">
-          <p className="text-xs text-blue-600 font-medium">
+          <p className="text-xs text-purple-600 font-medium">
             {showResult ? "Answered" : "Select an answer"}
           </p>
         </div>
@@ -260,7 +260,7 @@ export default function ComprehensionQuestion({
             transition-all duration-200
             ${
               canGoNext
-                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                ? "bg-purple-600 hover:bg-purple-700 text-white"
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }
           `}

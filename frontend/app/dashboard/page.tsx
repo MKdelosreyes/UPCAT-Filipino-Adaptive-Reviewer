@@ -59,7 +59,7 @@ const cards: Card[] = [
     imagePath: "/art/reading-comprehension.png",
     description:
       "Basahin ang maiikling teksto at sagutin ang tanong para hasain ang comprehension skills.",
-    color: "bg-pink-100",
+    color: "bg-purple-100",
     url: "/reading-comprehension",
     moduleType: "reading-comprehension",
   },

@@ -36,7 +36,7 @@ export default function SummaryExercisePage() {
   const [wordCount, setWordCount] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
   const [feedbacks, setFeedbacks] = useState<(SummaryCheckResponse | null)[]>([null, null, null]);
-  const [allScores, setAllScores] = useState<number[]>([]);
+  const [completedPassages, setCompletedPassages] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [showingFeedback, setShowingFeedback] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
@@ -128,8 +128,8 @@ export default function SummaryExercisePage() {
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="h-screen bg-purple-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
@@ -137,18 +137,17 @@ export default function SummaryExercisePage() {
   // Show loading state while initializing
   if (isLoading) {
     return (
-      <div className="h-screen bg-blue-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+      <div className="h-screen bg-purple-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
           <Link
             href="/reading-comprehension"
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
-          >
+            className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm">
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
               Summary Exercise
             </h1>
             <p className="text-xs text-gray-500 mt-1">
@@ -164,8 +163,8 @@ export default function SummaryExercisePage() {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-blue-600 font-semibold">Loading passages...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-purple-600 font-semibold">Loading passages...</p>
           </div>
         </div>
       </div>
@@ -175,18 +174,18 @@ export default function SummaryExercisePage() {
   // Show error state
   if (error || passages.length === 0) {
     return (
-      <div className="h-screen bg-blue-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+      <div className="h-screen bg-purple-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
           <Link
             href="/reading-comprehension"
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+            className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
               Summary Exercise
             </h1>
           </div>
@@ -196,12 +195,12 @@ export default function SummaryExercisePage() {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md px-4">
-            <p className="text-blue-600 font-semibold mb-4">
+            <p className="text-purple-600 font-semibold mb-4">
               {error || "No reading passages available"}
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
             >
               Retry
             </button>
@@ -233,24 +232,13 @@ export default function SummaryExercisePage() {
       newFeedbacks[currentPassageIndex] = result;
       setFeedbacks(newFeedbacks);
       
-      // Store score
-      const newScores = [...allScores, result.overall_score];
-      setAllScores(newScores);
-      
+      setCompletedPassages(prev => prev + 1);
       setIsSubmitted(true);
       setShowingFeedback(true);
       
     } catch (err) {
       console.error("Failed to check summary:", err);
       setError("Failed to evaluate summary. Please try again.");
-      
-      // Fallback: basic word count score
-      const targetWords = 50;
-      const score = Math.min(100, Math.round((wordCount / targetWords) * 100));
-      
-      const newScores = [...allScores, score];
-      setAllScores(newScores);
-      
       setIsSubmitted(true);
       setShowingFeedback(true);
     } finally {
@@ -269,8 +257,16 @@ export default function SummaryExercisePage() {
   };
 
   const handleFinishExercise = () => {
-    // All passages complete - mark as finished
-    const avgScore = Math.round(allScores.reduce((sum, s) => sum + s, 0) / allScores.length);
+    // All passages complete - calculate quality metrics
+    const qualityLevels = feedbacks.filter(f => f !== null).map(f => f!.quality_level);
+    const excellentCount = qualityLevels.filter(q => q === 'excellent').length;
+    const goodCount = qualityLevels.filter(q => q === 'good').length;
+    const developingCount = qualityLevels.filter(q => q === 'developing').length;
+    
+    // Convert to approximate score for compatibility
+    const avgScore = Math.round(
+      (excellentCount * 95 + goodCount * 80 + developingCount * 65) / passages.length
+    );
     
     const finalMetrics = {
       difficulty: currentDifficulty,
@@ -347,7 +343,6 @@ export default function SummaryExercisePage() {
       setIsSubmitted(false);
       setWordCount(0);
       setFeedbacks([null, null, null]);
-      setAllScores([]);
       setError(null);
       setShowingFeedback(false);
       setShowCompletion(false);
@@ -365,12 +360,12 @@ export default function SummaryExercisePage() {
   const allComplete = isSubmitted && isLastPassage;
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-purple-50 to-purple-100 overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200 shadow-sm">
+      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200 shadow-sm">
         <Link
           href="/reading-comprehension"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors"
+          className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -378,8 +373,8 @@ export default function SummaryExercisePage() {
 
         <div className="text-center flex-1 px-4">
           <div className="flex items-center justify-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-600" />
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+            <BookOpen className="w-5 h-5 text-purple-600" />
+            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
               Summary Exercise
             </h1>
           </div>
@@ -410,10 +405,10 @@ export default function SummaryExercisePage() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl shadow-lg border-2 border-blue-300 p-6 md:p-8 overflow-y-auto"
+            className="bg-white rounded-2xl shadow-lg border-2 border-purple-300 p-6 md:p-8 overflow-y-auto"
           >
             <div className="mb-4">
-              <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-2">
+              <h2 className="text-2xl md:text-3xl font-bold text-purple-900 mb-2">
                 {currentPassage.title}
               </h2>
               <div className="flex flex-wrap gap-2 mb-4">
@@ -441,35 +436,34 @@ export default function SummaryExercisePage() {
           {/* Right Panel - Summary Input */}
           <div className="flex flex-col gap-4 overflow-y-auto">
             {/* Progress Indicator */}
-            <div className="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4">
+            <div className="bg-white rounded-xl shadow-md border-2 border-purple-200 p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-blue-900">
+                <span className="text-sm font-semibold text-purple-900">
                   Overall Progress
                 </span>
-                <span className="text-sm font-bold text-blue-600">
-                  {allScores.length} / {passages.length}
+                <span className="text-sm font-bold text-purple-600">
+                  {completedPassages} / {passages.length}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(allScores.length / passages.length) * 100}%` }}
+                  className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(completedPassages / passages.length) * 100}%` }}
                 />
               </div>
               <p className="text-xs text-gray-600 mt-2">
                 Passage {currentPassageIndex + 1} of {passages.length}
-                {allScores.length > 0 && ` • Average Score: ${Math.round(allScores.reduce((sum, s) => sum + s, 0) / allScores.length)}%`}
               </p>
             </div>
 
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-2xl shadow-lg border-2 border-blue-300 p-6 md:p-8 h-full flex flex-col"
+              className="bg-white rounded-2xl shadow-lg border-2 border-purple-300 p-6 md:p-8 h-full flex flex-col"
             >
               {/* Header */}
               <div className="mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-blue-900 mb-2">
+                <h2 className="text-xl md:text-2xl font-bold text-purple-900 mb-2">
                   Summarize the Passage
                 </h2>
                 <p className="text-sm text-gray-600">
@@ -484,10 +478,10 @@ export default function SummaryExercisePage() {
                   onChange={(e) => setSummary(e.target.value)}
                   disabled={isSubmitted}
                   placeholder="Start writing your summary here..."
-                  className={`w-full h-full p-4 rounded-xl border-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+                  className={`w-full h-full p-4 rounded-xl border-2 resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all ${
                     isSubmitted
                       ? "bg-gray-50 border-gray-300 cursor-not-allowed"
-                      : "border-blue-200 focus:border-blue-400"
+                      : "border-purple-200 focus:border-purple-400"
                   }`}
                 />
               </div>
@@ -496,18 +490,23 @@ export default function SummaryExercisePage() {
               <div className="mb-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">
-                    Word count: <span className="font-semibold text-blue-600">{wordCount}</span>
+                    Word count: <span className="font-semibold text-purple-600">{wordCount}</span>
                   </span>
                   {isSubmitted && currentFeedback && (
                     <motion.span
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="text-green-600 font-semibold flex items-center gap-1"
+                      className={`font-semibold flex items-center gap-1 capitalize ${
+                        currentFeedback.quality_level === 'excellent' ? 'text-green-600' :
+                        currentFeedback.quality_level === 'good' ? 'text-purple-600' :
+                        currentFeedback.quality_level === 'developing' ? 'text-amber-600' :
+                        'text-amber-600'
+                      }`}
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      Score: {currentFeedback.overall_score}%
+                      {currentFeedback.quality_level.replace('-', ' ')}
                     </motion.span>
                   )}
                 </div>
@@ -532,38 +531,45 @@ export default function SummaryExercisePage() {
                   className="space-y-4 mb-4 max-h-96 overflow-y-auto"
                 >
                   {/* Overall Feedback */}
-                  <div className="p-4 rounded-xl bg-blue-50 border-2 border-blue-300">
-                    <p className="text-sm font-semibold text-blue-900 mb-2">
+                  <div className="p-4 rounded-xl bg-purple-50 border-2 border-purple-300">
+                    <p className="text-sm font-semibold text-purple-900 mb-2">
                       Overall Feedback
                     </p>
-                    <p className="text-sm text-blue-800 leading-relaxed">
+                    <p className="text-sm text-purple-800 leading-relaxed">
                       {currentFeedback.feedback}
                     </p>
                   </div>
 
-                  {/* Detailed Scores */}
-                  <div className="p-4 rounded-xl bg-purple-50 border-2 border-purple-300">
-                    <p className="text-sm font-semibold text-purple-900 mb-3">
-                      Detailed Scores
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                      {Object.entries(currentFeedback.detailed_scores).map(([key, value]) => (
-                        <div key={key} className="flex items-center justify-between">
-                          <span className="text-xs text-purple-700 capitalize">
-                            {key}:
-                          </span>
-                          <span className="text-sm font-bold text-purple-900">
-                            {value}%
-                          </span>
-                        </div>
-                      ))}
+                  {/* Detailed Feedback Areas */}
+                  <div className="space-y-3">
+                    {/* Coverage */}
+                    <div className="p-4 rounded-xl bg-indigo-50 border-2 border-indigo-300">
+                      <p className="text-xs font-semibold text-indigo-900 mb-1">
+                        📚 Coverage
+                      </p>
+                      <p className="text-sm text-indigo-800">
+                        {currentFeedback.coverage_feedback}
+                      </p>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-purple-200">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-purple-700">
-                          Key Points: {currentFeedback.key_points_covered}/{currentFeedback.key_points_total}
-                        </span>
-                      </div>
+
+                    {/* Clarity */}
+                    <div className="p-4 rounded-xl bg-cyan-50 border-2 border-cyan-300">
+                      <p className="text-xs font-semibold text-cyan-900 mb-1">
+                        ✨ Clarity
+                      </p>
+                      <p className="text-sm text-cyan-800">
+                        {currentFeedback.clarity_feedback}
+                      </p>
+                    </div>
+
+                    {/* Completeness */}
+                    <div className="p-4 rounded-xl bg-purple-50 border-2 border-purple-300">
+                      <p className="text-xs font-semibold text-purple-900 mb-1">
+                        🎯 Completeness
+                      </p>
+                      <p className="text-sm text-purple-800">
+                        {currentFeedback.completeness_feedback}
+                      </p>
                     </div>
                   </div>
 
@@ -615,7 +621,7 @@ export default function SummaryExercisePage() {
                     transition-all duration-200
                     ${
                       canSubmit
-                        ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+                        ? "bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
                     }
                   `}
@@ -637,7 +643,7 @@ export default function SummaryExercisePage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleFinishExercise}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg transition-all duration-200"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-green-600 to-purple-600 hover:from-green-700 hover:to-purple-700 text-white shadow-lg transition-all duration-200"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -649,7 +655,7 @@ export default function SummaryExercisePage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleNextPassage}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-200"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-lg bg-purple-600 hover:bg-purple-700 text-white shadow-lg transition-all duration-200"
                 >
                   Next Passage
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -664,8 +670,17 @@ export default function SummaryExercisePage() {
 
       <ReadingCompletionModal
         isOpen={showCompletion}
-        score={allScores.length > 0 ? Math.round(allScores.reduce((sum, s) => sum + s, 0) / allScores.length) : 0}
-        correctCount={allScores.filter(s => s >= 70).length}
+        score={
+          feedbacks.filter(f => f !== null).length > 0
+            ? Math.round(
+                (feedbacks.filter(f => f !== null).map(f => {
+                  const level = f!.quality_level;
+                  return level === 'excellent' ? 95 : level === 'good' ? 80 : level === 'developing' ? 65 : 30;
+                }).reduce((sum, s) => sum + s, 0) / feedbacks.filter(f => f !== null).length)
+              )
+            : 0
+        }
+        correctCount={feedbacks.filter(f => f !== null && (f.quality_level === 'excellent' || f.quality_level === 'good')).length}
         totalQuestions={passages.length}
         passageTitle={`${passages.length} Summary Exercises`}
         onClose={() => setShowCompletion(false)}

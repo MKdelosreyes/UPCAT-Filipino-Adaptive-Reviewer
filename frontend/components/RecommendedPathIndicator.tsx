@@ -155,6 +155,72 @@ export default function RecommendedPathIndicator() {
     };
   };
 
+  // Get module-specific colors for circles only
+  const getModuleCircleColors = (module: ModuleType, isCompleted: boolean, isRecommended: boolean, hasProgress: boolean) => {
+    const colorMap = {
+      vocabulary: {
+        recommended: 'bg-yellow-600 text-white shadow-xl ring-4 ring-yellow-300',
+        inProgress: 'bg-yellow-100 text-yellow-600 border-2 border-yellow-400',
+      },
+      grammar: {
+        recommended: 'bg-green-600 text-white shadow-xl ring-4 ring-green-300',
+        inProgress: 'bg-green-100 text-green-600 border-2 border-green-400',
+      },
+      'sentence-construction': {
+        recommended: 'bg-blue-600 text-white shadow-xl ring-4 ring-blue-300',
+        inProgress: 'bg-blue-100 text-blue-600 border-2 border-blue-400',
+      },
+      'reading-comprehension': {
+        recommended: 'bg-purple-600 text-white shadow-xl ring-4 ring-purple-300',
+        inProgress: 'bg-purple-100 text-purple-600 border-2 border-purple-400',
+      },
+    };
+
+    if (isCompleted) {
+      return 'bg-green-500 text-white shadow-lg';
+    }
+    if (isRecommended) {
+      return colorMap[module].recommended + ' animate-pulse';
+    }
+    if (hasProgress) {
+      return colorMap[module].inProgress;
+    }
+    return 'bg-gray-200 text-gray-400 border-2 border-gray-300';
+  };
+
+  // Get module-specific colors for text
+  const getModuleTextColors = (module: ModuleType, isCompleted: boolean, isRecommended: boolean, hasProgress: boolean) => {
+    const colorMap = {
+      vocabulary: {
+        recommended: 'text-yellow-400',
+        inProgress: 'text-yellow-300',
+      },
+      grammar: {
+        recommended: 'text-green-700',
+        inProgress: 'text-green-600',
+      },
+      'sentence-construction': {
+        recommended: 'text-blue-700',
+        inProgress: 'text-blue-600',
+      },
+      'reading-comprehension': {
+        recommended: 'text-purple-700',
+        inProgress: 'text-purple-600',
+      },
+    };
+
+    if (isCompleted) {
+      return 'text-green-700';
+    }
+    if (isRecommended) {
+      return colorMap[module].recommended;
+    }
+    if (hasProgress) {
+      return colorMap[module].inProgress;
+    }
+    return 'text-gray-500';
+  };
+
   if (isLoading) {
     return (
       <div className="w-full bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 shadow-md border border-blue-200">
@@ -208,13 +274,7 @@ export default function RecommendedPathIndicator() {
                 {/* Module Circle */}
                 <div
                   className={`relative w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 z-10 ${
-                    status.isCompleted
-                      ? "bg-green-500 text-white shadow-lg"
-                      : status.isRecommended
-                      ? "bg-blue-600 text-white shadow-xl ring-4 ring-blue-300 animate-pulse"
-                      : status.completedCount > 0
-                      ? "bg-blue-100 text-blue-600 border-2 border-blue-400"
-                      : "bg-gray-200 text-gray-400 border-2 border-gray-300"
+                    getModuleCircleColors(module, status.isCompleted, status.isRecommended, status.completedCount > 0)
                   }`}
                 >
                   {status.isCompleted ? (
@@ -239,13 +299,7 @@ export default function RecommendedPathIndicator() {
                 <div className="mt-2 text-center">
                   <p
                     className={`text-xs font-semibold leading-tight ${
-                      status.isRecommended
-                        ? "text-blue-700"
-                        : status.isCompleted
-                        ? "text-green-700"
-                        : status.completedCount > 0
-                        ? "text-blue-600"
-                        : "text-gray-500"
+                      getModuleTextColors(module, status.isCompleted, status.isRecommended, status.completedCount > 0)
                     }`}
                   >
                     {moduleNames[module]}

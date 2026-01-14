@@ -67,10 +67,10 @@ export default function ReadingCard({
               isLocked
                 ? "border-gray-300 bg-gray-100 opacity-60"
                 : isCompleted
-                ? "border-blue-300 bg-blue-50"
+                ? "border-purple-300 bg-purple-50"
                 : isRecommended
-                ? "border-blue-500 ring-4 ring-blue-300"
-                : "border-blue-200 hover:border-blue-400"
+                ? "border-purple-500 ring-4 ring-purple-300"
+                : "border-purple-200 hover:border-purple-400"
             } ${color}`}
           >
             {/* Status Badge */}
@@ -81,17 +81,17 @@ export default function ReadingCard({
                   Locked
                 </div>
               ) : isRecommended ? (
-                <div className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold shadow-md">
+                <div className="bg-purple-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold shadow-md">
                   <Sparkles className="w-3 h-3" />
                   Next
                 </div>
               ) : isCompleted ? (
-                <div className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
+                <div className="bg-purple-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
                   <CheckCircle className="w-3 h-3" />
                   Completed
                 </div>
               ) : (
-                <div className="bg-blue-600 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
+                <div className="bg-purple-600 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
                   <Play className="w-3 h-3" />
                   Start
                 </div>
@@ -111,7 +111,7 @@ export default function ReadingCard({
 
             {/* Content */}
             <div className="p-5 bg-white/80 backdrop-blur-sm">
-              <h3 className="text-xl font-bold text-blue-900 mb-2">{name}</h3>
+              <h3 className="text-xl font-bold text-purple-900 mb-2">{name}</h3>
               <p className="text-sm text-gray-700 mb-3">{description}</p>
 
               {/* Progress Info */}
@@ -121,7 +121,7 @@ export default function ReadingCard({
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{exerciseMastery.icon}</span>
                       <div>
-                        <p className="font-semibold text-blue-700 capitalize">
+                        <p className="font-semibold text-purple-700 capitalize">
                           {exerciseMastery.level}
                         </p>
                         <p className="text-gray-600">
@@ -139,7 +139,7 @@ export default function ReadingCard({
                           {exerciseProgress.attempts > 1 ? "s" : ""}
                         </p>
                         {exerciseProgress.score !== null && (
-                          <p className="font-semibold text-blue-700">
+                          <p className="font-semibold text-purple-700">
                             Best: {exerciseProgress.score}%
                           </p>
                         )}

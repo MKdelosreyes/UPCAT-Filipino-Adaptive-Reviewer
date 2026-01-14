@@ -82,8 +82,8 @@ export default function SentenceQuestion({
                       : showWrong
                       ? "bg-red-100 border-red-500"
                       : isSelected
-                      ? "bg-blue-100 border-blue-500"
-                      : "bg-white border-blue-200 hover:border-blue-400"
+                      ? "bg-green-100 border-green-500"
+                      : "bg-white border-green-200 hover:border-green-400"
                   } ${showResult ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -95,8 +95,8 @@ export default function SentenceQuestion({
                           : showWrong
                           ? "bg-red-500 text-white"
                           : isSelected
-                          ? "bg-blue-500 text-white"
-                          : "bg-blue-100 text-blue-700"
+                          ? "bg-green-500 text-white"
+                          : "bg-green-100 text-green-700"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}
@@ -134,12 +134,12 @@ export default function SentenceQuestion({
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="w-full lg:flex-[0_0_55%]"
             >
-              <div className="bg-white rounded-2xl shadow-lg border-2 border-blue-200 p-6 h-full">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-100">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Lightbulb className="w-5 h-5 text-blue-600" />
+              <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 p-6 h-full">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-green-100">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Lightbulb className="w-5 h-5 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-blue-900">
+                  <h3 className="text-lg font-bold text-green-900">
                     Explanation
                   </h3>
                 </div>

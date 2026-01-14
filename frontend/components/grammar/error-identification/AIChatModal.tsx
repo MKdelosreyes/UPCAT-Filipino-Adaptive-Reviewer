@@ -138,7 +138,7 @@ export default function AIChatModal({
             className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl md:h-[600px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b text-red-950 rounded-t-2xl">
+            <div className="flex items-center justify-between p-4 border-b text-green-950 rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-6 h-6" />
                 <div>
@@ -169,7 +169,7 @@ export default function AIChatModal({
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-2 ${
                       message.role === "user"
-                        ? "bg-red-600 text-white"
+                        ? "bg-green-600 text-white"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
@@ -192,7 +192,7 @@ export default function AIChatModal({
               {/* Error message */}
               {error && (
                 <div className="flex justify-center">
-                  <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
                     {error}
                   </p>
                 </div>
@@ -211,12 +211,12 @@ export default function AIChatModal({
                   onKeyPress={handleKeyPress}
                   placeholder="Magtanong tungkol sa grammar error..."
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={isLoading || !inputMessage.trim()}
-                  className="px-4 py-2 text-red-950 border-2 border-red-950/50 rounded-lg hover:border-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-green-950 border-2 border-green-950/50 rounded-lg hover:border-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

@@ -176,8 +176,8 @@ export default function ReadingExercisePage() {
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="h-screen bg-purple-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
@@ -185,18 +185,18 @@ export default function ReadingExercisePage() {
   // Show loading state while initializing
   if (isLoading) {
     return (
-      <div className="h-screen bg-blue-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+      <div className="h-screen bg-purple-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
           <Link
             href="/reading-comprehension"
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+            className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
               Reading Comprehension
             </h1>
             <p className="text-xs text-gray-500 mt-1">
@@ -212,8 +212,8 @@ export default function ReadingExercisePage() {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-blue-600 font-semibold">Loading passages...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-purple-600 font-semibold">Loading passages...</p>
           </div>
         </div>
       </div>
@@ -223,18 +223,18 @@ export default function ReadingExercisePage() {
   // Show error state
   if (error || passages.length === 0) {
     return (
-      <div className="h-screen bg-blue-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+      <div className="h-screen bg-purple-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
           <Link
             href="/reading-comprehension"
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+            className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
               Reading Comprehension
             </h1>
           </div>
@@ -244,12 +244,12 @@ export default function ReadingExercisePage() {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md px-4">
-            <p className="text-blue-600 font-semibold mb-4">
+            <p className="text-purple-600 font-semibold mb-4">
               {error || "No reading passages available"}
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
             >
               Retry
             </button>
@@ -465,12 +465,12 @@ export default function ReadingExercisePage() {
   const totalQuestions = passages.reduce((sum, p) => sum + p.comprehensionQuestions.length, 0);
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-purple-50 to-purple-100 overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200 shadow-sm">
+      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200 shadow-sm">
         <Link
           href="/reading-comprehension"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors"
+          className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -478,8 +478,8 @@ export default function ReadingExercisePage() {
 
         <div className="text-center flex-1 px-4">
           <div className="flex items-center justify-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-600" />
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+            <BookOpen className="w-5 h-5 text-purple-600" />
+            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
               Reading Comprehension
             </h1>
           </div>
@@ -510,10 +510,10 @@ export default function ReadingExercisePage() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl shadow-lg border-2 border-blue-300 p-6 md:p-8 overflow-y-auto"
+            className="bg-white rounded-2xl shadow-lg border-2 border-purple-300 p-6 md:p-8 overflow-y-auto"
           >
             <div className="mb-4">
-              <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-2">
+              <h2 className="text-2xl md:text-3xl font-bold text-purple-900 mb-2">
                 {currentPassage.title}
               </h2>
               <div className="flex flex-wrap gap-2 mb-4">
@@ -541,18 +541,18 @@ export default function ReadingExercisePage() {
           {/* Right Panel - Questions */}
           <div className="flex flex-col gap-4 overflow-y-auto">
             {/* Progress Indicator */}
-            <div className="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4">
+            <div className="bg-white rounded-xl shadow-md border-2 border-purple-200 p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-blue-900">
+                <span className="text-sm font-semibold text-purple-900">
                   Overall Progress
                 </span>
-                <span className="text-sm font-bold text-blue-600">
+                <span className="text-sm font-bold text-purple-600">
                   {totalQuestionsCompleted} / {totalQuestions}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-purple-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${(totalQuestionsCompleted / totalQuestions) * 100}%` }}
                 />
               </div>

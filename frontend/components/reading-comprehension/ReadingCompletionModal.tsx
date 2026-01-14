@@ -32,9 +32,9 @@ export default function ReadingCompletionModal({
 
   const getPerformanceColor = () => {
     if (score >= 90) return "text-green-600";
-    if (score >= 75) return "text-blue-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-orange-600";
+    if (score >= 75) return "text-purple-600";
+    if (score >= 60) return "text-amber-600";
+    return "text-amber-700";
   };
 
   return (
@@ -73,14 +73,14 @@ export default function ReadingCompletionModal({
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 rounded-full"
+                  className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-full"
                 >
                   <Trophy className="w-16 h-16 text-white" />
                 </motion.div>
               </div>
 
               {/* Title */}
-              <h2 className="text-3xl font-bold text-center text-blue-900 mb-2">
+              <h2 className="text-3xl font-bold text-center text-purple-900 mb-2">
                 Exercise Complete!
               </h2>
               <p className="text-center text-gray-600 mb-6 text-sm">
@@ -88,7 +88,7 @@ export default function ReadingCompletionModal({
               </p>
 
               {/* Score */}
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 mb-6">
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 mb-6">
                 <div className="text-center">
                   <motion.div
                     initial={{ scale: 0 }}
@@ -118,10 +118,10 @@ export default function ReadingCompletionModal({
                       score >= 90
                         ? "bg-gradient-to-r from-green-500 to-emerald-600"
                         : score >= 75
-                        ? "bg-gradient-to-r from-blue-500 to-blue-600"
+                        ? "bg-gradient-to-r from-purple-500 to-purple-600"
                         : score >= 60
-                        ? "bg-gradient-to-r from-yellow-500 to-orange-500"
-                        : "bg-gradient-to-r from-orange-500 to-red-500"
+                        ? "bg-gradient-to-r from-amber-500 to-amber-600"
+                        : "bg-gradient-to-r from-amber-600 to-amber-700"
                     }`}
                   />
                 </div>
@@ -133,7 +133,7 @@ export default function ReadingCompletionModal({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onRetake}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all"
+                  className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all"
                 >
                   <RotateCcw className="w-5 h-5" />
                   Try Another Passage
@@ -143,7 +143,7 @@ export default function ReadingCompletionModal({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => router.push("/reading-comprehension")}
-                  className="w-full bg-white hover:bg-gray-50 text-blue-600 font-bold py-4 px-6 rounded-xl border-2 border-blue-600 flex items-center justify-center gap-2 transition-all"
+                  className="w-full bg-white hover:bg-gray-50 text-purple-600 font-bold py-4 px-6 rounded-xl border-2 border-purple-600 flex items-center justify-center gap-2 transition-all"
                 >
                   <Home className="w-5 h-5" />
                   Back to Reading Hub
