@@ -51,6 +51,7 @@ else:
     class SummaryCheckRequest(BaseModel):
         passage_text: str
         user_summary: str
+        main_idea: str
         passage_title: Optional[str] = "Reading Passage"
         difficulty: Optional[str] = "medium"
     
@@ -70,56 +71,31 @@ else:
 
 def build_summary_evaluation_prompt(data: dict) -> tuple:
     """Generate evaluation prompt for Groq"""
-    passage = data["passage_text"]
+    main_idea = data["main_idea"]
     summary = data["user_summary"]
     title = data.get("passage_title", "Reading Passage")
-    difficulty = data.get("difficulty", "medium")
 
-    system_instruction = """You are an expert Filipino language educator evaluating student reading comprehension summaries for UPCAT preparation. 
+    system_instruction = """You are a Filipino language teacher grading student summaries. Be brief, encouraging, and specific."""
 
-Be constructive, encouraging, and specific in your feedback. Focus on helping students improve their summarization skills."""
+    user_prompt = f"""**Pamagat:** {title}
 
-    user_prompt = f"""**Passage Title:** {title}
-**Difficulty Level:** {difficulty}
+**Pangunahing Ideya (Main Idea):**
+{main_idea}
 
-**Original Passage:**
-{passage}
-
----
-
-**Student's Summary:**
+**Buod ng Estudyante (Student Summary):**
 {summary}
 
 ---
 
-**EVALUATION TASK:**
+**TASK:** Compare the student's summary with the main idea above. Grade how well they captured the key points.
 
-Analyze this summary and provide detailed feedback. Evaluate on four criteria:
-
-1. **Key Points Coverage** (0-100): Did they identify and include the main ideas from the passage?
-2. **Accuracy** (0-100): Is the information correct without misinterpretations?
-3. **Clarity** (0-100): Is the summary well-written, coherent, and easy to understand?
-4. **Completeness** (0-100): Are all critical points included without being too verbose?
-
-**RESPONSE FORMAT (JSON):**
+**Return JSON only:**
 {{
-  "coverage_score": <0-100>,
-  "accuracy_score": <0-100>,
-  "clarity_score": <0-100>,
-  "completeness_score": <0-100>,
-  "overall_score": <average of above>,
-  "key_points_identified": <number>,
-  "key_points_total": <total key points in passage>,
-  "strengths": ["strength1", "strength2", "strength3"],
-  "improvements": ["improvement1", "improvement2"],
-  "feedback": "2-3 encouraging sentences of overall feedback"
+  "overall_score": <0-100 score based on how well summary matches main idea>,
+  "strengths": ["1-2 things they did well"],
+  "improvements": ["1-2 suggestions"],
+  "feedback": "1-2 encouraging sentences in Filipino"
 }}
-
-**IMPORTANT:**
-- Be specific in strengths and improvements
-- Feedback should be encouraging and constructive
-- List exactly what key points were covered vs missed
-- Return ONLY valid JSON, no additional text
 """
 
     return (system_instruction, user_prompt)
@@ -142,10 +118,9 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
 
         # Build evaluation prompt
         system_instruction, user_prompt = build_summary_evaluation_prompt({
-            "passage_text": request.passage_text,
+            "main_idea": request.main_idea,
             "user_summary": request.user_summary,
             "passage_title": request.passage_title,
-            "difficulty": request.difficulty
         })
 
         messages = [
@@ -178,18 +153,20 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
             
             result = json.loads(response_text)
             
+            score = int(result.get("overall_score", 0))
+            
             return SummaryCheckResponse(
-                overall_score=int(result.get("overall_score", 0)),
+                overall_score=score,
                 feedback=result.get("feedback", ""),
-                strengths=result.get("strengths", [])[:3],  # Max 3
-                improvements=result.get("improvements", [])[:3],  # Max 3
-                key_points_covered=int(result.get("key_points_identified", 0)),
-                key_points_total=int(result.get("key_points_total", 0)),
+                strengths=result.get("strengths", [])[:2],
+                improvements=result.get("improvements", [])[:2],
+                key_points_covered=1 if score >= 70 else 0,
+                key_points_total=1,
                 detailed_scores={
-                    "coverage": int(result.get("coverage_score", 0)),
-                    "accuracy": int(result.get("accuracy_score", 0)),
-                    "clarity": int(result.get("clarity_score", 0)),
-                    "completeness": int(result.get("completeness_score", 0))
+                    "coverage": score,
+                    "accuracy": score,
+                    "clarity": score,
+                    "completeness": score
                 }
             )
 

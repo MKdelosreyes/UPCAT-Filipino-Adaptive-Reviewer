@@ -22,7 +22,7 @@ class LexicalPerformanceEventSerializer(serializers.Serializer):
             "choose-sentence",
             "complete-sentence",
             "sentence-ordering",
-            "reading-passages",
+            "passage-questions",
             "summary-exercise",
         ]
     )

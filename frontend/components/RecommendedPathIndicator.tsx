@@ -92,7 +92,7 @@ export default function RecommendedPathIndicator() {
       }
     } else if (module === "reading-comprehension") {
       const readingData = moduleData as ReadingProgress;
-      if (exercise === "reading-passages" || exercise === "summarization") {
+      if (exercise === "passage-questions" || exercise === "summary-exercise") {
         return readingData[exercise];
       }
     }

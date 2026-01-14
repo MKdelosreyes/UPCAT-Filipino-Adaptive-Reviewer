@@ -222,6 +222,7 @@ export default function SummaryExercisePage() {
       const result = await checkSummary({
         passage_text: currentPassage.text,
         user_summary: summary,
+        main_idea: currentPassage.mainIdea,
         passage_title: currentPassage.title,
       });
       

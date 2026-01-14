@@ -73,6 +73,7 @@ export interface ChatResponse {
 export interface SummaryCheckRequest {
   passage_text: string;
   user_summary: string;
+  main_idea: string;
   passage_title?: string;
   difficulty?: "easy" | "medium" | "hard";
 }

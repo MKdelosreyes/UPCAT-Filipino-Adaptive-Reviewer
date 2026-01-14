@@ -19,7 +19,7 @@ export type SentenceExercise =
   | "complete-sentence"
   | "sentence-ordering"
   | "choose-sentence";
-export type ReadingExercise = "reading-passages" | "summarization";
+export type ReadingExercise = "passage-questions" | "summary-exercise";
 
 export type ExerciseType =
   | VocabularyExercise
@@ -85,8 +85,8 @@ export interface SentenceProgress {
 }
 
 export interface ReadingProgress {
-  "reading-passages": QuizProgress;
-  summarization: QuizProgress;
+  "passage-questions": QuizProgress;
+  "summary-exercise": QuizProgress;
   lastAccessedAt: string | null;
 }
 
@@ -202,8 +202,8 @@ const createDefaultSentenceProgress = (): SentenceProgress => ({
 });
 
 const createDefaultReadingProgress = (): ReadingProgress => ({
-  "reading-passages": { ...defaultQuizProgress, status: "not-started" },
-  summarization: { ...defaultQuizProgress, status: "not-started" },
+  "passage-questions": { ...defaultQuizProgress, status: "not-started" },
+  "summary-exercise": { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
 });
 
@@ -279,7 +279,7 @@ export function LearningProgressProvider({
       }
     } else if (module === "reading-comprehension") {
       const readingData = moduleData as ReadingProgress;
-      if (exercise === "reading-passages" || exercise === "summarization") {
+      if (exercise === "passage-questions" || exercise === "summary-exercise") {
         return readingData[exercise];
       }
     }
@@ -395,7 +395,7 @@ export function LearningProgressProvider({
         };
       } else if (
         module === "reading-comprehension" &&
-        (exercise === "reading-passages" || exercise === "summarization")
+        (exercise === "passage-questions" || exercise === "summary-exercise")
       ) {
         const moduleProgress = { ...prev[module] } as ReadingProgress;
 
@@ -545,7 +545,7 @@ export function LearningProgressProvider({
         module.exercises.forEach((exercise) => {
           const exType = exercise.exercise_type;
 
-          if (exType === "reading-passages" || exType === "summarization") {
+          if (exType === "passage-questions" || exType === "summary-exercise") {
             readingProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
@@ -660,7 +660,7 @@ export function LearningProgressProvider({
       case "sentence-construction":
         return ["complete-sentence", "sentence-ordering", "choose-sentence"];
       case "reading-comprehension":
-        return ["reading-passages", "summarization"];
+        return ["passage-questions", "summary-exercise"];
       default:
         return [];
     }
@@ -855,7 +855,7 @@ export function LearningProgressProvider({
         };
       } else if (
         module === "reading-comprehension" &&
-        (exercise === "reading-passages" || exercise === "summarization")
+        (exercise === "passage-questions" || exercise === "summary-exercise")
       ) {
         const moduleProgress = { ...prev[module] } as ReadingProgress;
         const quizProgress = moduleProgress[exercise];

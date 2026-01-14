@@ -63,6 +63,7 @@ export interface ReadingPassage {
   text: string;
   difficulty: "easy" | "medium" | "hard";
   wordCount: number;
+  mainIdea: string;
   comprehensionQuestions: {
     id: string;
     question: string;
