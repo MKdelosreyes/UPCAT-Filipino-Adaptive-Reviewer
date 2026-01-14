@@ -2,27 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, BookOpen, Send } from "lucide-react";
+import { ArrowLeft, BookOpen, Send, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import ReadingProgress from "@/components/reading-comprehension/ReadingProgress";
-import { readingPassages } from "@/data/reading-comprehension-dataset";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
+import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import type { QuizProgress } from "@/contexts/LearningProgressContext";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  getReadingComprehensionExercisesAdaptive,
+  type ReadingPassage,
+} from "@/lib/api/exercises";
 import { checkSummary, type SummaryCheckResponse } from "@/lib/api/ai-service";
-
-// Fisher-Yates shuffle algorithm
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
+import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function SummaryExercisePage() {
-  const { updateProgress } = useReadingProgress();
+  const { updateProgress, getExerciseProgress } = useReadingProgress();
+  const { addPerformanceMetrics, getPerformanceHistory } = useLearningProgress();
+  const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
   
-  const [passages, setPassages] = useState<typeof readingPassages>([]);
+  const [passages, setPassages] = useState<ReadingPassage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentDifficulty, setCurrentDifficulty] = useState<
+    "easy" | "medium" | "hard"
+  >("easy");
+  const [usedPassageIds, setUsedPassageIds] = useState<Set<string>>(new Set());
   const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
   const [summary, setSummary] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -33,12 +39,84 @@ export default function SummaryExercisePage() {
   const [error, setError] = useState<string | null>(null);
   const [showingFeedback, setShowingFeedback] = useState(false);
 
-  // Initialize passages on client side only
+  // ✅ Load passages with adaptive difficulty
   useEffect(() => {
-    const shuffledPassages = shuffleArray(readingPassages);
-    const selectedPassages = shuffledPassages.slice(0, 3);
-    setPassages(selectedPassages);
-  }, []);
+    async function loadPassages() {
+      try {
+        setIsLoading(true);
+
+        const performanceHistory = getPerformanceHistory(
+          "reading-comprehension",
+          "summary-exercise"
+        );
+        const exerciseProgress = getExerciseProgress("summary-exercise");
+
+        console.log("📊 Summary Performance History:", performanceHistory);
+        console.log("📈 Summary Exercise Progress:", exerciseProgress);
+
+        let targetDifficulty: "easy" | "medium" | "hard" = "easy";
+
+        if (performanceHistory.length > 0) {
+          const evaluation = evaluateUserPerformance(performanceHistory);
+          targetDifficulty = evaluation.nextDifficulty;
+          console.log(
+            "🎯 Evaluated Target Difficulty:",
+            targetDifficulty,
+            "| Tags:",
+            evaluation.tags
+          );
+        } else {
+          if ("lastDifficulty" in exerciseProgress) {
+            targetDifficulty =
+              (exerciseProgress as QuizProgress).lastDifficulty || "easy";
+          } else {
+            targetDifficulty = "easy";
+          }
+          console.log("🆕 First Session - Using difficulty:", targetDifficulty);
+        }
+
+        setCurrentDifficulty(targetDifficulty);
+
+        console.log(
+          "🔄 Fetching adaptive summary passages with difficulty:",
+          targetDifficulty
+        );
+
+        const readingPassages = await getReadingComprehensionExercisesAdaptive({
+          userId: user?.id,
+          targetDifficulty,
+          limit: 3,
+        });
+
+        console.log("📚 Adaptive Summary Passages:", readingPassages.length);
+
+        if (readingPassages.length === 0) {
+          throw new Error("No reading passages available for this difficulty");
+        }
+
+        setPassages(readingPassages);
+        
+        // Track passage IDs to avoid duplicates
+        setUsedPassageIds(prev => {
+          const newSet = new Set(prev);
+          readingPassages.forEach(p => newSet.add(p.passage_id));
+          return newSet;
+        });
+        
+        setError(null);
+      } catch (err) {
+        console.error("❌ Failed to load summary passages:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load passages. Please try again."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadPassages();
+  }, [user?.id]);
 
   // Update word count when summary changes
   useEffect(() => {
@@ -46,8 +124,54 @@ export default function SummaryExercisePage() {
     setWordCount(words.length);
   }, [summary]);
 
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   // Show loading state while initializing
-  if (passages.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="h-screen bg-blue-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+          <Link
+            href="/reading-comprehension"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Link>
+
+          <div className="text-center flex-1 px-4">
+            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+              Summary Exercise
+            </h1>
+            <p className="text-xs text-gray-500 mt-1">
+              Difficulty:{" "}
+              <span className="font-semibold capitalize">
+                {currentDifficulty}
+              </span>
+            </p>
+          </div>
+
+          <div className="w-20"></div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-blue-600 font-semibold">Loading passages...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || passages.length === 0) {
     return (
       <div className="h-screen bg-blue-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
@@ -69,7 +193,17 @@ export default function SummaryExercisePage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="text-center max-w-md px-4">
+            <p className="text-blue-600 font-semibold mb-4">
+              {error || "No reading passages available"}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -134,32 +268,90 @@ export default function SummaryExercisePage() {
       // All passages complete - mark as finished
       const avgScore = Math.round(allScores.reduce((sum, s) => sum + s, 0) / allScores.length);
       
-      updateProgress("summary-exercise", {
-        status: "in-progress",
+      const finalMetrics = {
+        difficulty: currentDifficulty,
         score: avgScore,
-        completedAt: new Date().toISOString(),
-        attempts: 1,
-        lastDifficulty: "easy",
-        errorTags: [],
-      });
+        timestamp: new Date().toISOString(),
+      };
+
+      console.log("📊 Summary Session Completed - Metrics:", finalMetrics);
+
+      // addPerformanceMetrics("reading-comprehension", "summary-exercise", finalMetrics);
+
+      const history = getPerformanceHistory("reading-comprehension", "summary-exercise");
+      const allHistory = [...history, finalMetrics];
+      // const evaluation = evaluateUserPerformance(allHistory);
+
+      // console.log(
+      //   "🎯 Next Summary Difficulty:",
+      //   evaluation.nextDifficulty,
+      //   "| Error Tags:",
+      //   evaluation.tags
+      // );
+      
+      // updateProgress("summary-exercise", {
+      //   status: "in-progress",
+      //   score: avgScore,
+      //   completedAt: new Date().toISOString(),
+      //   attempts: (history.length || 0) + 1,
+      //   lastDifficulty: evaluation.nextDifficulty,
+      //   errorTags: evaluation.tags,
+      // });
       
       // Show completion state
       setShowingFeedback(true);
     }
   };
 
-  const resetExercise = () => {
-    const shuffledPassages = shuffleArray(readingPassages);
-    const selectedPassages = shuffledPassages.slice(0, 3);
-    setPassages(selectedPassages);
-    setCurrentPassageIndex(0);
-    setSummary("");
-    setIsSubmitted(false);
-    setWordCount(0);
-    setFeedbacks([null, null, null]);
-    setAllScores([]);
-    setError(null);
-    setShowingFeedback(false);
+  const resetExercise = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch new passages, excluding ones we've already used
+      let readingPassages = await getReadingComprehensionExercisesAdaptive({
+        userId: user?.id,
+        targetDifficulty: currentDifficulty,
+        limit: 10, // Fetch more to filter from
+      });
+      
+      // Filter out passages we've already seen
+      const newPassages = readingPassages.filter(p => !usedPassageIds.has(p.passage_id));
+      
+      // If we've seen all passages at this difficulty, reset the used IDs
+      if (newPassages.length < 3) {
+        console.log("⚠️ Not enough new passages, resetting used passage tracking");
+        setUsedPassageIds(new Set());
+        readingPassages = await getReadingComprehensionExercisesAdaptive({
+          userId: user?.id,
+          targetDifficulty: currentDifficulty,
+          limit: 3,
+        });
+      } else {
+        readingPassages = newPassages.slice(0, 3);
+      }
+      
+      setPassages(readingPassages);
+      
+      // Track new passage IDs
+      setUsedPassageIds(prev => {
+        const newSet = new Set(prev);
+        readingPassages.forEach(p => newSet.add(p.passage_id));
+        return newSet;
+      });
+      
+      setCurrentPassageIndex(0);
+      setSummary("");
+      setIsSubmitted(false);
+      setWordCount(0);
+      setFeedbacks([null, null, null]);
+      setAllScores([]);
+      setError(null);
+      setShowingFeedback(false);
+    } catch (err) {
+      console.error("Failed to reload exercise:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const canSubmit = summary.trim().length > 0 && !isSubmitted && !isChecking;
@@ -190,9 +382,21 @@ export default function SummaryExercisePage() {
           <p className="text-xs text-gray-600 mt-1">
             {currentPassage.title} • Passage {currentPassageIndex + 1} of {passages.length}
           </p>
+          <p className="text-xs text-gray-500">
+            Difficulty:{" "}
+            <span className="font-semibold capitalize">
+              {currentDifficulty}
+            </span>
+          </p>
         </div>
 
-        <div className="w-20"></div>
+        <button
+          onClick={resetExercise}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm"
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span className="hidden md:inline">Reset</span>
+        </button>
       </div>
 
       {/* Main Content - Split Layout */}

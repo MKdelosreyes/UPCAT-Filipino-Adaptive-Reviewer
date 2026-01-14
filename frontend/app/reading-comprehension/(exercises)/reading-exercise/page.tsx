@@ -64,6 +64,7 @@ export default function ReadingExercisePage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
+  const [usedPassageIds, setUsedPassageIds] = useState<Set<string>>(new Set());
 
   // Function to shuffle choices while tracking the correct answer
   const shuffleQuestions = (passage: ReadingPassage) => {
@@ -147,6 +148,13 @@ export default function ReadingExercisePage() {
         }
 
         setPassages(readingPassages);
+        
+        // Track passage IDs to avoid duplicates
+        setUsedPassageIds(prev => {
+          const newSet = new Set(prev);
+          readingPassages.forEach(p => newSet.add(p.passage_id));
+          return newSet;
+        });
         
         // Initialize first passage
         shuffleQuestions(readingPassages[0]);
@@ -395,12 +403,39 @@ export default function ReadingExercisePage() {
   const resetExercise = async () => {
     try {
       setIsLoading(true);
-      const readingPassages = await getReadingComprehensionExercisesAdaptive({
+      
+      // Fetch new passages, excluding ones we've already used
+      let readingPassages = await getReadingComprehensionExercisesAdaptive({
         userId: user?.id,
         targetDifficulty: currentDifficulty,
-        limit: 3,
+        limit: 10, // Fetch more to filter from
       });
+      
+      // Filter out passages we've already seen
+      const newPassages = readingPassages.filter(p => !usedPassageIds.has(p.passage_id));
+      
+      // If we've seen all passages at this difficulty, reset the used IDs
+      if (newPassages.length < 3) {
+        console.log("⚠️ Not enough new passages, resetting used passage tracking");
+        setUsedPassageIds(new Set());
+        readingPassages = await getReadingComprehensionExercisesAdaptive({
+          userId: user?.id,
+          targetDifficulty: currentDifficulty,
+          limit: 3,
+        });
+      } else {
+        readingPassages = newPassages.slice(0, 3);
+      }
+      
       setPassages(readingPassages);
+      
+      // Track new passage IDs
+      setUsedPassageIds(prev => {
+        const newSet = new Set(prev);
+        readingPassages.forEach(p => newSet.add(p.passage_id));
+        return newSet;
+      });
+      
       setCurrentPassageIndex(0);
       shuffleQuestions(readingPassages[0]);
       setCurrentQuestion(0);

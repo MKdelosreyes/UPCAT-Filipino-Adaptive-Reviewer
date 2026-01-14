@@ -20,6 +20,7 @@ class LexicalPerformanceEventSerializer(serializers.Serializer):
             "error-identification",
             "fill-blanks",
             "passage-questions",
+            "summary-exercise",
         ]
     )
 
