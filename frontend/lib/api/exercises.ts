@@ -57,6 +57,22 @@ export type ExerciseType =
   | "choose" 
   | "complete";
 
+export interface ReadingPassage {
+  passage_id: string;
+  title: string;
+  text: string;
+  difficulty: "easy" | "medium" | "hard";
+  wordCount: number;
+  comprehensionQuestions: {
+    id: string;
+    question: string;
+    type: string;
+    choices: string[];
+    correctAnswer: number;
+    explanation: string;
+  }[];
+}
+
 export async function getVocabularyExercises(): Promise<VocabularyExerciseItem[]> {
   const response = await aiServiceClient.get('/exercises/vocabulary');
   return response.data.exercises || [];
@@ -141,4 +157,30 @@ export async function getSentenceConstructionExercisesAdaptive(params: {
 export async function getLexiconData(): Promise<LexiconItem[]> {
   const response = await aiServiceClient.get('/exercises/lexicon');
   return response.data.exercises || [];
+}
+
+export async function getReadingComprehensionExercisesAdaptive(params: {
+  userId?: string;
+  targetDifficulty?: "easy" | "medium" | "hard";
+  limit?: number;
+  accessToken?: string;
+} = {}): Promise<ReadingPassage[]> {
+  const userId = params.userId ? parseInt(String(params.userId)) : null;
+  
+  const body = {
+    user_id: userId,
+    target_difficulty: params.targetDifficulty || null,
+    limit: params.limit || 3,
+  };
+
+  console.log('Reading Comprehension request body:', body);
+
+  try {
+    const response = await aiServiceClient.post('/exercises/reading-comprehension', body);
+    console.log('Reading passages loaded:', response.data.passages?.length);
+    return response.data.passages || [];
+  } catch (error: any) {
+    console.error('Reading comprehension exercises error:', error.response?.data || error.message);
+    throw error;
+  }
 }

@@ -239,8 +239,8 @@ export async function clearReviewDeck(): Promise<{
   return response.data;
 }
 
-export type ModuleSlug = "vocabulary" | "grammar" | "sentence-construction";
-export type ExerciseType = "flashcards" | "quiz" | "antonym" | "lesson-cards" | "error-identification" | "fill-blanks";
+export type ModuleSlug = "vocabulary" | "grammar" | "sentence-construction" | "reading-comprehension";
+export type ExerciseType = "flashcards" | "quiz" | "antonym" | "lesson-cards" | "error-identification" | "fill-blanks" | "passage-questions" | "summary-exercise";
 
 // This matches LexicalPerformanceEventSerializer on the backend
 export interface LexicalPerformanceEvent {
