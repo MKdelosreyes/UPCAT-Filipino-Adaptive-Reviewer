@@ -130,48 +130,71 @@ Before running the application, ensure you have the following installed:
 
 ```
 SP/
-├── frontend/                # Next.js frontend application
-│   ├── app/                # Next.js app router pages
-│   │   ├── dashboard/     # Main dashboard
-│   │   ├── vocabulary/    # Vocabulary module
-│   │   ├── grammar/       # Grammar module
-│   │   └── sentence-construction/  # Sentence construction module
-│   ├── components/        # Reusable React components
-│   ├── contexts/          # React context providers
-│   ├── hooks/             # Custom React hooks
-│   ├── lib/              # Utility functions and API clients
-│   ├── data/             # Static data and constants
-│   ├── rules/            # Rule-based evaluation logic
-│   └── utils/            # Helper functions
+├── README.md                         # Project overview and docs
+├── frontend/                         # Next.js frontend application
+│   ├── app/                          # Next.js app router pages
+│   │   ├── (auth)/                   # Auth-protected routes
+│   │   ├── dashboard/                # Main dashboard
+│   │   ├── grammar/                  # Grammar module pages
+│   │   ├── profile/                  # User profile pages
+│   │   ├── reading-comprehension/    # Reading comprehension pages
+│   │   ├── sentence-construction/    # Sentence construction pages
+│   │   └── vocabulary/               # Vocabulary module pages
+│   ├── components/                   # Reusable React components
+│   │   ├── common/
+│   │   ├── grammar/
+│   │   ├── reading-comprehension/
+│   │   ├── sentence-construction/
+│   │   └── vocabulary/
+│   ├── contexts/                     # React context providers
+│   ├── data/                         # Static datasets (lexical, reading, etc.)
+│   ├── hooks/                        # Custom React hooks
+│   ├── lib/                          # API clients and utilities
+│   ├── public/                       # Static assets
+│   ├── rules/                        # Rule-based evaluation logic
+│   └── utils/                        # Helper functions
 │
-├── backend/              # Django REST API
-│   ├── backend/         # Django project settings
-│   ├── users/           # User authentication module
-│   ├── progress/        # Learning progress tracking
-│   ├── manage.py        # Django management script
-│   └── requirements.txt # Python dependencies
-│
-├── ai-service/          # FastAPI AI service
-│   ├── handlers/       # Request handlers
-│   │   ├── explain.py  # Explanation generation
-│   │   ├── tips.py     # Study tips generation
-│   │   ├── redefine.py # Word redefinition
-│   │   ├── summary_checker.py # Summary evaluation
-│   │   └── confusables.py # Confusable words detection
-│   ├── rag/           # Retrieval-Augmented Generation
-│   │   ├── RAGOrchestrator.py  # RAG coordinator
-│   │   ├── grammar_rag.py      # Grammar context retrieval
-│   │   ├── vocabulary_rag.py   # Vocabulary context retrieval
-│   │   └── references/         # Learning strategies and common mistakes
-│   ├── data/          # Core data files
-│   │   ├── lexicon.py           # 200+ word lexicon
-│   │   ├── vocabulary_core.py   # Vocabulary exercises
-│   │   ├── grammar_core.py      # Grammar exercises
-│   │   └── sentence_construction_core.py
-│   ├── main.py        # FastAPI application entry point
-│   └── requirements.txt  # Python dependencies
-│
-└── README.md          # This file
+├── backend/                          # Django REST API
+│   ├── manage.py                     # Django management script
+│   ├── requirements.txt              # Python dependencies
+│   └── backend/                      # Django project
+│       ├── asgi.py
+│       ├── settings.py
+│       ├── urls.py
+│       └── wsgi.py
+│   ├── users/                        # Authentication and user APIs
+│   └── progress/                     # Learning progress and analytics
+
+├── ai-service/                       # FastAPI AI service
+│   ├── Dockerfile
+│   ├── main.py                       # FastAPI app entrypoint
+│   ├── requirements.txt
+│   ├── handlers/                     # Request handlers / endpoints
+│   │   ├── explain.py
+│   │   ├── tips.py
+│   │   ├── redefine.py
+│   │   ├── summary_checker.py
+│   │   ├── confusables.py
+│   │   └── temp.py
+│   ├── rag/                          # Retrieval-Augmented Generation
+│   │   ├── RAGOrchestrator.py
+│   │   ├── common_mistakes_rag.py
+│   │   ├── embeddings.py
+│   │   ├── grammar_rag.py
+│   │   ├── vocabulary_rag.py
+│   │   ├── prompts.py
+│   │   ├── RAGOrchestrator.py
+│   │   └── references/
+│   ├── data/                         # Core data files used by AI service
+│   │   ├── __init__.py
+│   │   ├── grammar_core.py
+│   │   ├── lexicon.py
+│   │   ├── reading_comprehension_core.py
+│   │   ├── sentence_construction_core.py
+│   │   └── vocabulary_core.py
+│   └── utils/
+
+└── other_docs/                        # (optional) design notes, deployments, etc.
 ```
 
 ## How to Run Each Component
