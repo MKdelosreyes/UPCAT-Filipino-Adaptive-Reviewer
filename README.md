@@ -4,13 +4,14 @@ An intelligent, adaptive learning platform designed to help students prepare for
 
 ## Project Overview
 
-This full-stack application provides comprehensive Filipino language training across three core competencies:
+This full-stack application provides comprehensive Filipino language training across four core competencies:
 
 - **Vocabulary Mastery** - Build and strengthen Filipino vocabulary through contextual learning
 - **Grammar Proficiency** - Master Filipino grammar rules through targeted exercises
+- **Reading Comprehension** - Develop reading skills through passage analysis and comprehension exercises
 - **Sentence Construction** - Develop sentence building and ordering skills
 
-The system adapts to each student's performance, automatically adjusting difficulty levels and providing personalized feedback and learning tips powered by OpenAI's GPT-4.
+The system adapts to each student's performance, automatically adjusting difficulty levels and providing personalized feedback and learning tips powered by Groq's Llama 3.1.
 
 ## Core Features
 
@@ -33,10 +34,16 @@ The system adapts to each student's performance, automatically adjusting difficu
 1. **Error Identification** - Find and correct grammatical errors in sentences
 2. **Fill in the Blanks** - Complete sentences with appropriate words
 
+#### Reading Comprehension Activities
+
+1. **Passage Reading** - Read and analyze Filipino passages
+2. **Comprehension Questions** - Answer multiple-choice questions about passages
+3. **Summary Writing** - AI-evaluated summary composition
+
 #### Sentence Construction Activities
 
-1. **Sentence Ordering** - Drag-and-drop words to form correct sentences
-2. **Complete Sentence Writing** - AI-reviewed sentence composition
+1. **Sentence Ordering** - Arrange words to form correct sentences
+2. **Choose Sentence** - Select the most appropriate sentence for context
 
 ### AI-Powered Features
 
@@ -85,9 +92,9 @@ The system adapts to each student's performance, automatically adjusting difficu
 
 - **Framework**: FastAPI
 - **Language**: Python 3.11+
-- **AI Model**: OpenAI GPT-4o-mini
+- **AI Model**: Groq Llama 3.1 (llama-3.1-8b-instant)
 - **Vector Search**: Custom embedding-based RAG system
-- **Data Processing**: NumPy, pandas (if needed)
+- **Data Processing**: NumPy (for embeddings)
 - **CORS**: FastAPI CORS middleware
 
 ### Data Sources
@@ -95,7 +102,8 @@ The system adapts to each student's performance, automatically adjusting difficu
 - **Lexicon**: 200+ Filipino words with definitions, surface forms, synonyms, antonyms
 - **Vocabulary Exercises**: 180+ contextual vocabulary items
 - **Grammar Exercises**: 220+ grammar exercises covering error identification and fill-blanks
-- **Sentence Construction**: Curated sentence ordering and completion exercises
+- **Reading Comprehension**: Passages with comprehension questions and main idea identification
+- **Sentence Construction**: Curated sentence ordering and choose sentence exercises
 - **Learning Strategies**: Common mistakes database and learning strategies for adaptive tips
 
 ## Prerequisites
@@ -112,11 +120,11 @@ Before running the application, ensure you have the following installed:
 
 ### Required Accounts & API Keys
 
-- **OpenAI API Key**: Required for AI-powered features (GPT-4 access)
+- **Groq API Key**: Required for AI-powered features (Llama 3.1 access)
 - **Google OAuth Credentials**: For user authentication
   - Client ID
   - Client Secret
-- **Supabase Account** (or PostgreSQL database): For production deployment
+- **PostgreSQL Database**: For production deployment (SQLite for development)
 
 ## Project Structure
 
@@ -147,7 +155,9 @@ SP/
 │   ├── handlers/       # Request handlers
 │   │   ├── explain.py  # Explanation generation
 │   │   ├── tips.py     # Study tips generation
-│   │   └── redefine.py # Word redefinition
+│   │   ├── redefine.py # Word redefinition
+│   │   ├── summary_checker.py # Summary evaluation
+│   │   └── confusables.py # Confusable words detection
 │   ├── rag/           # Retrieval-Augmented Generation
 │   │   ├── RAGOrchestrator.py  # RAG coordinator
 │   │   ├── grammar_rag.py      # Grammar context retrieval
@@ -279,7 +289,7 @@ docker build -t upcat-ai-service .
 
 # Run container
 docker run -p 8001:8001 \
-  -e OPENAI_API_KEY=your_key_here \
+  -e GROQ_API_KEY=your_key_here \
   -e ALLOWED_ORIGINS=https://your-frontend.com \
   upcat-ai-service
 ```
@@ -335,8 +345,8 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,https://your-frontend.com
 ### AI Service (.env)
 
 ```bash
-# OpenAI Configuration
-OPENAI_API_KEY=sk-your_openai_api_key_here
+# Groq Configuration
+GROQ_API_KEY=gsk_your_groq_api_key_here
 
 # Server Configuration
 PORT=8001
@@ -346,9 +356,9 @@ ENVIRONMENT=development
 ALLOWED_ORIGINS=http://localhost:3000,https://your-frontend.com
 
 # Optional: Model configuration
-# OPENAI_MODEL=gpt-4o-mini
+# GROQ_MODEL=llama-3.1-8b-instant
 # MAX_TOKENS=500
-# TEMPERATURE=0.7
+# TEMPERATURE=0.3
 ```
 
 ## Building for Production
@@ -446,7 +456,7 @@ docker build -t upcat-ai-service .
 
 # Run container
 docker run -p 8001:8001 \
-  -e OPENAI_API_KEY=your_key \
+  -e GROQ_API_KEY=your_key \
   -e ALLOWED_ORIGINS=https://your-frontend.com \
   -e ENVIRONMENT=production \
   upcat-ai-service
@@ -477,7 +487,7 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: OPENAI_API_KEY
+      - key: GROQ_API_KEY
         sync: false
       - key: ALLOWED_ORIGINS
         value: https://your-frontend.com
