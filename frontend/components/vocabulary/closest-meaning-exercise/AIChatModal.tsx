@@ -140,7 +140,7 @@ export default function AIChatModal({
             className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl md:h-[600px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b text-purple-950 rounded-t-2xl">
+            <div className="flex items-center justify-between p-4 border-b text-yellow-900 rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-6 h-6" />
                 <div>
@@ -170,7 +170,7 @@ export default function AIChatModal({
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-2 ${
                       message.role === "user"
-                        ? "bg-purple-600 text-white"
+                        ? "bg-yellow-600 text-white"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
@@ -212,12 +212,12 @@ export default function AIChatModal({
                   onKeyPress={handleKeyPress}
                   placeholder="Magtanong tungkol sa salita..."
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={isLoading || !inputMessage.trim()}
-                  className="px-4 py-2 text-purple-950 border-2 border-purple-950/50 rounded-lg hover:border-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-yellow-900 border-2 border-yellow-900/50 rounded-lg hover:border-yellow-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

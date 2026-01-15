@@ -41,9 +41,9 @@ export default function QuizProgress({
           <span className="font-semibold">Progress</span>
           <span className="font-semibold">{Math.round(progress)}%</span>
         </div>
-        <div className="w-full h-2.5 bg-blue-100 rounded-full overflow-hidden">
+        <div className="w-full h-2.5 bg-yellow-100 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-blue-400 to-blue-600"
+            className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
@@ -72,8 +72,8 @@ export default function QuizProgress({
             onClick={handleToggleReviewDeck}
             className={`p-2 rounded-lg transition-all ${
               inReviewDeck
-                ? "bg-purple-600 text-white"
-                : "bg-white text-purple-600 border-2 border-purple-300"
+                ? "bg-yellow-600 text-white"
+                : "bg-white text-yellow-600 border-2 border-yellow-300"
             } hover:scale-110`}
             title={
               inReviewDeck ? "Remove from review deck" : "Add to review deck"
@@ -99,7 +99,7 @@ export default function QuizProgress({
                 key={index}
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
                   isCurrent
-                    ? "border-purple-500 bg-purple-100 text-purple-700 scale-110"
+                    ? "border-yellow-500 bg-yellow-100 text-yellow-700 scale-110"
                     : isCorrect
                     ? "border-green-500 bg-green-100 text-green-700"
                     : isAnswered
@@ -152,7 +152,7 @@ export default function QuizProgress({
                 key={index}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
                   isCurrent
-                    ? "border-purple-500 bg-purple-100 text-purple-700 scale-110"
+                    ? "border-yellow-500 bg-yellow-100 text-yellow-700 scale-110"
                     : isCorrect
                     ? "border-green-500 bg-green-100 text-green-700"
                     : isAnswered
@@ -179,8 +179,8 @@ export default function QuizProgress({
           onClick={handleToggleReviewDeck}
           className={`p-2 rounded-lg transition-all ${
             inReviewDeck
-              ? "bg-purple-600 text-white"
-              : "bg-white text-purple-600 border-2 border-purple-300"
+              ? "bg-yellow-600 text-white"
+              : "bg-white text-yellow-600 border-2 border-yellow-300"
           } hover:scale-110`}
           title={
             inReviewDeck ? "Remove from review deck" : "Add to review deck"

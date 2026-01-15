@@ -571,7 +571,7 @@ export default function AntonymExercisePage() {
           />
         </motion.div>
 
-        {showResult ? (
+        {showResult && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -581,16 +581,12 @@ export default function AntonymExercisePage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
             >
               {isLastQuestion ? "Finish Exercise" : "Next Question"}
               <ChevronRight className="w-5 h-5" />
             </motion.button>
           </motion.div>
-        ) : (
-          <div className="text-center text-xs text-red-600">
-            💡 Select the antonym of the underlined word
-          </div>
         )}
       </div>
 

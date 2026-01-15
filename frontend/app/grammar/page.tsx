@@ -86,7 +86,7 @@ export default function GrammarPage() {
           <GrammarCard
             name="Lesson Cards"
             description="Learn proper sentence structure through lessons"
-            imagePath="/art/grammar-icon1.png"
+            imagePath="/art/grammar-1.png"
             color="bg-purple-50"
             url="/grammar/lesson-cards"
             exerciseType="lesson-cards"
@@ -94,7 +94,7 @@ export default function GrammarPage() {
           <GrammarCard
             name="Error Identification"
             description="Identify grammatical errors in sentences"
-            imagePath="/art/grammar-icon1.png"
+            imagePath="/art/grammar-2.png"
             color="bg-green-50"
             url="/grammar/error-identification"
             exerciseType="error-identification"
@@ -102,7 +102,7 @@ export default function GrammarPage() {
           <GrammarCard
             name="Fill the Blank"
             description="Fill the blank with the correct word"
-            imagePath="/art/grammar-icon1.png"
+            imagePath="/art/grammar-3.png"
             color="bg-green-50"
             url="/grammar/fill-blanks"
             exerciseType="fill-blanks"

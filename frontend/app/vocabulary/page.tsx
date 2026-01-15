@@ -86,7 +86,7 @@ export default function VocabularyPage() {
           <VocabularyCard
             name="Flashcards"
             description="Learn vocabulary through interactive flashcards"
-            imagePath="/art/card1.png"
+            imagePath="/art/vocabulary-1.png"
             color="bg-yellow-50"
             url="/vocabulary/flashcards"
             exerciseType="flashcards"
@@ -94,7 +94,7 @@ export default function VocabularyPage() {
           <VocabularyCard
             name="What is its Closest Meaning"
             description="Test your knowledge with word definitions"
-            imagePath="/art/card2.png"
+            imagePath="/art/vocabulary-2.png"
             color="bg-yellow-50"
             url="/vocabulary/what-is-its-closest-meaning"
             exerciseType="quiz"
@@ -102,7 +102,7 @@ export default function VocabularyPage() {
           <VocabularyCard
             name="Antonym Exercise"
             description="Practice finding opposite meanings"
-            imagePath="/art/card3.png"
+            imagePath="/art/vocabulary-3.png"
             color="bg-pink-50"
             url="/vocabulary/antonym-of-the-word"
             exerciseType="antonym"
