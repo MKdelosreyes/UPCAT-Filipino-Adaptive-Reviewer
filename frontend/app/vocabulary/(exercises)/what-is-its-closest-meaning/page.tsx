@@ -274,7 +274,7 @@ export default function ClosestMeaningQuizPage() {
   if (authLoading) {
     return (
       <div className="h-screen bg-yellow-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
       </div>
     );
   }
@@ -283,17 +283,17 @@ export default function ClosestMeaningQuizPage() {
   if (isLoading) {
     return (
       <div className="h-screen bg-yellow-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
           <Link
             href="/vocabulary"
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+            className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 font-semibold text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+            <h1 className="text-xl md:text-2xl font-bold text-yellow-700">
               What is its Closest Meaning
             </h1>
             <p className="text-xs text-gray-500 mt-1">
@@ -321,17 +321,17 @@ export default function ClosestMeaningQuizPage() {
   if (error || questions.length === 0) {
     return (
       <div className="h-screen bg-yellow-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
           <Link
             href="/vocabulary"
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+            className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 font-semibold text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+            <h1 className="text-xl md:text-2xl font-bold text-yellow-700">
               What is its Closest Meaning
             </h1>
           </div>
@@ -346,7 +346,7 @@ export default function ClosestMeaningQuizPage() {
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
             >
               Retry
             </button>
@@ -508,17 +508,17 @@ export default function ClosestMeaningQuizPage() {
   return (
     <div className="h-screen bg-yellow-50 overflow-auto flex flex-col scrollbar-yellow">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
         <Link
           href="/vocabulary"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+          className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+          <h1 className="text-xl md:text-2xl font-bold text-yellow-700">
             What is its Closest Meaning
           </h1>
           <p className="text-xs text-gray-500 mt-1">
@@ -568,7 +568,7 @@ export default function ClosestMeaningQuizPage() {
           />
         </motion.div>
 
-        {showResult ? (
+        {showResult && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -578,16 +578,12 @@ export default function ClosestMeaningQuizPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
             >
               {isLastQuestion ? "Finish Quiz" : "Next Question"}
               <ChevronRight className="w-5 h-5" />
             </motion.button>
           </motion.div>
-        ) : (
-          <div className="text-center text-xs text-blue-600">
-            💡 Select the correct meaning for the underlined word
-          </div>
         )}
       </div>
 

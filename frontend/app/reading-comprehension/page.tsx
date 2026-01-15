@@ -74,7 +74,7 @@ export default function ReadingComprehensionPage() {
           <ReadingCard
             name="Reading Passages"
             description="Read passages and answer comprehension questions"
-            imagePath="/art/grammar-icon1.png"
+            imagePath="/art/reading-comprehension-1.png"
             color="bg-purple-50"
             url="/reading-comprehension/reading-exercise"
             exerciseType="passage-questions"
@@ -83,7 +83,7 @@ export default function ReadingComprehensionPage() {
           <ReadingCard
             name="Summarization"
             description="Write comprehensive summaries of reading passages"
-            imagePath="/art/grammar-icon1.png"
+            imagePath="/art/reading-comprehension-2.png"
             color="bg-purple-50"
             url="/reading-comprehension/summary-exercise"
             exerciseType="summary-exercise"

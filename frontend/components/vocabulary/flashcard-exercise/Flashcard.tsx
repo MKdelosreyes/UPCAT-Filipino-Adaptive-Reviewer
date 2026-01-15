@@ -156,12 +156,12 @@ export default function Flashcard({
             transform: "rotateY(0deg)",
           }}
         >
-          <div className="w-full h-full bg-purple-100 rounded-3xl shadow-xl p-6 md:p-8 flex flex-col items-center justify-center border-4 border-purple-300 overflow-y-auto">
+          <div className="w-full h-full bg-yellow-100 rounded-3xl shadow-xl p-6 md:p-8 flex flex-col items-center justify-center border-4 border-yellow-300 overflow-y-auto">
             <div className="text-center space-y-4 md:space-y-6">
-              <p className="text-blue-600 text-sm md:text-base font-semibold">
+              <p className="text-yellow-600 text-sm md:text-base font-semibold">
                 Salita / Word
               </p>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-blue-900">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-900">
                 {word}
               </h2>
             </div>
@@ -179,31 +179,31 @@ export default function Flashcard({
             transform: "rotateY(180deg)",
           }}
         >
-          <div className="w-full h-full bg-blue-100 rounded-3xl shadow-xl p-4 md:p-8 flex flex-col items-center justify-between border-4 border-blue-300 overflow-y-auto">
+          <div className="w-full h-full bg-yellow-100 rounded-3xl shadow-xl p-4 md:p-8 flex flex-col items-center justify-between border-4 border-yellow-300 overflow-y-auto">
             <div className="text-center space-y-3 md:space-y-4 max-w-xl flex-1 flex flex-col items-center justify-center w-full">
               {enhancedContent ? (
                 <div className="w-full flex flex-col items-center">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm md:text-base text-blue-600 font-semibold">
-                      Enhanced Definition
-                    </span>
-                  </div>
-                  <div className="bg-blue-50 rounded-xl p-3 md:p-4 border-2 border-blue-200 text-center space-y-3 md:space-y-4">
-                    {enhancedContent.easyDefinition && (
-                      <div>
-                        <h4 className="text-xs md:text-sm font-bold text-blue-700 mb-1">
-                          Simple Definition:
-                        </h4>
-                        <p className="text-blue-900 text-base md:text-base italic">
-                          {enhancedContent.easyDefinition}
-                        </p>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-5 h-5 text-yellow-600" />
+                      <span className="text-sm md:text-base text-yellow-600 font-semibold">
+                        Enhanced Definition
+                      </span>
+                    </div>
+                    <div className="bg-yellow-50 rounded-xl p-3 md:p-4 border-2 border-yellow-200 text-center space-y-3 md:space-y-4">
+                      {enhancedContent.easyDefinition && (
+                        <div>
+                          <h4 className="text-xs md:text-sm font-bold text-yellow-700 mb-1">
+                            Simple Definition:
+                          </h4>
+                          <p className="text-yellow-900 text-base md:text-base italic">
+                            {enhancedContent.easyDefinition}
+                          </p>
+                        </div>
+                      )}
 
                     {enhancedContent.formalDefinition && (
                       <div>
-                        <p className="text-blue-900 text-sm font-semibold md:text-base border-b border-blue-300 pb-3">
+                        <p className="text-yellow-900 text-sm font-semibold md:text-base border-b border-yellow-300 pb-3">
                           {enhancedContent.formalDefinition}
                         </p>
                       </div>
@@ -211,10 +211,10 @@ export default function Flashcard({
 
                     {enhancedContent.examples[0] && (
                       <div className="pt-2">
-                        <h4 className="text-xs md:text-sm font-bold text-blue-700 mb-2">
+                        <h4 className="text-xs md:text-sm font-bold text-yellow-700 mb-2">
                           Example:
                         </h4>
-                        <p className="text-sm md:text-base text-blue-900">
+                        <p className="text-sm md:text-base text-yellow-900">
                           {enhancedContent.examples[0]}
                         </p>
                       </div>
@@ -223,18 +223,18 @@ export default function Flashcard({
                 </div>
               ) : (
                 <>
-                  <p className="text-blue-600 text-sm md:text-base font-semibold">
+                  <p className="text-yellow-600 text-sm md:text-base font-semibold">
                     Kahulugan / Meaning
                   </p>
-                  <h3 className="text-xl md:text-3xl lg:text-4xl font-bold text-blue-900">
+                  <h3 className="text-xl md:text-3xl lg:text-4xl font-bold text-yellow-900">
                     {meaning}
                   </h3>
 
-                  <div className="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-blue-300">
-                    <p className="text-blue-600 text-xs md:text-sm font-semibold mb-2">
+                  <div className="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-yellow-300">
+                    <p className="text-yellow-600 text-xs md:text-sm font-semibold mb-2">
                       Halimbawa / Example:
                     </p>
-                    <p className="text-blue-800 text-sm md:text-base lg:text-lg italic">
+                    <p className="text-yellow-800 text-sm md:text-base lg:text-lg italic">
                       "{example}"
                     </p>
                   </div>
@@ -254,14 +254,14 @@ export default function Flashcard({
                 <button
                   onClick={handleImproveDefinition}
                   disabled={isLoadingEnhanced}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-blue-200 hover:bg-blue-300 text-blue-700 rounded-lg text-xs md:text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 bg-yellow-200 hover:bg-yellow-300 text-yellow-700 rounded-lg text-xs md:text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Sparkles className="w-4 h-4" />
                   {isLoadingEnhanced ? "Improving..." : "Improve definition"}
                 </button>
               )}
 
-              <p className="text-blue-500 text-xs md:text-sm animate-pulse">
+              <p className="text-yellow-500 text-xs md:text-sm animate-pulse">
                 ← Click to flip back
               </p>
             </div>

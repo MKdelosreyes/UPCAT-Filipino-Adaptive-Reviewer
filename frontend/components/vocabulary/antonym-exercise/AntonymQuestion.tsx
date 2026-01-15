@@ -152,11 +152,11 @@ export default function AntonymQuestion({
       <div className="text-center space-y-2">
         <h2 className="text-xs md:text-sm text-gray-600">
           Ano ang kasalungat ng salitang may{" "}
-          <u className="decoration-red-600 decoration-2">salungguhit</u>?
+          <u className="decoration-yellow-600 decoration-2">salungguhit</u>?
         </h2>
-        <div className="bg-red-100 rounded-xl py-6 border-2 border-red-300">
+        <div className="bg-yellow-100 rounded-xl py-6 border-2 border-yellow-300">
           <p
-            className="text-lg md:text-xl text-red-900 font-bold leading-relaxed"
+            className="text-lg md:text-xl text-yellow-600 font-bold leading-relaxed"
             dangerouslySetInnerHTML={{ __html: sentence }}
           />
         </div>
@@ -188,11 +188,11 @@ export default function AntonymQuestion({
                   whileTap={!showResult ? { scale: 0.98 } : {}}
                   onClick={() => !showResult && onSelectAnswer(option)}
                   disabled={showResult}
-                  className={`relative p-4 rounded-xl border-3 text-left transition-all duration-300 ${
+                  className={`relative p-4 rounded-xl border-3 border-yellow-200 text-left transition-all duration-300 ${
                     showCorrect
                       ? "bg-green-100 border-green-500"
                       : showWrong
-                      ? "bg-yellow-100 border-yellow-400"
+                      ? "bg-red-100 border-red-400"
                       : isSelected
                       ? "bg-yellow-500 text-white"
                       : "bg-yellow-100 text-yellow-800"
@@ -205,10 +205,10 @@ export default function AntonymQuestion({
                         showCorrect
                           ? "bg-green-500 text-white"
                           : showWrong
-                          ? "bg-yellow-500 text-white"
+                          ? "bg-red-500 text-white"
                           : isSelected
                           ? "bg-yellow-600 text-white"
-                          : "bg-yellow-100 text-yellow-700"
+                          : "bg-yellow-200 text-yellow-700"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}
@@ -225,7 +225,7 @@ export default function AntonymQuestion({
                         {isCorrect ? (
                           <Check className="w-6 h-6 text-green-600" />
                         ) : (
-                          isSelected && <X className="w-6 h-6 text-white" />
+                          isSelected && <X className="w-6 h-6 text-red-600" />
                         )}
                       </div>
                     )}

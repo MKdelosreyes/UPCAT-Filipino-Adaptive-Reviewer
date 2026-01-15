@@ -148,11 +148,11 @@ export default function QuizQuestion({
       <div className="text-center space-y-2">
         <h2 className="text-xs md:text-sm text-gray-600">
           Ano ang pinakamalapit sa kahulugan ng salitang may{" "}
-          <u className="decoration-blue-600 decoration-2">salungguhit</u>?
+          <u className="decoration-yellow-800 decoration-2">salungguhit</u>?
         </h2>
-        <div className="bg-blue-100 rounded-xl py-6 border-2 border-blue-300">
+        <div className="bg-yellow-100 rounded-xl py-6 border-2 border-yellow-300">
           <p
-            className="text-lg md:text-xl text-blue-900 font-bold leading-relaxed"
+            className="text-lg md:text-xl text-yellow-800 font-bold leading-relaxed"
             dangerouslySetInnerHTML={{ __html: sentence }}
           />
         </div>
@@ -190,8 +190,8 @@ export default function QuizQuestion({
                       : showWrong
                       ? "bg-red-100 border-red-500"
                       : isSelected
-                      ? "bg-blue-500 text-white"
-                      : "bg-blue-100 text-blue-700"
+                      ? "bg-yellow-500 text-white"
+                      : "bg-yellow-100 text-yellow-700"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -203,8 +203,8 @@ export default function QuizQuestion({
                           : showWrong
                           ? "bg-red-500 text-white"
                           : isSelected
-                          ? "bg-purple-500 text-white"
-                          : "bg-purple-100 text-purple-700"
+                          ? "bg-yellow-500 text-white"
+                          : "bg-yellow-200 text-yellow-700"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}
@@ -242,17 +242,17 @@ export default function QuizQuestion({
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="w-full lg:flex-[0_0_55%]"
             >
-              <div className="bg-white rounded-2xl shadow-lg border-2 border-purple-200 p-6 h-full flex flex-col">
+              <div className="bg-white rounded-2xl shadow-lg border-2 border-yellow-200 p-6 h-full flex flex-col">
                 {/* Header */}
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-purple-100">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Lightbulb className="w-5 h-5 text-purple-600" />
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-yellow-100">
+                  <div className="p-2 bg-yellow-100 rounded-lg">
+                    <Lightbulb className="w-5 h-5 text-yellow-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-purple-900">
+                  <h3 className="text-lg font-bold text-yellow-900">
                     Explanation
                   </h3>
                   {isAIExplanation && (
-                    <span className="ml-auto text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                    <span className="ml-auto text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
                       AI-Powered
                     </span>
                   )}
@@ -262,7 +262,7 @@ export default function QuizQuestion({
                 <div className="flex-1 mb-4">
                   {isLoadingExplanation ? (
                     <div className="flex flex-col items-center justify-center py-8 space-y-3">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
                       <p className="text-sm text-gray-600">
                         Loading explanation...
                       </p>
@@ -271,10 +271,10 @@ export default function QuizQuestion({
                     <>
                       {renderExplanation()}
                       {/* Explain Button */}
-                      <div className="mt-4 pt-4 border-t border-purple-100">
+                      <div className="mt-4 pt-4 border-t border-yellow-100">
                         <button
                           onClick={() => setShowChatModal(true)}
-                          className="w-full flex items-center justify-center gap-2 border bg-purple-50 hover:bg-purple-100 text-purple-800 font-semibold py-3 px-6 rounded-lg transition-all"
+                          className="w-full flex items-center justify-center gap-2 border bg-yellow-50 hover:bg-yellow-100 text-yellow-800 font-semibold py-3 px-6 rounded-lg transition-all"
                         >
                           <MessageCircle className="w-4 h-4" />
                           <span>Ask AI for More Help</span>

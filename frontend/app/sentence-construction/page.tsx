@@ -76,7 +76,7 @@ export default function SentenceConstructionPage() {
           <SentenceConstructionCard
             name="Sentence Ordering"
             description="Drag and drop words to form correct sentences"
-            imagePath="/art/card1.png"
+            imagePath="/art/sentence-construction-1.png"
             color="bg-blue-50"
             url="/sentence-construction/ordering"
             exerciseType="sentence-ordering"
@@ -84,7 +84,7 @@ export default function SentenceConstructionPage() {
           <SentenceConstructionCard
             name="Choose the Best Sentence"
             description="Evaluate overall sentence quality and naturalness"
-            imagePath="/art/card2.png"
+            imagePath="/art/sentence-construction-2.png"
             color="bg-blue-50"
             url="/sentence-construction/choose-sentence"
             exerciseType="choose-sentence"
