@@ -23,6 +23,14 @@ class ContextType(Enum):
 
 
 @dataclass
+class ContextResponse:
+    """Response from get_context that includes both formatted text and raw chunks"""
+    formatted_context: str
+    retrieved_chunks: List[Dict]
+    retrieval_metadata: Dict
+
+
+@dataclass
 class RetrievalConfig:
     """Configuration for retrieval behavior"""
     top_k: int = 3
@@ -129,6 +137,7 @@ class RAGOrchestrator:
         sentence: Optional[str] = None,
         selected_answer: Optional[str] = None,
         correct_answer:  Optional[str] = None,
+        return_chunks: bool = False,
         **kwargs
     ) -> str:
         """
@@ -193,6 +202,32 @@ class RAGOrchestrator:
         if len(context) > config.max_context_length:
             context = self._truncate_context(
                 context, config. max_context_length)
+
+        # Return with chunks if requested
+        if return_chunks:
+            # Extract raw chunks
+            retrieved_chunks = []
+            for source_type, result, score in merged_results:
+                chunk = {
+                    "source_type": source_type,
+                    "content": result,
+                    "relevance_score": score
+                }
+                retrieved_chunks.append(chunk)
+
+            metadata = {
+                "total_chunks": len(retrieved_chunks),
+                "sources": list(set(c["source_type"] for c in retrieved_chunks)),
+                "avg_relevance": sum(c["relevance_score"] for c in retrieved_chunks) / len(retrieved_chunks) if retrieved_chunks else 0,
+                "query": enhanced_query,
+                "context_type": context_type
+            }
+
+            return ContextResponse(
+                formatted_context=context,
+                retrieved_chunks=retrieved_chunks,
+                retrieval_metadata=metadata
+            )
 
         return context
 

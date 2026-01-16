@@ -61,6 +61,8 @@ class ExplainRequest(BaseModel):
 
 class ExplainResponse(BaseModel):
     explanation: str
+    retrieved_context: Optional[List[Dict]] = None
+    retrieval_metadata: Optional[Dict] = None
 
 
 def get_word_data(word: str):
@@ -122,7 +124,7 @@ def get_grammar_explanation(word: str):
         return ""
 
 
-def build_explanation_prompt_with_rag(data: dict) -> str:
+def build_explanation_prompt_with_rag(data: dict, return_chunks: bool = False) -> str:
     """
     Generate explanation prompt with RAG context including common mistakes
     """
@@ -135,6 +137,8 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
     sentence = data.get("sentence", "")
 
     rag_context = ""
+    retrieved_chunks = []
+    retrieval_metadata = {}
 
     if rag:
         try:
@@ -146,13 +150,16 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
                     context_type="vocabulary",
                     top_k=2,
                     min_similarity=0.4,
-                    include_mistakes=True
+                    include_mistakes=True,
+                    return_chunks=return_chunks
                 )
-                if rag_context:
-                    print(
-                        f"✅ Retrieved vocabulary context with mistakes ({len(rag_context)} chars)")
+
+                if return_chunks:
+                    rag_context = rag_context.formatted_context
+                    retrieved_chunks = rag_context.retrieved_chunks
+                    retrieval_metadata = rag_context.retrieval_metadata
                 else:
-                    print("⚠️ No RAG context found")
+                    rag_context = rag_context
 
             elif mode in ["fill-blanks", "error-identification"]:
                 # Grammar context with mistakes
@@ -162,14 +169,17 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
                     context_type="grammar",
                     top_k=2,
                     min_similarity=0.4,
-                    include_mistakes=True
+                    include_mistakes=True,
+                    return_chunks=return_chunks
                 )
-                if rag_context:
-                    print(
-                        f"✅ Retrieved grammar context with mistakes ({len(rag_context)} chars)")
+
+                if return_chunks:
+                    rag_context = rag_context.formatted_context
+                    retrieved_chunks = rag_context.retrieved_chunks
+                    retrieval_metadata = rag_context.retrieval_metadata
                 else:
-                    print("⚠️ No RAG context found")
-            
+                    rag_context = rag_context
+
             elif mode == "reading-comprehension":
                 # Reading comprehension context
                 rag_query = f"Reading comprehension: {word}. Passage: {sentence}"
@@ -178,13 +188,16 @@ def build_explanation_prompt_with_rag(data: dict) -> str:
                     context_type="vocabulary",
                     top_k=2,
                     min_similarity=0.3,
-                    include_mistakes=False
+                    include_mistakes=False,
+                    return_chunks=return_chunks
                 )
-                if rag_context:
-                    print(
-                        f"✅ Retrieved reading context ({len(rag_context)} chars)")
+
+                if return_chunks:
+                    rag_context = rag_context.formatted_context
+                    retrieved_chunks = rag_context.retrieved_chunks
+                    retrieval_metadata = rag_context.retrieval_metadata
                 else:
-                    print("⚠️ No RAG context found")
+                    rag_context = rag_context
         except Exception as e:
             print(f"⚠️ Error getting RAG context: {e}")
             import traceback
@@ -295,7 +308,7 @@ Make the explanations short and clear."""
     elif mode == "reading-comprehension":
         # Include the official explanation from the question data if available
         official_explanation = data.get("explanation", "")
-        
+
         prompt = f"""{system_instruction}
 
 {rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
@@ -306,10 +319,10 @@ Make the explanations short and clear."""
 
         if selected:
             prompt += f"\n- Napili ng estudyante: {selected}"
-        
+
         if sentence:
             prompt += f"\n- Pamagat ng teksto: {sentence}"
-        
+
         if official_explanation:
             prompt += f"\n\n**Official Explanation (Use this as the foundation of your answer):**\n{official_explanation}"
 
@@ -326,7 +339,7 @@ Keep it concise and educational in Filipino. 2-3 sentences total."""
         # For sentence ordering exercises
         user_sentence = data.get("selected", "")
         official_explanation = data.get("explanation", "")
-        
+
         prompt = f"""{system_instruction}
 
 {rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
@@ -334,7 +347,7 @@ Keep it concise and educational in Filipino. 2-3 sentences total."""
 **Student's Answer:**
 - Tamang pagkakasunod-sunod: {correct}
 - Pagkakasunod-sunod ng estudyante: {user_sentence}"""
-        
+
         if official_explanation:
             prompt += f"\n\n**Official Explanation (Use this as the foundation of your answer):**\n{official_explanation}"
 
@@ -352,7 +365,7 @@ Keep it concise and educational in Filipino. 2-3 sentences total."""
         context = data.get("sentence", "")
         user_choice = data.get("selected", "")
         official_explanation = data.get("explanation", "")
-        
+
         prompt = f"""{system_instruction}
 
 {rag_context if rag_context else "Note: Reference materials are temporarily unavailable, but provide a helpful explanation based on your knowledge."}
@@ -361,7 +374,7 @@ Keep it concise and educational in Filipino. 2-3 sentences total."""
 - Konteksto: {context}
 - Tamang pangungusap: {correct}
 - Napiling pangungusap ng estudyante: {user_choice}"""
-        
+
         if official_explanation:
             prompt += f"\n\n**Official Explanation (Use this as the foundation of your answer):**\n{official_explanation}"
 
@@ -381,10 +394,14 @@ Explain why "{correct}" is the correct answer.
 The student selected "{selected}".
 Keep it brief and educational in Filipino."""
 
-    return (system_instruction, prompt)
+    # return (system_instruction, prompt)
+    if return_chunks:
+        return (system_instruction, prompt, retrieved_chunks, retrieval_metadata)
+    else:
+        return (system_instruction, prompt)
 
 
-async def handle_explain(request: ExplainRequest) -> ExplainResponse:
+async def handle_explain(request: ExplainRequest, return_chunks: bool = False) -> ExplainResponse:
     """
     Main handler function with RAG integration using Gemini API
     """
@@ -427,7 +444,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "sentence": request.sentence or "",
                 "example": grammar_explanation
             }
-        
+
         elif request.mode == "reading-comprehension":
             # For reading comprehension, word = question, sentence = passage title
             prompt_data = {
@@ -438,7 +455,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "sentence": request.sentence or "",
                 "explanation": request.explanation or ""
             }
-        
+
         elif request.mode == "sentence-ordering":
             # For sentence ordering, word is not needed, correct = correct sentence, selected = user's sentence
             prompt_data = {
@@ -448,7 +465,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
                 "selected": request.selected,
                 "explanation": request.explanation or ""
             }
-        
+
         elif request.mode == "choose-sentence":
             # For choose sentence, sentence = context, correct = correct sentence, selected = user's choice
             prompt_data = {
@@ -469,8 +486,19 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
             }
 
         # Use RAG-enhanced prompt builder
-        system_instruction, prompt = build_explanation_prompt_with_rag(
-            prompt_data)
+        # system_instruction, prompt = build_explanation_prompt_with_rag(
+        #     prompt_data)
+        prompt_result = build_explanation_prompt_with_rag(
+            prompt_data,
+            return_chunks=return_chunks
+        )
+
+        if return_chunks:
+            system_instruction, prompt, retrieved_chunks, retrieval_metadata = prompt_result
+        else:
+            system_instruction, prompt = prompt_result
+            retrieved_chunks = None
+            retrieval_metadata = None
 
         messages = [
             {"role": "system", "content": system_instruction},
@@ -487,7 +515,7 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
 
             # Check rate limits
             status = token_counter.get_rate_limit_status()
-            if status['requests_last_1min'] >= 15:  # Gemini free tier: 15 RPM
+            if status['requests_last_1min'] >= 15:
                 print("⚠️ WARNING: Approaching rate limit (15 requests/min)")
             if status['requests_last_1min'] >= 10:
                 print("⚠️ WARNING: High request rate detected")
@@ -521,7 +549,11 @@ async def handle_explain(request: ExplainRequest) -> ExplainResponse:
 
                 print(f"✅ Generated explanation ({len(explanation)} chars)")
 
-                return ExplainResponse(explanation=explanation)
+                return ExplainResponse(
+                    explanation=explanation,
+                    retrieved_context=retrieved_chunks if return_chunks else None,
+                    retrieval_metadata=retrieval_metadata if return_chunks else None
+                )
 
             except Exception as api_error:
                 error_msg = str(api_error)
