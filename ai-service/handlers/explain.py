@@ -1,3 +1,4 @@
+from groq import Groq
 from fastapi import HTTPException
 from typing import Optional, Dict, List
 from pydantic import BaseModel
@@ -29,25 +30,20 @@ except ImportError as e:
     reading_comprehension_data = []
 
 try:
-    from groq import Groq
-
-    groq_api_key = os.getenv("GROQ_API_KEY")
-    if not groq_api_key:
-        raise ValueError("GROQ_API_KEY not found in environment")
-
-    groq_client = Groq(api_key=groq_api_key)
-
-    print("✅ Groq client initialized in explain.py")
-except Exception as e:
-    print(f"⚠️ Error initializing Groq in explain handler: {e}")
-    groq_client = None
-
-try:
     from utils.token_counter import get_token_counter
     token_counter = get_token_counter()
 except ImportError:
     print("⚠️ Token counter not available")
     token_counter = None
+
+
+def get_groq_client():
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if not groq_api_key:
+        raise ValueError("GROQ_API_KEY not found in environment")
+
+    groq_client = Groq(api_key=groq_api_key)
+    return groq_client
 
 
 class ExplainRequest(BaseModel):
@@ -145,59 +141,69 @@ def build_explanation_prompt_with_rag(data: dict, return_chunks: bool = False) -
             if mode in ["quiz", "antonym"]:
                 # Vocabulary context
                 rag_query = f"Filipino word: {word}. Definition: {definition}"
-                rag_context = rag.get_context(
+                context_response = rag.get_context(
                     rag_query,
                     context_type="vocabulary",
                     top_k=2,
                     min_similarity=0.4,
                     include_mistakes=True,
-                    return_chunks=return_chunks
+                    return_chunks=return_chunks,
+                    # so orchestrator can build a better enhanced query + exact match
+                    word=word,
+                    selected_answer=selected,
+                    correct_answer=correct,
                 )
 
                 if return_chunks:
-                    rag_context = rag_context.formatted_context
-                    retrieved_chunks = rag_context.retrieved_chunks
-                    retrieval_metadata = rag_context.retrieval_metadata
+                    rag_context = context_response.formatted_context
+                    retrieved_chunks = context_response.retrieved_chunks
+                    retrieval_metadata = context_response.retrieval_metadata
                 else:
-                    rag_context = rag_context
+                    rag_context = context_response
 
             elif mode in ["fill-blanks", "error-identification"]:
                 # Grammar context with mistakes
                 rag_query = f"Filipino grammar: {sentence}. Word: {word}"
-                rag_context = rag.get_context(
+                context_response = rag.get_context(
                     rag_query,
                     context_type="grammar",
                     top_k=2,
                     min_similarity=0.4,
                     include_mistakes=True,
-                    return_chunks=return_chunks
+                    return_chunks=return_chunks,
+                    word=word,
+                    sentence=sentence,
+                    selected_answer=selected,
+                    correct_answer=correct,
                 )
 
                 if return_chunks:
-                    rag_context = rag_context.formatted_context
-                    retrieved_chunks = rag_context.retrieved_chunks
-                    retrieval_metadata = rag_context.retrieval_metadata
+                    rag_context = context_response.formatted_context
+                    retrieved_chunks = context_response.retrieved_chunks
+                    retrieval_metadata = context_response.retrieval_metadata
                 else:
-                    rag_context = rag_context
+                    rag_context = context_response
 
             elif mode == "reading-comprehension":
                 # Reading comprehension context
                 rag_query = f"Reading comprehension: {word}. Passage: {sentence}"
-                rag_context = rag.get_context(
+                context_response = rag.get_context(
                     rag_query,
                     context_type="vocabulary",
                     top_k=2,
                     min_similarity=0.3,
                     include_mistakes=False,
-                    return_chunks=return_chunks
+                    return_chunks=return_chunks,
+                    word=word,
+                    sentence=sentence,
                 )
 
                 if return_chunks:
-                    rag_context = rag_context.formatted_context
-                    retrieved_chunks = rag_context.retrieved_chunks
-                    retrieval_metadata = rag_context.retrieval_metadata
+                    rag_context = context_response.formatted_context
+                    retrieved_chunks = context_response.retrieved_chunks
+                    retrieval_metadata = context_response.retrieval_metadata
                 else:
-                    rag_context = rag_context
+                    rag_context = context_response
         except Exception as e:
             print(f"⚠️ Error getting RAG context: {e}")
             import traceback
@@ -279,7 +285,7 @@ Using the grammar rules and common mistakes above, magbigay ng 3 na punto:
 2) Ano ang grammatical rule (cite specific rules from references, mention if student made a common mistake)
 3) Bakit mali ang napiling sagot (kung may napili)
 
-Make the explanations short and clear."""
+Make the explanations short and clear. Answer in 1 paragraph with 3-4 sentences."""
 
         # return prompt
 
@@ -295,15 +301,13 @@ Make the explanations short and clear."""
         if selected and selected != correct:
             prompt += f"\n- Napili ng estudyante: {selected}"
 
-        prompt += f"""
+        prompt += """
 
-Using the grammar rules and common mistakes above, magbigay ng 4 na punto:
-1) Bakit may error ang "{correct}"
-2) Ano ang tamang paraan (correction)
-3) Ano ang grammar rule na nilabag
-4) Bakit mali ang napiling sagot ng estudyante
+If the correct answer is "Walang Mali", explain why the sentence is grammatically correct and why the student's chosen answer is incorrect (if any). Do NOT describe any grammatical error.
 
-Make the explanations short and clear."""
+Otherwise, explain the grammatical error, the correct form, the violated rule, and why the student's answer is incorrect.
+
+Answer in 1 paragraph with 3–4 sentences. Respond in Filipino."""
 
     elif mode == "reading-comprehension":
         # Include the official explanation from the question data if available
@@ -409,7 +413,7 @@ async def handle_explain(request: ExplainRequest, return_chunks: bool = False) -
         print(
             f"📝 Explain request - Word: {request.word}, Mode: {request.mode}")
 
-        if not groq_client:
+        if not get_groq_client():
             raise HTTPException(
                 status_code=503,
                 detail="Groq service not available"
@@ -528,8 +532,8 @@ async def handle_explain(request: ExplainRequest, return_chunks: bool = False) -
 
         for attempt in range(max_retries):
             try:
-                completion = groq_client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                completion = get_groq_client().chat.completions.create(
+                    model="llama-3.3-70b-versatile",
                     messages=messages,
                     temperature=0.2,
                     max_tokens=300,

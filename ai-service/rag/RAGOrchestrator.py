@@ -74,12 +74,12 @@ class RAGOrchestrator:
 
         # Context type to retrieval strategy mapping
         self._context_strategies = {
-            ContextType. VOCABULARY: self._strategy_vocabulary,
+            ContextType.VOCABULARY: self._strategy_vocabulary,
             ContextType.GRAMMAR: self._strategy_grammar,
-            ContextType. GENERAL: self._strategy_general,
-            ContextType. QUIZ: self._strategy_quiz,
+            ContextType.GENERAL: self._strategy_general,
+            ContextType.QUIZ: self._strategy_quiz,
             ContextType.ANTONYM: self._strategy_antonym,
-            ContextType. FILL_BLANKS: self._strategy_fill_blanks,
+            ContextType.FILL_BLANKS: self._strategy_fill_blanks,
             ContextType.ERROR_IDENTIFICATION: self._strategy_error_identification,
         }
 
@@ -90,15 +90,15 @@ class RAGOrchestrator:
     def _load_learning_strategies(self) -> None:
         """Load learning strategies reference with embeddings"""
         try:
-            strategies_path = os.path. join(
-                os.path. dirname(__file__),
+            strategies_path = os.path.join(
+                os.path.dirname(__file__),
                 "references",
-                "learning_strategies. json"
+                "learning_strategies.json"
             )
 
             if os.path.exists(strategies_path):
                 with open(strategies_path, "r", encoding="utf-8") as f:
-                    data = json. load(f)
+                    data = json.load(f)
 
                 for entry in data:
                     # Create enriched searchable text
@@ -111,7 +111,7 @@ class RAGOrchestrator:
                         f"Difficulty: {entry.get('difficulty_level', '')}",
                     ]
                     entry["text"] = " | ".join(p for p in text_parts if p)
-                    entry["searchable_text"] = " ". join([
+                    entry["searchable_text"] = " ".join([
                         entry.get("strategy_name", ""),
                         entry.get("description", ""),
                         " ".join(entry.get("target_skills", [])),
@@ -119,7 +119,7 @@ class RAGOrchestrator:
                     ])
                     self.learning_strategies.append(entry)
 
-                if self. learning_strategies:
+                if self.learning_strategies:
                     texts = [s["text"] for s in self.learning_strategies]
                     self.strategy_embeddings = self.embedder.embed_texts(texts)
 
@@ -161,9 +161,9 @@ class RAGOrchestrator:
             config = RetrievalConfig(
                 top_k=kwargs.get("top_k", 3),
                 min_similarity=kwargs.get("min_similarity", 0.3),
-                use_hybrid=kwargs. get("use_hybrid", True),
-                include_mistakes=kwargs. get("include_mistakes", True),
-                include_strategies=kwargs. get("include_strategies", False),
+                use_hybrid=kwargs.get("use_hybrid", True),
+                include_mistakes=kwargs.get("include_mistakes", True),
+                include_strategies=kwargs.get("include_strategies", False),
                 boost_exact_match=kwargs.get("boost_exact_match", True),
                 include_examples=kwargs.get("include_examples", True),
                 include_sources=kwargs.get("include_sources", True),
@@ -181,9 +181,9 @@ class RAGOrchestrator:
 
         # Get context type enum
         try:
-            ctx_type = ContextType(context_type. lower())
+            ctx_type = ContextType(context_type.lower())
         except ValueError:
-            ctx_type = ContextType. GENERAL
+            ctx_type = ContextType.GENERAL
 
         # Execute retrieval strategy
         strategy_fn = self._context_strategies.get(
@@ -201,7 +201,7 @@ class RAGOrchestrator:
         # Truncate if necessary
         if len(context) > config.max_context_length:
             context = self._truncate_context(
-                context, config. max_context_length)
+                context, config.max_context_length)
 
         # Return with chunks if requested
         if return_chunks:
@@ -272,7 +272,7 @@ class RAGOrchestrator:
             boost_exact_match=config.boost_exact_match
         )
         if vocab_results:
-            results. append(RetrievalResult(
+            results.append(RetrievalResult(
                 source_type="vocabulary",
                 results=vocab_results,
                 query=query,
@@ -313,14 +313,14 @@ class RAGOrchestrator:
             grammar_query = f"Filipino grammar: {sentence}.  Focus:  {word or query}"
 
         # Primary:  Grammar rules
-        grammar_results = self. grammar_rag.search(
+        grammar_results = self.grammar_rag.search(
             query=grammar_query,
             top_k=config.top_k,
             min_similarity=config.min_similarity,
             use_hybrid=config.use_hybrid
         )
         if grammar_results:
-            results. append(RetrievalResult(
+            results.append(RetrievalResult(
                 source_type="grammar",
                 results=grammar_results,
                 query=grammar_query,
@@ -379,7 +379,7 @@ class RAGOrchestrator:
             use_hybrid=config.use_hybrid
         )
         if grammar_results:
-            results. append(RetrievalResult(
+            results.append(RetrievalResult(
                 source_type="grammar",
                 results=grammar_results,
                 query=query,
@@ -399,7 +399,7 @@ class RAGOrchestrator:
                     source_type="mistakes",
                     results=mistake_results,
                     query=query,
-                    relevance_scores=[r. get("similarity_score", 0)
+                    relevance_scores=[r.get("similarity_score", 0)
                                       for r in mistake_results]
                 ))
 
@@ -546,14 +546,14 @@ class RAGOrchestrator:
             grammar_query += f" correct word: {word}"
 
         # Primary: Grammar rules
-        grammar_results = self. grammar_rag.search(
+        grammar_results = self.grammar_rag.search(
             query=grammar_query,
             top_k=config.top_k,
             min_similarity=config.min_similarity,
             use_hybrid=config.use_hybrid
         )
         if grammar_results:
-            results. append(RetrievalResult(
+            results.append(RetrievalResult(
                 source_type="grammar",
                 results=grammar_results,
                 query=grammar_query,
@@ -581,14 +581,14 @@ class RAGOrchestrator:
             # Also search for general grammar mistakes
             if selected and selected != correct:
                 mistake_query = f"grammar error:  used {selected} instead of {correct}"
-                mistake_results = self. common_mistakes_rag.search(
+                mistake_results = self.common_mistakes_rag.search(
                     query=mistake_query,
                     top_k=2,
                     min_similarity=0.25,
                     filter_category="grammar"
                 )
                 if mistake_results:
-                    results. append(RetrievalResult(
+                    results.append(RetrievalResult(
                         source_type="mistakes",
                         results=mistake_results,
                         query=mistake_query,
@@ -629,7 +629,7 @@ class RAGOrchestrator:
                     ))
 
             # Semantic search for error patterns
-            mistake_results = self.common_mistakes_rag. search(
+            mistake_results = self.common_mistakes_rag.search(
                 query=error_query,
                 top_k=config.top_k,
                 min_similarity=config.min_similarity,
@@ -707,7 +707,7 @@ class RAGOrchestrator:
             for result in rr.results:
                 base_score = result.get("similarity_score", 0.5)
                 match_type = result.get("match_type", "semantic")
-                match_boost = match_boosts. get(match_type, 0.0)
+                match_boost = match_boosts.get(match_type, 0.0)
 
                 final_score = (base_score + match_boost) * source_weight
                 final_score = min(1.0, max(0.0, final_score)
@@ -725,7 +725,7 @@ class RAGOrchestrator:
         for source_type, result, score in all_results:
             # Generate unique ID based on content
             if source_type == "vocabulary":
-                unique_id = f"vocab_{result. get('lemma', '')}"
+                unique_id = f"vocab_{result.get('lemma', '')}"
             elif source_type == "grammar":
                 unique_id = f"grammar_{result.get('rule_name', '')}"
             elif source_type == "mistakes":
@@ -734,7 +734,7 @@ class RAGOrchestrator:
                 unique_id = f"{source_type}_{result.get('chunk_id', id(result))}"
 
             if unique_id not in seen_ids:
-                seen_ids. add(unique_id)
+                seen_ids.add(unique_id)
                 deduplicated.append((source_type, result, score))
 
         return deduplicated
@@ -810,20 +810,20 @@ class RAGOrchestrator:
             match_indicator = "🎯" if r.get("match_type") in [
                 "exact", "exact_lemma"] else "📝"
             lines.append(
-                f"\n**{i}. {match_indicator} {r.get('lemma', 'N/A')}** ({r.get('part_of_speech', '')})")
+                f"\n**{i}.{match_indicator} {r.get('lemma', 'N/A')}** ({r.get('part_of_speech', '')})")
             lines.append(f"   Kahulugan: {r.get('definition', 'N/A')}")
 
             if r.get("usage"):
                 lines.append(f"   Paggamit: {r['usage']}")
 
             if config.include_examples and r.get("example"):
-                gloss = f" ({r. get('example_gloss', '')})" if r.get(
+                gloss = f" ({r.get('example_gloss', '')})" if r.get(
                     'example_gloss') else ""
                 lines.append(f"   Halimbawa: \"{r['example']}\"{gloss}")
 
             if r.get("synonyms"):
                 lines.append(
-                    f"   Kasingkahulugan: {', '. join(r['synonyms'][:5])}")
+                    f"   Kasingkahulugan: {', '.join(r['synonyms'][:5])}")
 
             if r.get("antonyms"):
                 lines.append(f"   Kasalungat: {', '.join(r['antonyms'][:5])}")
@@ -848,14 +848,14 @@ class RAGOrchestrator:
         lines = ["📖 **GRAMMAR RULES:**"]
 
         for i, (r, score) in enumerate(results[:config.top_k], 1):
-            lines. append(
-                f"\n**{i}. {r.get('rule_name', 'N/A')}** ({r.get('section', '')})")
+            lines.append(
+                f"\n**{i}.{r.get('rule_name', 'N/A')}** ({r.get('section', '')})")
             lines.append(f"   {r.get('description', 'N/A')}")
 
             if r.get("common_errors"):
                 lines.append(f"   ⚠️ Common error: {r['common_errors']}")
 
-            if config. include_examples and r.get("examples"):
+            if config.include_examples and r.get("examples"):
                 lines.append("   Mga halimbawa:")
                 for ex in r["examples"][:2]:
                     if isinstance(ex, dict):
@@ -866,7 +866,7 @@ class RAGOrchestrator:
 
             if config.include_sources:
                 lines.append(
-                    f"   [Source: {r. get('source', 'N/A')} | Relevance: {score:. 2f}]")
+                    f"   [Source: {r.get('source', 'N/A')} | Relevance: {score:.2f}]")
 
         return "\n".join(lines)
 
@@ -886,7 +886,7 @@ class RAGOrchestrator:
             indicator = "🎯" if "direct" in match_type or "focus" in match_type else "⚠️"
 
             lines.append(
-                f"\n**{i}. {indicator} {r.get('error_name', 'N/A')}**")
+                f"\n**{i}.{indicator} {r.get('error_name', 'N/A')}**")
             lines.append(
                 f"   Category: {r.get('error_category', '')} - {r.get('sub_category', '')}")
             lines.append(f"   {r.get('description', 'N/A')}")
@@ -898,9 +898,9 @@ class RAGOrchestrator:
 
             examples = r.get("examples", {})
             if config.include_examples:
-                if examples. get("incorrect"):
+                if examples.get("incorrect"):
                     lines.append(f"   ❌ Mali: {examples['incorrect'][0]}")
-                if examples. get("correct"):
+                if examples.get("correct"):
                     lines.append(f"   ✅ Tama: {examples['correct'][0]}")
                 if examples.get("explanation"):
                     lines.append(f"   💡 {examples['explanation']}")
@@ -915,7 +915,7 @@ class RAGOrchestrator:
                     lines.append(f"      • {guide}")
 
             feedback = r.get("feedback_templates", {})
-            if feedback. get("detailed_feedback"):
+            if feedback.get("detailed_feedback"):
                 lines.append(f"   💬 Feedback: {feedback['detailed_feedback']}")
 
             if config.include_sources:
@@ -935,7 +935,7 @@ class RAGOrchestrator:
         lines = ["📚 **LEARNING STRATEGIES:**"]
 
         for i, (r, score) in enumerate(results[:2], 1):  # Limit strategies
-            lines.append(f"\n**{i}. {r. get('strategy_name', 'N/A')}**")
+            lines.append(f"\n**{i}.{r.get('strategy_name', 'N/A')}**")
             lines.append(f"   {r.get('description', 'N/A')}")
 
             if r.get("step_by_step"):
@@ -984,8 +984,8 @@ class RAGOrchestrator:
         if not self.strategy_embeddings:
             return []
 
-        docs = [{"text": s. get("searchable_text", ""), "data": s}
-                for s in self. learning_strategies]
+        docs = [{"text": s.get("searchable_text", ""), "data": s}
+                for s in self.learning_strategies]
 
         results = self.hybrid_searcher.hybrid_search(
             query=query,
@@ -998,7 +998,7 @@ class RAGOrchestrator:
         output = []
         for doc, score, _, _ in results:
             if score >= min_similarity:
-                result = doc["data"]. copy()
+                result = doc["data"].copy()
                 result["similarity_score"] = score
                 output.append(result)
 
@@ -1009,7 +1009,7 @@ class RAGOrchestrator:
         return {
             "vocabulary_count": len(self.vocabulary_rag.chunks),
             "grammar_rules_count": len(self.grammar_rag.chunks),
-            "common_mistakes_count": len(self.common_mistakes_rag. chunks),
+            "common_mistakes_count": len(self.common_mistakes_rag.chunks),
             "learning_strategies_count": len(self.learning_strategies),
             "vocabulary_indices": {
                 "lemmas": len(self.vocabulary_rag._lemma_index),

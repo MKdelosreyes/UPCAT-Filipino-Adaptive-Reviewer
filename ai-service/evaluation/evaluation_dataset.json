@@ -1,0 +1,478 @@
+[
+  {
+      "id": "vocab_001",
+      "exercise_type": "quiz",
+      "correct_answer": "sanhi",
+      "student_answer": "kaagapay",
+      "contexts": [
+          "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
+          "[COMMON MISTAKE] Incorrect Affix Spacing (pa + na): Incorrect joining of 'pa' + 'na' forms into one unit, e.g., 'palang', 'parin' instead of correct separate forms.",
+          "[VOCABULARY] bunsod: Sanhi o dahilan na nagtutulak sa isang pangyayari o kilos.",
+          "[VOCABULARY] bulay: Ang malalim na pagsusuri o pag-iisip tungkol sa isang bagay."
+      ],
+      "answer": "1. Ang \"sanhi\" ang tamang sagot dahil ito ang kahulugan ng salitang \"bunsod\" ayon sa nabanggit na reference material, na tumutukoy sa dahilan o sanhi na nagtutulak sa isang pangyayari o kilos. Ito ay sumasalamin sa opisyal na kahulugan ng \"bunsod\" na nakasaad sa reference material.\n\n2. Ang \"kaagapay\" ay mali dahil hindi ito ang kahulugan ng salitang \"bunsod\", at wala ito sa listahan ng kasingkahulugan ng \"bunsod\" na nakasaad sa reference material, at hindi rin ito isang karaniwang pagkakamali na nakatala sa mga common mistake patterns, kaya't ito ay isang hiwalay na pagkakamali.",
+      "ground_truth": "Ang \"nagbunsod\" ay tumutukoy sa dahilan o rason kung bakit nangyari ang isang bagay, kaya ito ay kasingkahulugan ng \"sanhi.\" Ang \"kaagapay\" ay nangangahulugang kasama o katulong, na malayo sa konteksto ng dahilan ng isang desisyon.",
+      "retrieval_metadata": {
+          "total_chunks": 4,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 0.8911593176336744,
+          "query": "Filipino word: nagbunsod. Definition: Sanhi o dahilan na nagtutulak sa isang pangyayari o kilos. | Filipino word: nagbunsod | Student selected: kaagapay | Correct answer: sanhi",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+      "id": "vocab_002",
+      "exercise_type": "quiz",
+      "correct_answer": "silakbo",
+      "student_answer": "nilalakbay",
+      "contexts": [
+          "[COMMON MISTAKE] Ng vs. Nang misuse: Confusion between the Filipino function words 'ng' and 'nang', often misused in place of one another.",
+          "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
+          "[VOCABULARY] bulay: Ang malalim na pagsusuri o pag-iisip tungkol sa isang bagay.",
+          "[VOCABULARY] pasanin: Isang mabigat na tungkulin, problema, o obligasyong kailangang harapin."
+      ],
+      "answer": "1. Ang \"silakbo\" ang tamang sagot dahil ito ang kahulugan na tumutukoy sa biglaan at matinding pag-usbong o pagsabog ng damdamin, na katulad ng kahulugan ng salitang \"simbuyo\". Ito ay sumasalamin sa opisyal na kahulugan ng salita, kaya't ito ang pinakanaangkop na sagot.\n\n2. Ang napiling sagot na \"nilalakbay\" ay mali dahil ito ay hindi tumutukoy sa biglaan at matinding pag-usbong o pagsabog ng damdamin, at hindi ito katulad ng kahulugan ng salitang \"simbuyo\". Ito ay maaaring isang halimbawa ng pagkakamali sa paggamit ng ligature at function words, na isang karaniwang pagkakamali sa paggamit ng wikang Filipino.",
+      "ground_truth": "Ang \"simbuyo\" at \"silakbo\" ay kapwa tumutukoy sa biglaang pag-apaw o pagtindi ng isang nararamdaman, tulad ng galit. Karaniwang pagkakamali ito dahil sa pagkakatunog ng mga salita, pero ang \"nilalakbay\" ay tumutukoy sa biyahe at hindi sa emosyon.",
+      "retrieval_metadata": {
+          "total_chunks": 4,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 0.8209247449782865,
+          "query": "Filipino word: simbuyo. Definition: Tumutukoy sa biglaan at matinding pag-usbong o pagsabog ng damdamin na kadalasang nagmumula sa naipong emosyon, lalo na kung dulot ng mga hindi inaasahang pangyayari, at na[...] | Filipino word: simbuyo | Student selected: nilalakbay | Correct answer: silakbo",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+      "id": "vocab_003",
+      "exercise_type": "quiz",
+      "correct_answer": "siyasat",
+      "student_answer": "dalampasigan",
+      "contexts": [
+          "[COMMON MISTAKE] Mechanics Errors in Filipino Essays: Errors in writing mechanics including spelling, punctuation, capitalization, and word breaks.",
+          "[COMMON MISTAKE] Spelling and Word Merging Errors: Errors involving spelling mistakes or incorrectly merged words.",
+          "[VOCABULARY] bulay: Ang malalim na pagsusuri o pag-iisip tungkol sa isang bagay.",
+          "[VOCABULARY] gimbal: Matinding pagkabigla o pagkagitla dahil sa nakapanlulumong o nakakatakot na pangyayari."
+      ],
+      "answer": "1. Ang \"siyasat\" ang tamang sagot dahil ito ang kahulugan ng salitang \"susog\", na tumutukoy sa pagbabago o pagdaragdag sa isang batas, panukala, o dokumento. Ito ay sumusunod sa opisyal na kahulugan ng salita, kaya't ito ang wastong pagpili.\n\n2. Ang napiling sagot na \"dalampasigan\" ay mali dahil ito ay hindi sumusunod sa opisyal na kahulugan ng salitang \"susog\", at ito ay isang halimbawa ng spelling and word merging error, isang karaniwang pagkakamali na nakatala sa mga common mistake patterns, kung saan ang isang salita ay hindi wastong binaybay o ginamit.",
+      "ground_truth": "Sa konteksto ng batas, ang \"susog\" ay tumutukoy sa isang pagbabago o pagrerebisa na dumaan sa masusing \"siyasat\" o pag-aaral. Ang \"dalampasigan\" ay tumutukoy sa baybayin ng dagat, at malayo ang kahulugan nito sa usaping legal; karaniwan itong napipili dahil sa pagkakatulad ng bilang ng pantig o dahil sa hindi pamilyar na malalim na salita.",
+      "retrieval_metadata": {
+          "total_chunks": 4,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 0.7886395863651915,
+          "query": "Filipino word: susog. Definition: Ang pagbabago o pagdaragdag sa isang batas, panukala, o dokumento. | Filipino word: susog | Student selected: dalampasigan | Correct answer: siyasat",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+      "id": "vocab_004",
+      "exercise_type": "quiz",
+      "correct_answer": "matindi",
+      "student_answer": "kariktan",
+      "contexts": [
+          "[COMMON MISTAKE] Ng vs. Nang misuse: Confusion between the Filipino function words 'ng' and 'nang', often misused in place of one another.",
+          "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
+          "[VOCABULARY] puyos: Matinding pag-aalab ng damdamin, lalo na ng galit o hinanakit.",
+          "[VOCABULARY] hutukin: Pagbaluktot, paghubog, o pag-akay sa isang bagay o tao patungo sa isang partikular na direksiyon o anyo."
+      ],
+      "answer": "1. Ang \"matindi\" ang tamang sagot dahil ito ang kahulugan ng salitang \"silakbo\" na tumutukoy sa biglaang paglabas o pagbulas ng matinding damdamin, katulad ng galit o hinanakit. Ito ay isang direktang paglalarawan ng emosyon na inilalarawan ng salita.\n\n2. Ang \"kariktan\" ay mali dahil ito ay hindi tumutukoy sa kahulugan ng salitang \"silakbo\" at wala sa mga kasingkahulugan nito, tulad ng \"matinding-galit\", \"pagkamuhi\", \"silakbo\", at \"ngitngit\". Hindi ito isang common mistake pattern na nakalista sa mga reference materials, ngunit ito ay maaaring sanhi ng pagkakamali sa pag-unawa o paggamit ng mga salita.",
+      "ground_truth": "Sa pangungusap na ito, inilalarawan ng \"silakbo\" ang pagiging \"matindi\" o labis na damdamin na hindi na kayang kontrolin. Ang \"kariktan\" ay kagandahan, na madalas mapili dahil sa pagkalito sa mga malalalim na salitang Tagalog na parehong nagsisimula sa titik \"k.\"..",
+      "retrieval_metadata": {
+          "total_chunks": 4,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 0.8774323816364574,
+          "query": "Filipino word: silakbo. Definition: Ang biglaang paglabas o pagbulas ng matinding damdamin. | Filipino word: silakbo | Student selected: kariktan | Correct answer: matindi",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+      "id": "vocab_005",
+      "exercise_type": "quiz",
+      "correct_answer": "pagluha",
+      "student_answer": "maalab",
+      "contexts": [
+          "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
+          "[COMMON MISTAKE] Ng vs. Nang misuse: Confusion between the Filipino function words 'ng' and 'nang', often misused in place of one another.",
+          "[VOCABULARY] tangis: Ang malalim at masidhing pag-iyak na madalas ay dulot ng matinding pait o lungkot.",
+          "[VOCABULARY] bulay: Ang malalim na pagsusuri o pag-iisip tungkol sa isang bagay."
+      ],
+      "answer": "1. Ang \"pagluha\" ay tamang sagot dahil ito ay isa sa mga kasingkahulugan ng \"pagtangis\" ayon sa nabanggit na reference material, kung saan nakalista ang \"pagluha\" bilang isa sa mga salitang may katulad na kahulugan. Ito ay nangangahulugang malalim at masidhing pag-iyak, na katulad ng kahulugan ng \"pagtangis\".\n\n2. Ang \"maalab\" ay mali dahil hindi ito nakalista bilang kasingkahulugan ng \"pagtangis\" sa reference material, at hindi rin ito sumasagot sa tanong tungkol sa kahulugan ng \"pagtangis\". Hindi rin ito isang karaniwang pagkakamali na nakalista sa mga common mistake patterns, ngunit ito ay maaaring sanhi ng pagkakamali sa pag-unawa ng kahulugan ng salita.",
+      "ground_truth": "Ang \"pagtangis\" ay isang pormal o masidhing salita para sa pag-iyak o \"pagluha\" dahil sa matinding lungkot. Ang \"maalab\" ay nangangahulugang nagbabaga o masigasig (madalas gamitin sa pag-ibig), kaya hindi ito angkop sa konteksto ng pagdadalamhati ng isang ina.",
+      "retrieval_metadata": {
+          "total_chunks": 4,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 0.8985808104976856,
+          "query": "Filipino word: pagtangis. Definition: Ang malalim at masidhing pag-iyak na madalas ay dulot ng matinding pait o lungkot. | Filipino word: pagtangis | Student selected: maalab | Correct answer: pagluha",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+      "id": "vocab_006",
+      "exercise_type": "antonym",
+      "correct_answer": "nagwaldas",
+      "student_answer": "humpay",
+      "contexts": [
+          "[COMMON MISTAKE] Ng vs. Nang misuse: Confusion between the Filipino function words 'ng' and 'nang', often misused in place of one another.",
+          "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
+          "[VOCABULARY] kamal: Pag-iipon o pagkalap ng maraming bagay, lalo na ng kayamanan o ari-arian.",
+          "[VOCABULARY] gimbal: Matinding pagkabigla o pagkagitla dahil sa nakapanlulumong o nakakatakot na pangyayari."
+      ],
+      "answer": "1. Ang \"nagwaldas\" ay tamang kasalungat ng \"nagkamal\" dahil ang \"nagkamal\" ay tumutukoy sa pag-iipon o pagkalap ng maraming bagay, lalo na ng kayamanan o ari-arian, samantala ang \"nagwaldas\" ay nangangahulugang paggasta o pagtapon ng mga bagay, partikular na ang yaman.\n\n2. Ang \"humpay\" ay mali dahil ito ay hindi kasalungat ng \"nagkamal\". Sa katunayan, walang ibinigay na kahulugan para sa \"humpay\" sa mga reference materials, at ang \"nagkamal\" ay may kasalungat na \"nagwaldas\", \"ubusin\", o \"magpakawala\" ayon sa mga binigay na impormasyon.",
+      "ground_truth": "Ang \"nagkamal\" ay nangangahulugang nag-ipon o nagkamit ng marami, kaya ang kasalungat nito ay \"nagwaldas\" na ang ibig sabihin ay walang pakundangang paggastos o pagtatapon ng pera. Ang \"humpay\" ay tumutukoy sa paghinto o pagtigil (madalas gamitin sa \"walang humpay\"), kaya hindi ito direktang kaugnay ng pag-iipon o paggastos ng kayamanan..",
+      "retrieval_metadata": {
+          "total_chunks": 4,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 0.8833986506803869,
+          "query": "Filipino word: nagkamal. Definition: Pag-iipon o pagkalap ng maraming bagay, lalo na ng kayamanan o ari-arian. | Filipino word: nagkamal | Student selected: humpay | Correct answer: nagwaldas",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+      "id": "vocab_007",
+      "exercise_type": "antonym",
+      "correct_answer": "kapinsalan",
+      "student_answer": "ilanlang",
+      "contexts": [
+          "[VOCABULARY] biyaya: Kaloob o pagpapalang tinatanggap nang walang hinihinging kapalit, kadalasan mula sa Diyos o kapalaran.",
+          "[COMMON MISTAKE] Ng vs. Nang misuse: Confusion between the Filipino function words 'ng' and 'nang', often misused in place of one another.",
+          "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'."
+      ],
+      "answer": "1. Ang \"kapinsalan\" ay tamang kasalungat ng \"biyaya\" dahil ito ay tumutukoy sa isang bagay na hindi kanais-nais o nakakasama, na kabaligtaran ng kahulugan ng \"biyaya\" na isang kaloob o pagpapalang tinatanggap nang walang hinihinging kapalit.\n\n2. Mali ang napiling sagot na \"ilanlang\" dahil ito ay hindi kasalungat ng \"biyaya\". Sa halip, ang \"kapinsalan\" ang tamang kasalungat ng \"biyaya\" ayon sa nabanggit na reference material.",
+      "ground_truth": "Ang tamang kasalungat ng \"biyaya\" ay kapinsalaan). Ang biyaya ay isang regalo o positibong bagay, habang ang kapinsalaan ay tumutukoy sa pinsala, hirap, o kamalasan. Ang \"ilanlang\" ay nangangahulugang paglipad nang mataas o pagpapailanlang; wala itong kinalaman sa konsepto ng biyaya o swerte..",
+      "retrieval_metadata": {
+          "total_chunks": 3,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 1.0,
+          "query": "Filipino word: biyaya. Definition: Kaloob o pagpapalang tinatanggap nang walang hinihinging kapalit, kadalasan mula sa Diyos o kapalaran. | Filipino word: biyaya | Student selected: ilanlang | Correct answer: kapinsalan",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+      "id": "vocab_008",
+      "exercise_type": "antonym",
+      "correct_answer": "sumuway",
+      "student_answer": "tuyot",
+      "contexts": [
+          "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
+          "[COMMON MISTAKE] Incorrect Affix Spacing (pa + na): Incorrect joining of 'pa' + 'na' forms into one unit, e.g., 'palang', 'parin' instead of correct separate forms.",
+          "[VOCABULARY] bulay: Ang malalim na pagsusuri o pag-iisip tungkol sa isang bagay.",
+          "[VOCABULARY] gimbal: Matinding pagkabigla o pagkagitla dahil sa nakapanlulumong o nakakatakot na pangyayari."
+      ],
+      "answer": "1. Ang \"sumuway\" ay tamang kasalungat ng \"pagtalima\" dahil ang \"sumuway\" ay nangangahulugang hindi pagsunod o paglabag sa isang utos o tagubilin, samantalang ang \"pagtalima\" ay nangangahulugang matapat na pagsunod sa isang utos o tagubilin.\n\n2. Mali ang napiling sagot na \"tuyot\" dahil ito ay hindi kasalungat ng \"pagtalima\". Ang \"tuyot\" ay isang salitang may ibang kahulugan at hindi ito direktang kaugnay ng konsepto ng pagsunod o paglabag sa isang utos o tagubilin.",
+      "ground_truth": "Ang \"pagtalima\" ay ang pagsunod sa utos o patakaran, kaya ang kabaligtaran nito ay ang \"suway\" o ang hindi pagsunod at pagrerebelde sa iniutos. Ang \"tuyot\" ay tumutukoy sa kawalan ng tubig o pagkatuyo ng lupa, na isang karaniwang maling sagot dahil wala itong lohikal na koneksyon sa kilos ng pagsunod..",
+      "retrieval_metadata": {
+          "total_chunks": 4,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 0.8191036339566689,
+          "query": "Filipino word: pagtalima. Definition: Ang matapat na pagsunod sa isang utos o tagubilin. | Filipino word: pagtalima | Student selected: tuyot | Correct answer: sumuway",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+      "id": "vocab_009",
+      "exercise_type": "antonym",
+      "correct_answer": "kapangitan",
+      "student_answer": "marubdob",
+      "contexts": [
+          "[VOCABULARY] alindog: Likas na ganda o kaakit-akit na anyo, kilos, o dating ng isang tao o bagay.",
+          "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'."
+      ],
+      "answer": "1. Ang \"kapangitan\" ang tamang kasalungat ng \"alindog\" dahil ito ay tumutukoy sa kawalan ng likas na ganda o kaakit-akit na anyo, kilos, o dating ng isang tao o bagay. Ito ay direktang kontrasto sa kahulugan ng \"alindog\".\n\n2. Ang \"marubdob\" ay mali bilang kasalungat ng \"alindog\" dahil ito ay may kahulugan na malakas o matapang, na hindi direktang kontrasto sa kahulugan ng \"alindog\". Hindi ito isang antonym ng \"alindog\", kundi posibleng isang hiwalay na katangian.",
+      "ground_truth": "Ang \"alindog\" ay tumutukoy sa ganda o kariktan ng isang tao, kaya ang direkta at lohikal na kasalungat nito ay \"kapangitan.\" Ang \"marubdob\" ay naglalarawan ng matinding damdamin o pagnanasa; madalas itong mapili dahil pareho silang \"malalim\" na salita, pero magkaiba ang kanilang kategorya..",
+      "retrieval_metadata": {
+          "total_chunks": 2,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 1.0,
+          "query": "Filipino word: alindog. Definition: Likas na ganda o kaakit-akit na anyo, kilos, o dating ng isang tao o bagay. | Filipino word: alindog | Student selected: marubdob | Correct answer: kapangitan",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+      "id": "vocab_010",
+      "exercise_type": "antonym",
+      "correct_answer": "kalmado",
+      "student_answer": "hiyas",
+      "contexts": [
+          "[COMMON MISTAKE] Ng vs. Nang misuse: Confusion between the Filipino function words 'ng' and 'nang', often misused in place of one another.",
+          "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
+          "[VOCABULARY] balisa: Kalagayan ng pagkabalisa o hindi mapakali dahil sa pag-aalala o tensiyon.",
+          "[VOCABULARY] nabinbin: Paghinto o pagkaantala ng isang bagay na dapat nang naganap o natapos."
+      ],
+      "answer": "1. Ang \"kalmado\" ang tamang kasalungat ng \"nabalisa\" dahil ito ay sumasagot sa kabaligtaran ng kahulugan ng \"nabalisa\", na kalagayan ng pagkabalisa o hindi mapakali. Ang \"kalmado\" ay nangangahulugang may kapayapaan at katiwasayan, kabaligtad sa pagkabalisa.\n\n2. Mali ang napiling sagot na \"hiyas\" dahil ito ay hindi kasalungat ng \"nabalisa\". Ang \"hiyas\" ay nangangahulugang kagandahan o karangalan, at hindi ito may kaugnayan sa kahulugan ng \"nabalisa\" na pagkabalisa o tensiyon. Sa halip, ang \"kalmado\" ang tamang kasalungat ng \"nabalisa\" ayon sa mga ibinigay na reference materials.",
+      "ground_truth": "Ang \"nabalisa\" ay ang pakiramdam ng pag-aalala o hindi mapakali, kaya ang kasalungat nito ay ang pagiging \"kalmado\" o payapa ang isip. Ang \"hiyas\" ay tumutukoy sa mamahaling bato o alahas; ito ay isang pangngalan na walang kinalaman sa emosyonal na kalagayan ng isang tao..",
+      "retrieval_metadata": {
+          "total_chunks": 4,
+          "sources": [
+              "mistakes",
+              "vocabulary"
+          ],
+          "avg_relevance": 0.8548234827219959,
+          "query": "Filipino word: nabalisa. Definition: Kalagayan ng pagkabalisa o hindi mapakali dahil sa pag-aalala o tensiyon. | Filipino word: nabalisa | Student selected: hiyas | Correct answer: kalmado",
+          "context_type": "vocabulary"
+      }
+  },
+  {
+    "id": "gram_001",
+    "exercise_type": "error-identification",
+    "correct_answer": "Walang Mali",
+    "student_answer": "buhay ay",
+    "contexts": [
+      "[COMMON MISTAKE] General Grammatical Errors in Essay Writing: Senior high school students exhibit a range of grammatical errors in Filipino essay writing affecting linguistic competence.",
+      "[COMMON MISTAKE] Omission Errors in Filipino Essays: Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang pangungusap na \"buhay ay\" ay may posibleng pagkakamali sa paggamit ng salita. Ayon sa mga tuntunin ng Filipino grammar, partikular sa adjective placement at basic word order, dapat na sumunod ang pangungusap sa tamang pagkakasunod ng mga salita. Ngunit sa kasong ito, walang sapat na impormasyon upang matukoy kung saan eksaktong bahagi ng pangungusap nagkamali ang estudyante, kaya't hindi maibigbig kung ano ang tamang sagot. Kung walang Mali ang pangungusap, ito ay sumusunod sa mga tuntunin ng Filipino grammar, ngunit kailangan ng karagdagang konteksto upang makumpirma ito.",
+    "ground_truth": "Walang anumang pagkakamali sa pangungusap dahil maayos na nagamit ang panandang \"ay\" upang ikabit ang simuno sa panaguri, kaya mali ang pagpili sa \"buhay ay.\" Ang buong pahayag ay sumusunod sa tamang balangkas ng wikang Filipino at malinaw na naiparating ang metapora ng buhay ng tao. Ang pagpili sa \"buhay ay\" bilang mali ay karaniwang nagmumula sa maling akala na hindi dapat magkasunod ang pangngalan at ang ayos na pananda..",
+    "retrieval_metadata": {
+      "total_chunks": 4,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.9472245138317352,
+      "query": "Filipino grammar: . Word: Walang Mali | Filipino word: Walang Mali | Student selected: buhay ay | Correct answer: Walang Mali",
+      "context_type": "grammar"
+    }
+  },
+  {
+    "id": "gram_002",
+    "exercise_type": "error-identification",
+    "correct_answer": "hikahos kalagayan",
+    "student_answer": "nabubuhay sa",
+    "contexts": [
+      "[COMMON MISTAKE] General Grammatical Errors in Essay Writing: Senior high school students exhibit a range of grammatical errors in Filipino essay writing affecting linguistic competence.",
+      "[COMMON MISTAKE] Omission Errors in Filipino Essays: Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang pangungusap na may error ay \"hikahos kalagayan\" dahil ito ay hindi sumusunod sa tuntunin ng pagpapalagay ng mga pang-uri sa Filipino. Ayon sa mga panuntunan, ang mga pang-uri ay karaniwang nagpapalagay bago ang pangngalan na binabanggit nito, kaya ang tamang porma ay \"mahihirap na kalagayan\". Ang estudyante ay nagpili ng \"nabubuhay sa\" bilang sagot, ngunit ito ay hindi angkop sa konteksto ng pangungusap. Ang tamang sagot ay \"mahihirap\" upang maging gramatikal at tamang ang pangungusap.",
+    "ground_truth": "Ang pariralang \"hikahos kalagayan\" ay mali dahil nangangailangan ito ng pang-angkop na \"-ng\" upang pag-ugnayin ang naglalarawan at ang inilalarawan, kaya dapat itong maging \"hikahos na kalagayan.\" Ang napiling sagot na \"nabubuhay sa\" ay tama naman ang gamit bilang pandiwa at pang-ukol na nagpapakita ng sitwasyon ng pamilya. Nilabag nito ang tuntunin sa wastong paggamit ng pang-angkop (ligatures) na mahalaga sa pagbuo ng makinis na parirala sa Filipino..",
+    "retrieval_metadata": {
+      "total_chunks": 4,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.9528433253894463,
+      "query": "Filipino grammar: . Word: hikahos kalagayan | Filipino word: hikahos kalagayan | Student selected: nabubuhay sa | Correct answer: hikahos kalagayan",
+      "context_type": "grammar"
+    }
+  },
+  {
+    "id": "gram_003",
+    "exercise_type": "error-identification",
+    "correct_answer": "binalibag",
+    "student_answer": "Walang Mali",
+    "contexts": [
+      "[COMMON MISTAKE] General Grammatical Errors in Essay Writing: Senior high school students exhibit a range of grammatical errors in Filipino essay writing affecting linguistic competence.",
+      "[COMMON MISTAKE] Omission Errors in Filipino Essays: Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang pangungusap na \"binalibag\" ay may posibleng error sa paggamit ng salita. Ito ay maaaring dahil sa di-pagkakaintindi ng mga tuntunin sa pagbuo ng salita o paggamit ng mga morpema. Kung gayon, ang tamang pagsusuri ay hindi \"Walang Mali\" dahil may posibleng pagkakamali sa paggamit ng salita. Ang estudyante ay dapat na suriin muli ang pangungusap upang matukoy kung saan ang pagkakamali at kung paano ito ay maaaring ayusin.",
+    "ground_truth": "May mali sa paggamit ng pandiwang \"binalibag\" dahil bagaman nagpapakita ito ng aksyon, hindi ito ang pinakaangkop na salita para sa paghagis ng telepono sa pader sa kontekstong ito; mas mainam ang \"inihagis\" o \"ibinalibag.\" Ang pagpili ng \"Walang Mali\" ay hindi wasto dahil hindi napansin ang kakulangan sa wastong gamit ng salita o diction na tumutugma sa galaw ng simuno. Mahalagang suriin ang nuances ng bawat pandiwa upang matiyak na tumpak ang emosyong ipinapahayag ng pangungusap.",
+    "retrieval_metadata": {
+      "total_chunks": 4,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.9469774797899786,
+      "query": "Filipino grammar: . Word: binalibag | Filipino word: binalibag | Student selected: Walang Mali | Correct answer: binalibag",
+      "context_type": "grammar"
+    }
+  },
+  {
+    "id": "gram_004",
+    "exercise_type": "error-identification",
+    "correct_answer": "Walang Mali",
+    "student_answer": "sa social",
+    "contexts": [
+      "[COMMON MISTAKE] General Grammatical Errors in Essay Writing: Senior high school students exhibit a range of grammatical errors in Filipino essay writing affecting linguistic competence.",
+      "[COMMON MISTAKE] Omission Errors in Filipino Essays: Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang pangungusap na \"Walang Mali\" ay walang ibinigay na pangungusap para masuri, ngunit kung ang estudyante ay nagpili ng \"sa social\" bilang sagot, maaaring hindi ito angkop dahil walang konteksto o pangungusap na ibinigay. Kung mayroong pangungusap na ibinigay, ang tamang pag-evaluate ay depende sa pagkakasunod sa mga tuntunin ng Filipino grammar, tulad ng adjective placement at basic word order. Sa pangkalahatan, ang mga estudyante ay dapat na mag-ingat sa paggamit ng wastong anyo ng mga salita at pagkakasunod ng mga salita sa pangungusap. Ang pagpili ng \"Walang Mali\" ay maaaring tama kung ang pangungusap ay sumusunod sa lahat ng tuntunin ng Filipino grammar.",
+    "ground_truth": ".Ang pangungusap ay gramatikal na wasto dahil ang paggamit ng \"sa\" bilang pang-ukol para sa \"social media\" ay natural at tinatanggap sa modernong pakikipagtalastasan. Mali ang napiling sagot na \"sa social\" dahil walang batas sa balarila na nagbabawal sa paghiram ng mga terminong teknikal o dayuhan sa loob ng isang Filipino sentence. Ang buong pahayag ay malinaw, direkta, at walang nilabag na anumang tuntunin sa sintaks.",
+    "retrieval_metadata": {
+      "total_chunks": 4,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.9472670730335123,
+      "query": "Filipino grammar: . Word: Walang Mali | Filipino word: Walang Mali | Student selected: sa social | Correct answer: Walang Mali",
+      "context_type": "grammar"
+    }
+  },
+  {
+    "id": "gram_005",
+    "exercise_type": "error-identification",
+    "correct_answer": "matingkad na kulay",
+    "student_answer": "Walang Mali",
+    "contexts": [
+      "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang pangungusap na \"matingkad na kulay\" ay sumusunod sa tama na pagkakasunod ng mga pang-uri sa wikang Filipino, kung saan ang mga pang-uri ay karaniwang nasa unahan ng pangngalan na binabanggit nito. Ayon sa mga panuntunan ng gramatika, ang mga pang-uri tulad ng \"matingkad\" ay dapat na makalagay bago ang pangngalan na \"kulay\" upang mabigyang-diin ang katangian nito. Kaya, ang pagpili ng estudyante na \"Walang Mali\" ay tama dahil ang pangungusap ay sumusunod sa mga panuntunan ng gramatika. Sa gayon, walang kamalian sa pagkakasunod ng mga salita sa pangungusap na ito.",
+    "ground_truth": "Ang pagkakamali ay nasa pariralang \"matingkad na kulay\" dahil nagkaroon ng redundansiya o pag-uulit ng diwa (tautology) dahil ginamit na ang salitang \"pinatingkad\" sa unahan ng pangungusap. Ang sagot na \"Walang Mali\" ay hindi tama dahil ang isang mahusay na pangungusap ay dapat umiiwas sa paggamit ng magkatulad na salitang-ugat sa loob ng iisang pahayag kung ito ay nagdudulot ng kalituhan. Ang tamang anyo ay dapat gumamit ng ibang salitang naglalarawan upang hindi maging paulit-ulit ang tunog at kahulugan nito..",
+    "retrieval_metadata": {
+      "total_chunks": 3,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.9214411685185393,
+      "query": "Filipino grammar: . Word: matingkad na kulay | Filipino word: matingkad na kulay | Student selected: Walang Mali | Correct answer: matingkad na kulay",
+      "context_type": "grammar"
+    }
+  },
+  {
+    "id": "gram_006",
+    "exercise_type": "fill-blanks",
+    "correct_answer": "pagbabaklas",
+    "student_answer": "baklasin",
+    "contexts": [
+      "[COMMON MISTAKE] General Grammatical Errors in Essay Writing: Senior high school students exhibit a range of grammatical errors in Filipino essay writing affecting linguistic competence.",
+      "[COMMON MISTAKE] Omission Errors in Filipino Essays: Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang \"pagbabaklas\" ang tamang salita dahil ito ang wastong termino para sa pag-alis o pagtanggal ng nakakabit o nakakakabit na bahagi ng isang bagay. Ayon sa mga pangunahing tuntunin ng pagbuo ng pangungusap, dapat sundin ang verb-subject-object word order, ngunit sa paggamit ng mga salita tulad ng \"baklasin\", dapat tandaan ang adjective placement at basic word order (Balarila ng Wikang Pambansa, Lope K. Santos, KWF). Ang estudyante ay nagkamali sa pagpili ng \"baklasin\" dahil ito ay isang anyo ng pandiwa na hindi sumusunod sa tamang paggamit ng mga morpema o pantulong na salita, isang karaniwang pagkakamali sa pagsulat ng sanaysay (⚠️ Omission Errors in Filipino Essays). Sa gayon, ang \"pagbabaklas\" ang mas wastong paggamit ng salita sa kontekstong ito.",
+    "ground_truth": "Ang \"pagbabaklas\" ang tamang sagot dahil ito ay isang pangngalang di-konkreto na tumutukoy sa mismong proseso o aktibidad, na kinakailangan pagkatapos ng pang-ukol na \"sa.\" Ayon sa balarila, ang panlaping pag- o pag- + pag-uulit ng pantig ay ginagamit upang gawing pangngalan ang isang pandiwa. Ang napiling sagot na \"baklasin\" ay mali dahil ito ay isang pandiwang pautos o pangkasalukuyan na hindi angkop sa estruktura ng parirala..",
+    "retrieval_metadata": {
+      "total_chunks": 4,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.951125564434397,
+      "query": "Filipino grammar: . Word: pagbabaklas | Filipino word: pagbabaklas | Student selected: baklasin | Correct answer: pagbabaklas",
+      "context_type": "grammar"
+    }
+  },
+  {
+    "id": "gram_007",
+    "exercise_type": "fill-blanks",
+    "correct_answer": "mabagabag",
+    "student_answer": "bagabag",
+    "contexts": [
+      "[COMMON MISTAKE] General Grammatical Errors in Essay Writing: Senior high school students exhibit a range of grammatical errors in Filipino essay writing affecting linguistic competence.",
+      "[COMMON MISTAKE] Omission Errors in Filipino Essays: Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang \"mabagabag\" ang tamang salita dahil ito ang wastong anyo ng salita na may kahulugan na \"nangangamba\" o \"nabalisa\". Ayon sa **Adjective Placement** rule, ang mga pang-uri tulad ng \"mabagabag\" ay dapat na umiiral bilang isang salita at hindi naipapaliwanag ng ibang salita, kaya't hindi ito \"bagabag\" na isang karaniwang pagkakamali. Ang estudyante ay nagkaroon ng **General Grammatical Error** dahil sa hindi wastong paggamit ng anyo ng salita, na isang karaniwang pagkakamali sa pagsulat ng sanaysay. Dahil dito, ang \"mabagabag\" ang tamang sagot at ang \"bagabag\" ay mali dahil sa pagkawala ng unang pantig na \"ma\" na siyang nagpapahayag ng kahulugan ng salita.",
+    "ground_truth": "Ang salitang \"mabagabag\" ang nararapat dahil ito ay nasa anyong pandiwa (infinitive/contemplative) na kailangan kasunod ng salitang \"Huwag.\" Ayon sa tuntunin, ang \"Huwag\" ay sinusundan ng pandiwang nasa panahunang pautos o pawatas, hindi ng payak na salitang-ugat. Ang napiling sagot na \"bagabag\" ay isang pangngalan, kaya nagkakaroon ng putol sa daloy ng diwa ng pangungusap..",
+    "retrieval_metadata": {
+      "total_chunks": 4,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.9531278108074391,
+      "query": "Filipino grammar: . Word: mabagabag | Filipino word: mabagabag | Student selected: bagabag | Correct answer: mabagabag",
+      "context_type": "grammar"
+    }
+  },
+  {
+    "id": "gram_008",
+    "exercise_type": "fill-blanks",
+    "correct_answer": "kahapuan",
+    "student_answer": "nahahapo",
+    "contexts": [
+      "[COMMON MISTAKE] Substitution Errors in Academic Essays: Selection of incorrect linguistic elements (wrong words or forms) in students’ academic essays.",
+      "[COMMON MISTAKE] Omission Errors in Filipino Essays: Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang \"kahapuan\" ang tamang salita dahil ito ang wastong termino para sa \"matinding pagod ng katawan o isipan matapos ang isang mabigat na gawain\". Ayon sa mga pangunahing patakaran ng pagbuo ng pangungusap, ang \"kahapuan\" ay isang pangngalan na sumusunod sa pangunahing patakaran ng adjective placement, kung saan ang mga pang-uri ay karaniwang nasa unahan ng pangngalan na binabanggit nito, ngunit sa kaso ng salitang \"kahapuan\", ito ay isang pangngalan na hindi nangangailangan ng pang-uri upang maipahayag ang kahulugan nito. Ang estudyante ay gumawa ng isang common mistake sa pamamagitan ng pagpili ng \"nahahapo\" na isang anyo ng pandiwa, kung saan dapat sanang pangngalan ang ginamit, na sumusunod sa common mistake pattern ng substitution errors in academic essays. Sa ganitong paraan, ang \"kahapuan\" ang tamang salita dahil ito ang wastong pangngalan na sumusunod sa mga patakaran ng pagbuo ng pangungusap at hindi nagpapakita ng anumang common mistake.",
+    "ground_truth": "Ang \"kahapuan\" ang tamang salita dahil ito ay isang pangngalan na nagsasaad ng kalagayan o kondisyon, na siyang simuno ng pangungusap. Batay sa morpolohiya ng Filipino, ang unaping ka- at hulaping -an ay ginagamit upang makabuo ng pangngalang abstract mula sa isang pang-uri o pandiwa. Ang \"nahahapo\" ay isang pandiwang naglalarawan ng kilos na ginagawa pa lamang, kaya hindi ito puwedeng magsilbing pangngalan sa kontekstong ito..",
+    "retrieval_metadata": {
+      "total_chunks": 4,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.951119421904479,
+      "query": "Filipino grammar: . Word: kahapuan | Filipino word: kahapuan | Student selected: nahahapo | Correct answer: kahapuan",
+      "context_type": "grammar"
+    }
+  },
+  {
+    "id": "gram_009",
+    "exercise_type": "fill-blanks",
+    "correct_answer": "apuhapin",
+    "student_answer": "inaapuhap",
+    "contexts": [
+      "[COMMON MISTAKE] General Grammatical Errors in Essay Writing: Senior high school students exhibit a range of grammatical errors in Filipino essay writing affecting linguistic competence.",
+      "[COMMON MISTAKE] Omission Errors in Filipino Essays: Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang \"apuhapin\" ang tamang salita dahil ito ang wastong anyo ng pandiwa na nangangahulugang \"paghahanap o paghagilap sa pamamagitan ng pagkapâ\". Ayon sa **2. Basic Word Order** (Pagbuo ng Pangungusap), ang mga pangungusap sa Filipino ay karaniwang nagsisimula sa pandiwa, kaya't ang \"apuhapin\" ay sumusunod sa tamang pagkakasunod-sunod ng salita. Ang estudyante ay nagkamali nang pumili ng \"inaapuhap\" dahil ito ay isang halimbawa ng **⚠️ Omission Errors in Filipino Essays**, kung saan kulang ang pangungusap sa wastong morpema o pantulong na salita. Sa kasong ito, ang \"apuhapin\" ay ang wastong anyo ng pandiwa na dapat gamitin upang maging tama ang pangungusap.",
+    "ground_truth": "Ang \"apuhapin\" ang tamang sagot dahil ang pangungusap ay nagpapahayag ng isang utos o mungkahi na nangangailangan ng pandiwang nasa anyong pawatas (infinitive). Karaniwang pagkakamali ang paggamit ng \"inaapuhap\" dahil ito ay nasa aspektong nagaganap, na hindi tumutugma sa pautos na tono ng salitang \"Subukan.\" Ayon sa mga sanggunian sa gramatika, ang mga pandiwang sinusundan ng \"subukan\" o \"pilitin\" ay dapat nasa anyong hindi pa nasisimulan.",
+    "retrieval_metadata": {
+      "total_chunks": 4,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.9540836131638023,
+      "query": "Filipino grammar: . Word: apuhapin | Filipino word: apuhapin | Student selected: inaapuhap | Correct answer: apuhapin",
+      "context_type": "grammar"
+    }
+  },
+  {
+    "id": "gram_010",
+    "exercise_type": "fill-blanks",
+    "correct_answer": "nabiyayaan",
+    "student_answer": "mabiyaya",
+    "contexts": [
+      "[COMMON MISTAKE] General Grammatical Errors in Essay Writing: Senior high school students exhibit a range of grammatical errors in Filipino essay writing affecting linguistic competence.",
+      "[COMMON MISTAKE] Omission Errors in Filipino Essays: Errors caused by missing linguistic elements that should be present in correct Filipino sentences.",
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+    ],
+    "answer": "Ang \"nabiyayaan\" ang tamang salita dahil ito ang wastong anyo ng pandiwa na nangangahulugang \"tinanggap ang biyaya\". Ayon sa **1. Adjective Placement** at **2. Basic Word Order**, hindi ito direktang nauugnay sa pagpili ng salita ngunit mahalaga ang pag-unawa sa **COMMON MISTAKE PATTERNS**, partikular sa **⚠️ General Grammatical Errors in Essay Writing** at **⚠️ Omission Errors in Filipino Essays**, kung saan ang estudyante ay nagkamali sa pagpili ng \"mabiyaya\" dahil hindi ito sumusunod sa tuntunin ng Filipino grammar. Ang \"mabiyaya\" ay mali dahil ito ay isang pang-uri at hindi ang wastong anyo ng pandiwa na ginamit sa pangungusap. Sa pamamagitan ng pagsunod sa mga tuntunin ng Filipino grammar, ang estudyante ay dapat pumili ng \"nabiyayaan\" upang maging tama at buo ang pangungusap.",
+    "ground_truth": "Ang \"nabiyayaan\" ang wastong salita dahil ito ay pandiwang nasa aspektong naganap (perfective) na tumutukoy sa isang biyayang natanggap na ng simuno. Ang tuntunin sa paggamit ng panlaping na-...-an ay nagpapakita na ang simuno ang tagatanggap ng isang pangyayari. Mali ang \"mabiyaya\" dahil ito ay isang pang-uri na naglalarawan ng katangian (hal. mabiyayang lupain), sa halip na isang aksyong naganap na sa tao..",
+    "retrieval_metadata": {
+      "total_chunks": 4,
+      "sources": [
+        "mistakes",
+        "grammar"
+      ],
+      "avg_relevance": 0.9534705459099843,
+      "query": "Filipino grammar: . Word: nabiyayaan | Filipino word: nabiyayaan | Student selected: mabiyaya | Correct answer: nabiyayaan",
+      "context_type": "grammar"
+    }
+  }
+]

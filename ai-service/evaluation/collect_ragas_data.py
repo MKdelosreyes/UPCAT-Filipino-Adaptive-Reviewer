@@ -1,12 +1,28 @@
 from handlers.explain import handle_explain, ExplainRequest
+from dotenv import load_dotenv
 import json
 import asyncio
 from typing import List, Dict
 import sys
 import os
 
-# Add parent directory to path to import handlers
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+# Add parent directory to path FIRST
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+load_dotenv()
+
+# Verify API key is loaded
+groq_key = os.getenv("GROQ_API_KEY")
+if not groq_key:
+    print("❌ ERROR: GROQ_API_KEY not found in environment!")
+    print("📁 Current directory:", os.getcwd())
+    print("🔍 Looking for .env at:", os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), ".env"))
+    sys.exit(1)
+else:
+    print(f"✅ GROQ_API_KEY loaded: {groq_key[:20]}...")
+
+# NOW import handlers after env vars are loaded
 
 
 async def collect_single_sample(
@@ -16,17 +32,12 @@ async def collect_single_sample(
     correct: str,
     selected: str,
     sentence: str = None,
-    question: str = None,
-    choices: List[str] = None
 ) -> Dict:
     """
     Collect ONE evaluation sample with retrieved context
-
-    This calls your actual AI service and captures:
-    - The question
-    - What RAG retrieved
-    - What the AI generated
     """
+
+    print(f"📝 Processing: {sample_id}...")
 
     # Create request just like your frontend does
     request = ExplainRequest(
@@ -50,11 +61,11 @@ async def collect_single_sample(
 
             # Format based on source type
             if source == "vocabulary":
-                text = f"Word: {content.get('lemma', '')}\nDefinition: {content.get('definition', '')}"
+                text = f"[VOCABULARY] {content.get('lemma', '')}: {content.get('definition', '')}"
             elif source == "grammar":
-                text = f"Rule: {content.get('rule_name', '')}\n{content.get('description', '')}"
+                text = f"[GRAMMAR] {content.get('rule_name', '')}: {content.get('description', '')}"
             elif source == "mistakes":
-                text = f"Error: {content.get('error_name', '')}\n{content.get('description', '')}"
+                text = f"[COMMON MISTAKE] {content.get('error_name', '')}: {content.get('description', '')}"
             else:
                 text = str(content)
 
@@ -64,8 +75,6 @@ async def collect_single_sample(
     sample = {
         "id": sample_id,
         "exercise_type": mode,
-        "question": question or f"Ano ang kahulugan ng salitang '{word}'?",
-        "choices": choices or [],
         "correct_answer": correct,
         "student_answer": selected,
 
@@ -82,54 +91,127 @@ async def collect_single_sample(
         "retrieval_metadata": response.retrieval_metadata
     }
 
+    print(f"✅ Completed: {sample_id}")
     return sample
 
 
 async def collect_evaluation_dataset():
     """
     Collect multiple samples for evaluation
-
-    Add your own test cases here!
     """
     samples = []
 
-    # Example 1: Vocabulary quiz
-    sample1 = await collect_single_sample(
-        sample_id="vocab_001",
-        mode="quiz",
-        word="adhika",
-        correct="B. Hangarin",
-        selected="A. Pagkain",
-        question="Ano ang kahulugan ng salitang 'adhika'?",
-        choices=["A. Pagkain", "B. Hangarin", "C. Bahay", "D. Aklat"]
-    )
-    samples.append(sample1)
+    print("\n" + "="*60)
+    print("🚀 Starting evaluation data collection...")
+    print("="*60 + "\n")
 
-    # Example 2: Grammar fill-blanks
-    sample2 = await collect_single_sample(
-        sample_id="grammar_001",
+    # =========== ERROR IDENTIFICATION ITEMS ==========
+    item1 = await collect_single_sample(
+        sample_id="gram_001",
+        mode="error-identification",
+        word="Walang Mali",
+        correct="Walang Mali",
+        selected="buhay ay",
+    )
+    samples.append(item1)
+
+    item2 = await collect_single_sample(
+        sample_id="gram_002",
+        mode="error-identification",
+        word="hikahos kalagayan",
+        correct="hikahos kalagayan",
+        selected="nabubuhay sa",
+    )
+    samples.append(item2)
+
+    item3 = await collect_single_sample(
+        sample_id="gram_003",
+        mode="error-identification",
+        word="binalibag",
+        correct="binalibag",
+        selected="Walang Mali",
+    )
+    samples.append(item3)
+
+    item4 = await collect_single_sample(
+        sample_id="gram_004",
+        mode="error-identification",
+        word="Walang Mali",
+        correct="Walang Mali",
+        selected="sa social",
+    )
+    samples.append(item4)
+
+    item5 = await collect_single_sample(
+        sample_id="gram_005",
+        mode="error-identification",
+        word="matingkad na kulay",
+        correct="matingkad na kulay",
+        selected="Walang Mali",
+    )
+    samples.append(item5)
+
+    # =========== ANTONYM ITEMS ==========
+    item6 = await collect_single_sample(
+        sample_id="gram_006",
         mode="fill-blanks",
-        word="ng",
-        correct="ng",
-        selected="nang",
-        sentence="Kumain ako ___ gulay kaninang umaga.",
-        question="Piliin ang tamang salita para punan ang patlang"
+        word="pagbabaklas",
+        correct="pagbabaklas",
+        selected="baklasin",
     )
-    samples.append(sample2)
+    samples.append(item6)
 
-    # Add more samples here...
+    item7 = await collect_single_sample(
+        sample_id="gram_007",
+        mode="fill-blanks",
+        word="mabagabag",
+        correct="mabagabag",
+        selected="bagabag",
+    )
+    samples.append(item7)
+
+    item8 = await collect_single_sample(
+        sample_id="gram_008",
+        mode="fill-blanks",
+        word="kahapuan",
+        correct="kahapuan",
+        selected="nahahapo",
+    )
+    samples.append(item8)
+
+    item9 = await collect_single_sample(
+        sample_id="gram_009",
+        mode="fill-blanks",
+        word="apuhapin",
+        correct="apuhapin",
+        selected="inaapuhap",
+    )
+    samples.append(item9)
+
+    item10 = await collect_single_sample(
+        sample_id="gram_010",
+        mode="fill-blanks",
+        word="nabiyayaan",
+        correct="nabiyayaan",
+        selected="mabiyaya",
+    )
+    samples.append(item10)
 
     # Save to JSON file
-    output_file = "evaluation_dataset.json"
+    output_file = os.path.join(os.path.dirname(
+        __file__), "evaluation_dataset.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(samples, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ Collected {len(samples)} samples")
+    print("\n" + "="*60)
+    print(f"✅ Successfully collected {len(samples)} evaluation samples")
     print(f"💾 Saved to: {output_file}")
+    print("="*60)
     print(f"\n📋 Next steps:")
-    print(f"1. Review the file: {output_file}")
-    print(f"2. Ask Filipino experts to fill in 'ground_truth' field")
-    print(f"3. Use the file with RAGAS for evaluation")
+    print(f"1. Review the generated JSON file")
+    print(f"2. Ask Filipino language experts to fill the 'ground_truth' field")
+    print(f"3. Each 'ground_truth' should be the IDEAL explanation")
+    print(f"4. Use the completed dataset with RAGAS to evaluate your AI")
 
     return samples
 
