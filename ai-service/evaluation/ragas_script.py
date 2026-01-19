@@ -32,38 +32,67 @@ print(f"✅ Using Groq (llama-3.1-8b-instant) for RAGAS evaluation")
 
 def prepare_ragas_dataset(evaluation_data):
     """
-    Prepare evaluation data in RAGAS-compatible format.
+    Prepare evaluation data in RAGAS-compatible format. 
     """
     ragas_data = {
-        "question": [],
-        "answer": [],
-        "contexts": [],
-        "ground_truth": []
+        "user_input": [],
+        "response": [],
+        "retrieved_contexts": [],
+        "reference":  []
     }
 
     for sample in evaluation_data:
-        # Build question based on exercise type
-        exercise_type = sample.get("exercise_type", "")
+        exercise_type = sample. get("exercise_type", "")
+        correct_answer = sample.get("correct_answer", "")
+        student_answer = sample.get("student_answer", "")
 
+        # Get the word from retrieval_metadata query or extract from context
+        query = sample.get("retrieval_metadata", {}).get("query", "")
+
+        # Extract the actual word being tested
+        word = ""
+        if "Filipino word:" in query:
+            word = query.split("Filipino word:")[1].split(". ")[0].strip()
+        elif "salita:" in query:
+            parts = query.split("salita:")
+            if len(parts) > 1:
+                word = parts[1].split()[0].strip()
+
+        # Build question based on exercise type with actual values
         if exercise_type == "quiz":
-            question = f"Ano ang kahulugan ng salitang '{sample.get('word', 'N/A')}'?"
-        elif exercise_type == "antonym":
-            question = f"Ano ang kasalungat ng salitang '{sample.get('word', 'N/A')}'?"
-        elif exercise_type in ["fill-blanks", "error-identification"]:
-            question = f"Ano ang tamang salita/bahagi sa pangungusap: '{sample.get('sentence', 'N/A')}'?"
-        elif exercise_type == "reading-comprehension":
-            question = sample.get("question", "N/A")
-        elif exercise_type == "sentence-ordering":
-            question = f"Ano ang tamang pagkakasunod-sunod ng mga salita sa pangungusap?"
-        elif exercise_type == "choose-sentence":
-            question = f"Aling pangungusap ang pinakamainam para sa konteksto: '{sample.get('context', 'N/A')}'?"
-        else:
-            question = f"Bakit mali ang sagot na '{sample['student_answer']}'?"
+            if word:
+                question = f"Bakit '{correct_answer}' ang tamang kasingkahulugan ng '{word}' at hindi '{student_answer}'?"
+            else:
+                question = f"Bakit '{correct_answer}' ang tamang sagot at hindi '{student_answer}'?"
 
-        ragas_data["question"].append(question)
-        ragas_data["answer"].append(sample["answer"])
-        ragas_data["contexts"].append(sample["contexts"])
-        ragas_data["ground_truth"].append(sample["ground_truth"])
+        elif exercise_type == "antonym":
+            if word:
+                question = f"Bakit '{correct_answer}' ang tamang kasalungat ng '{word}' at hindi '{student_answer}'?"
+            else:
+                question = f"Bakit '{correct_answer}' ang tamang kasalungat at hindi '{student_answer}'?"
+
+        elif exercise_type == "error-identification":
+            question = f"Ano ang mali sa pangungusap at bakit '{correct_answer}' ang tamang sagot sa halip na '{student_answer}'?"
+
+        elif exercise_type == "fill-blanks":
+            question = f"Bakit '{correct_answer}' ang tamang salita para sa patlang at hindi '{student_answer}'?"
+
+        elif exercise_type == "sentence-ordering":
+            question = f"Bakit '{correct_answer}' ang tamang pagkakasunod-sunod ng pangungusap?"
+
+        elif exercise_type == "choose-sentence":
+            question = f"Bakit '{correct_answer}' ang pinakamainam na pangungusap para sa konteksto at hindi '{student_answer}'?"
+
+        elif exercise_type == "reading-comprehension":
+            question = f"Batay sa teksto, bakit '{correct_answer}' ang tamang sagot at hindi '{student_answer}'?"
+
+        else:
+            question = f"Bakit mali ang sagot na '{student_answer}' at '{correct_answer}' ang tama?"
+
+        ragas_data["user_input"].append(question)
+        ragas_data["response"].append(sample["answer"])
+        ragas_data["retrieved_contexts"].append(sample["contexts"])
+        ragas_data["reference"].append(sample. get("ground_truth", ""))
 
     return Dataset.from_dict(ragas_data)
 
@@ -72,16 +101,35 @@ def evaluate_ragas(evaluation_data):
     """
     Run RAGAS evaluation using Groq LLM
     """
+    # Filter out samples with empty contexts for more meaningful evaluation
+    valid_samples = [s for s in evaluation_data if s. get(
+        "contexts") and len(s["contexts"]) > 0]
+
+    if len(valid_samples) < len(evaluation_data):
+        print(
+            f"⚠️ Warning: {len(evaluation_data) - len(valid_samples)} samples have empty contexts and may affect scores")
+
     # Prepare dataset
     dataset = prepare_ragas_dataset(evaluation_data)
 
-    # Define metrics
-    metrics = [
-        faithfulness,
-        answer_relevancy,
-        context_precision,
-        context_recall
-    ]
+    # Define metrics - only use metrics that work without ground_truth if needed
+    has_ground_truth = any(s.get("ground_truth") for s in evaluation_data)
+
+    if has_ground_truth:
+        metrics = [
+            faithfulness,
+            answer_relevancy,
+            context_precision,
+            context_recall
+        ]
+    else:
+        print("⚠️ Warning:  No ground_truth found. context_recall may not work properly.")
+        metrics = [
+            faithfulness,
+            answer_relevancy,
+            context_precision,
+            context_recall
+        ]
 
     # Run evaluation with custom LLM
     print("🔄 Running RAGAS evaluation with Groq...")
@@ -93,8 +141,7 @@ def evaluate_ragas(evaluation_data):
         llm=evaluator_llm
     )
 
-    # Convert to pandas DataFrame for easier access
-    return results.to_pandas()
+    return results. to_pandas()
 
 
 def load_evaluation_dataset(file_path="evaluation_dataset.json"):
@@ -102,36 +149,44 @@ def load_evaluation_dataset(file_path="evaluation_dataset.json"):
     Load evaluation dataset from JSON file
     """
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Dataset file not found: {file_path}")
+        raise FileNotFoundError(f"Dataset file not found:  {file_path}")
 
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     print(f"✅ Loaded {len(data)} samples from {file_path}")
+
+    # Print diagnostic info
+    empty_contexts = sum(1 for s in data if not s.get(
+        "contexts") or len(s["contexts"]) == 0)
+    empty_ground_truth = sum(1 for s in data if not s.get("ground_truth"))
+
+    print(f"📊 Samples with empty contexts: {empty_contexts}/{len(data)}")
+    print(
+        f"📊 Samples with empty ground_truth: {empty_ground_truth}/{len(data)}")
+
     return data
 
 
-# Main execution
 if __name__ == "__main__":
     print("="*60)
     print("🚀 RAGAS Evaluation Script (Using Groq)")
     print("="*60)
 
-    # Load your evaluation dataset
     dataset_path = os.path.join(os.path.dirname(
         __file__), "evaluation_dataset.json")
     evaluation_data = load_evaluation_dataset(dataset_path)
 
-    # Option 1: Evaluate all samples together
     print("\n📊 Overall RAGAS Evaluation:")
     print("-" * 60)
 
     try:
         results_df = evaluate_ragas(evaluation_data)
 
-        # Calculate mean scores
+        # Calculate mean scores (ignoring NaN)
         print("\n✅ RAGAS Evaluation Results (Overall):")
-        print(f"  Faithfulness:       {results_df['faithfulness'].mean():.4f}")
+        print(
+            f"  Faithfulness:        {results_df['faithfulness']. mean():.4f}")
         print(
             f"  Answer Relevancy:   {results_df['answer_relevancy'].mean():.4f}")
         print(
@@ -139,53 +194,37 @@ if __name__ == "__main__":
         print(
             f"  Context Recall:     {results_df['context_recall'].mean():.4f}")
 
-        # Add sample metadata
         results_df['sample_id'] = [sample['id'] for sample in evaluation_data]
         results_df['exercise_type'] = [sample['exercise_type']
                                        for sample in evaluation_data]
 
-        # Save detailed results
         detailed_output_path = os.path.join(
             os.path.dirname(__file__), "ragas_detailed_results.csv")
         results_df.to_csv(detailed_output_path, index=False)
         print(f"\n💾 Detailed results saved to: {detailed_output_path}")
 
-        # Option 2: Group by exercise type
         print("\n" + "="*60)
         print("📊 RAGAS Evaluation by Exercise Type:")
         print("="*60)
 
         grouped = results_df.groupby('exercise_type').agg({
             'faithfulness': 'mean',
-            'answer_relevancy': 'mean',
+            'answer_relevancy':  'mean',
             'context_precision': 'mean',
             'context_recall': 'mean'
         }).round(4)
 
-        # Add sample count
-        grouped['n_samples'] = results_df.groupby('exercise_type').size()
-
-        # Reorder columns
+        grouped['n_samples'] = results_df. groupby('exercise_type').size()
         grouped = grouped[['n_samples', 'faithfulness',
                            'answer_relevancy', 'context_precision', 'context_recall']]
 
         print("\n📈 Results by Exercise Type:")
-        print(grouped.to_string())
+        print(grouped. to_string())
 
-        # Save grouped results
         output_path = os.path.join(
             os.path.dirname(__file__), "ragas_results.csv")
         grouped.to_csv(output_path)
         print(f"\n💾 Grouped results saved to: {output_path}")
-
-        # Option 3: Show sample-level results (first 10)
-        print("\n" + "="*60)
-        print("📋 Sample-level Results (first 10 samples):")
-        print("="*60)
-
-        display_cols = ['sample_id', 'exercise_type', 'faithfulness',
-                        'answer_relevancy', 'context_precision', 'context_recall']
-        print("\n" + results_df[display_cols].head(10).to_string(index=False))
 
         print("\n" + "="*60)
         print("✅ RAGAS Evaluation Complete!")
