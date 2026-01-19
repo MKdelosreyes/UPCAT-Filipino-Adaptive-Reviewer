@@ -20,6 +20,9 @@ class ContextType(Enum):
     ANTONYM = "antonym"
     FILL_BLANKS = "fill-blanks"
     ERROR_IDENTIFICATION = "error-identification"
+    READING_COMPREHENSION = "reading-comprehension"
+    SENTENCE_ORDERING = "sentence-ordering"
+    CHOOSE_SENTENCE = "choose-sentence"
 
 
 @dataclass
@@ -81,6 +84,9 @@ class RAGOrchestrator:
             ContextType.ANTONYM: self._strategy_antonym,
             ContextType.FILL_BLANKS: self._strategy_fill_blanks,
             ContextType.ERROR_IDENTIFICATION: self._strategy_error_identification,
+            ContextType.READING_COMPREHENSION: self._strategy_reading_comprehension,
+            ContextType.SENTENCE_ORDERING: self._strategy_sentence_ordering,
+            ContextType.CHOOSE_SENTENCE: self._strategy_choose_sentence,
         }
 
         self._load_learning_strategies()
@@ -344,6 +350,212 @@ class RAGOrchestrator:
                     relevance_scores=[r.get("similarity_score", 0)
                                       for r in mistake_results]
                 ))
+
+        return results
+
+    def _strategy_reading_comprehension(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected: Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for reading comprehension questions"""
+        results = []
+
+        # Build reading-focused query
+        reading_query = query
+        if word:  # word contains the question
+            reading_query = f"Reading comprehension question: {word}"
+        if sentence:  # sentence contains passage title or context
+            reading_query += f" Context: {sentence}"
+
+        # Primary: Vocabulary for key terms in the question/passage
+        vocab_results = self.vocabulary_rag.search(
+            query=reading_query,
+            top_k=config.top_k,
+            min_similarity=config.min_similarity * 0.8,  # Lower threshold
+            use_hybrid=config.use_hybrid,
+            boost_exact_match=config.boost_exact_match
+        )
+        if vocab_results:
+            results.append(RetrievalResult(
+                source_type="vocabulary",
+                results=vocab_results,
+                query=reading_query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in vocab_results]
+            ))
+
+        # Secondary: Grammar rules for sentence understanding
+        grammar_results = self.grammar_rag.search(
+            query=reading_query,
+            top_k=2,
+            min_similarity=config.min_similarity * 0.7,
+            use_hybrid=config.use_hybrid
+        )
+        if grammar_results:
+            results.append(RetrievalResult(
+                source_type="grammar",
+                results=grammar_results,
+                query=reading_query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in grammar_results]
+            ))
+
+        return results
+
+    def _strategy_sentence_ordering(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected: Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for sentence ordering exercises"""
+        results = []
+
+        # Build sentence-ordering focused query
+        ordering_query = "Filipino sentence structure word order syntax"
+        if correct:
+            ordering_query += f" Correct sentence: {correct}"
+        if selected:
+            ordering_query += f" Student arrangement: {selected}"
+
+        # Primary: Grammar rules about word order and sentence structure
+        grammar_results = self.grammar_rag.search(
+            query=ordering_query,
+            top_k=config.top_k,
+            # Lower threshold for broader matches
+            min_similarity=config.min_similarity * 0.6,
+            use_hybrid=config.use_hybrid
+        )
+        if grammar_results:
+            results.append(RetrievalResult(
+                source_type="grammar",
+                results=grammar_results,
+                query=ordering_query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in grammar_results]
+            ))
+
+        # Secondary: Common mistakes in sentence construction
+        if config.include_mistakes:
+            mistake_query = "sentence structure word order error Filipino"
+            if selected and correct and selected != correct:
+                mistake_query += f" incorrect arrangement"
+
+            mistake_results = self.common_mistakes_rag.search(
+                query=mistake_query,
+                top_k=2,
+                min_similarity=config.min_similarity * 0.5,
+                use_hybrid=config.use_hybrid
+            )
+            if mistake_results:
+                results.append(RetrievalResult(
+                    source_type="mistakes",
+                    results=mistake_results,
+                    query=mistake_query,
+                    relevance_scores=[r.get("similarity_score", 0)
+                                      for r in mistake_results]
+                ))
+
+        # Tertiary: Vocabulary for key words in the sentence
+        if correct:
+            # Extract key content words from the correct sentence
+            words = correct.split()
+            content_words = [w for w in words if len(w) > 3 and w.lower() not in
+                             ['ang', 'ng', 'sa', 'mga', 'na', 'ay', 'at', 'para', 'kung', 'dahil']]
+
+            if content_words:
+                # Use first 3 content words
+                vocab_query = " ".join(content_words[:3])
+                vocab_results = self.vocabulary_rag.search(
+                    query=vocab_query,
+                    top_k=2,
+                    min_similarity=config.min_similarity * 0.5,
+                    use_hybrid=config.use_hybrid
+                )
+                if vocab_results:
+                    results.append(RetrievalResult(
+                        source_type="vocabulary",
+                        results=vocab_results,
+                        query=vocab_query,
+                        relevance_scores=[r.get("similarity_score", 0)
+                                          for r in vocab_results]
+                    ))
+
+        return results
+
+    def _strategy_choose_sentence(
+        self, query: str, config: RetrievalConfig,
+        word: Optional[str], sentence: Optional[str],
+        selected: Optional[str], correct: Optional[str]
+    ) -> List[RetrievalResult]:
+        """Strategy for choose-the-best-sentence exercises"""
+        results = []
+
+        # Build context-aware query
+        choose_query = "Filipino sentence construction context clues coherence"
+        if sentence:  # sentence contains the context
+            choose_query += f" Context: {sentence}"
+        if correct:
+            choose_query += f" Best sentence: {correct}"
+
+        # Primary: Grammar rules about sentence construction and coherence
+        grammar_results = self.grammar_rag.search(
+            query=choose_query,
+            top_k=config.top_k,
+            min_similarity=config.min_similarity * 0.6,
+            use_hybrid=config.use_hybrid
+        )
+        if grammar_results:
+            results.append(RetrievalResult(
+                source_type="grammar",
+                results=grammar_results,
+                query=choose_query,
+                relevance_scores=[r.get("similarity_score", 0)
+                                  for r in grammar_results]
+            ))
+
+        # Secondary: Vocabulary for key terms (helps explain why certain words fit context)
+        if correct:
+            # Extract key words from correct sentence
+            words = correct.split()
+            content_words = [w for w in words if len(w) > 3 and w.lower() not in
+                             ['ang', 'ng', 'sa', 'mga', 'na', 'ay', 'at', 'para', 'kung', 'dahil']]
+
+            if content_words:
+                vocab_query = " ".join(content_words[:3])
+                vocab_results = self.vocabulary_rag.search(
+                    query=vocab_query,
+                    top_k=2,
+                    min_similarity=config.min_similarity * 0.5,
+                    use_hybrid=config.use_hybrid
+                )
+                if vocab_results:
+                    results.append(RetrievalResult(
+                        source_type="vocabulary",
+                        results=vocab_results,
+                        query=vocab_query,
+                        relevance_scores=[r.get("similarity_score", 0)
+                                          for r in vocab_results]
+                    ))
+
+        # Tertiary: Common mistakes in sentence selection
+        if config.include_mistakes:
+            if selected and correct and selected != correct:
+                mistake_query = f"sentence selection error context clues"
+                mistake_results = self.common_mistakes_rag.search(
+                    query=mistake_query,
+                    top_k=2,
+                    min_similarity=config.min_similarity * 0.5,
+                    use_hybrid=config.use_hybrid
+                )
+                if mistake_results:
+                    results.append(RetrievalResult(
+                        source_type="mistakes",
+                        results=mistake_results,
+                        query=mistake_query,
+                        relevance_scores=[r.get("similarity_score", 0)
+                                          for r in mistake_results]
+                    ))
 
         return results
 

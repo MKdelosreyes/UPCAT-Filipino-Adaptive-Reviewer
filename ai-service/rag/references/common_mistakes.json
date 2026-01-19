@@ -541,5 +541,797 @@
             "embedding_tags": ["cohesive devices Filipino","connectors misuse","essay linking words Filipino"],
             "retrieval_priority": "medium"
         }
+    },
+    {
+        "error_id": "ERR-FIL-016",
+        "error_name": "Sila vs. Sina confusion",
+        "error_category": "grammar",
+        "sub_category": "pronouns_markers",
+        "linguistic_focus": ["sila", "sina"],
+        "error_type": "substitution",
+        "description": "Confusion between 'sila' (third person plural pronoun) and 'sina' (plural marker for proper nouns).",
+        "why_it_occurs": [
+            "Both words refer to multiple people",
+            "Lack of understanding that 'sina' is a marker, not a pronoun",
+            "Direct translation from English 'they'"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment": ["Grade 5", "Grade 6", "Grade 7"],
+        "examples": {
+            "incorrect": [
+                "Pumunta **sila** Maria at Pedro sa palengke.",
+                "**Sila** Juan at Jose ang mga nanalo."
+            ],
+            "correct":  [
+                "Pumunta **sina** Maria at Pedro sa palengke.",
+                "**Sina** Juan at Jose ang mga nanalo."
+            ],
+            "explanation": "'Sila' is used as a standalone pronoun meaning 'they', while 'sina' is a plural marker used before proper nouns to indicate multiple named individuals."
+        },
+        "grammar_rule": {
+            "rule_name": "Sila vs Sina Usage",
+            "rule_statement": "'Sila' functions as the third person plural pronoun, while 'sina' serves as a plural personal name marker before proper nouns.",
+            "decision_guide": [
+                "If followed by proper names → use 'sina'",
+                "If used as a standalone pronoun → use 'sila'",
+                "If replacing a group already mentioned → use 'sila'"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng 'sila' at 'sina'.",
+            "detailed_feedback": "Ginamit mo ang 'sila' bago ang mga pangngalang pantangi. Gamitin ang 'sina' kapag sinusundan ng mga pangalan.",
+            "teacher_feedback": "Ituro ang pagkakaiba ng panghalip (sila) at pananda (sina)."
+        },
+        "severity":  {
+            "impact_on_clarity": "medium",
+            "impact_on_grammar_score": 0.15,
+            "frequency_weight": 1.3
+        },
+        "sources": ["SRC-FP101-2020", "SRC-DEPED-K12-2016"],
+        "rag_metadata": {
+            "embedding_tags": ["sila sina", "Filipino pronouns", "proper noun markers", "panghalip"],
+            "retrieval_priority": "high",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-017",
+        "error_name": "Kung vs.  Kapag misuse",
+        "error_category": "grammar",
+        "sub_category": "conjunctions",
+        "linguistic_focus": ["kung", "kapag"],
+        "error_type": "substitution",
+        "description": "Interchanging 'kung' (if - conditional/hypothetical) and 'kapag' (when - temporal/habitual) incorrectly.",
+        "why_it_occurs": [
+            "Both can be translated to 'if' or 'when' in English",
+            "Overlap in some conditional-temporal contexts",
+            "Regional variations in usage"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment": ["Grade 6", "Grade 7", "Grade 8"],
+        "examples":  {
+            "incorrect": [
+                "**Kapag** hindi siya dumating, aalis na tayo.",
+                "**Kung** umuulan, nagdadala ako ng payong."
+            ],
+            "correct":  [
+                "**Kung** hindi siya dumating, aalis na tayo.",
+                "**Kapag** umuulan, nagdadala ako ng payong."
+            ],
+            "explanation": "'Kung' is used for hypothetical or uncertain conditions (if something might happen), while 'kapag' is used for habitual actions or events that regularly occur when a certain condition is met."
+        },
+        "grammar_rule": {
+            "rule_name": "Kung vs Kapag Rule",
+            "rule_statement":  "'Kung' introduces hypothetical or uncertain conditions, while 'kapag' introduces habitual or certain temporal conditions.",
+            "decision_guide": [
+                "If the condition is hypothetical or uncertain → use 'kung'",
+                "If the condition describes a regular/habitual occurrence → use 'kapag'",
+                "If asking a question with 'what if' → use 'kung'"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng 'kung' at 'kapag'.",
+            "detailed_feedback": "Ang 'kung' ay para sa mga di-tiyak na kondisyon, habang ang 'kapag' ay para sa mga regular o tiyak na pangyayari.",
+            "teacher_feedback": "Ipakita ang mga halimbawa ng hypothetical vs habitual na mga sitwasyon."
+        },
+        "severity":  {
+            "impact_on_clarity": "medium",
+            "impact_on_grammar_score":  0.12,
+            "frequency_weight":  1.4
+        },
+        "sources": ["SRC-FP101-2020", "SRC-8LIST-2021"],
+        "rag_metadata": {
+            "embedding_tags": ["kung kapag", "Filipino conditionals", "conjunctions", "pangatnig"],
+            "retrieval_priority": "high",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id":  "ERR-FIL-018",
+        "error_name": "Bukod vs. Maliban confusion",
+        "error_category":  "vocabulary/usage",
+        "sub_category":  "prepositions",
+        "linguistic_focus": ["bukod", "maliban"],
+        "error_type": "semantic confusion",
+        "description": "Using 'bukod' (besides/in addition to) when 'maliban' (except) is needed, or vice versa.",
+        "why_it_occurs": [
+            "Both relate to exclusion/inclusion concepts",
+            "English 'besides' can mean both addition and exception",
+            "Lack of explicit instruction on semantic differences"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment": ["Grade 7", "Grade 8", "Grade 9"],
+        "examples":  {
+            "incorrect": [
+                "Lahat ay dumating **bukod** kay Juan.",
+                "**Maliban** sa basketball, mahilig din siya sa volleyball."
+            ],
+            "correct":  [
+                "Lahat ay dumating **maliban** kay Juan.",
+                "**Bukod** sa basketball, mahilig din siya sa volleyball."
+            ],
+            "explanation": "'Bukod' means 'in addition to' or 'besides' (adding something), while 'maliban' means 'except' or 'aside from' (excluding something)."
+        },
+        "grammar_rule":  {
+            "rule_name":  "Bukod vs Maliban Rule",
+            "rule_statement": "'Bukod' indicates addition (besides, in addition to), while 'maliban' indicates exception (except, aside from).",
+            "decision_guide": [
+                "If adding to a list or set → use 'bukod'",
+                "If excluding from a list or set → use 'maliban'",
+                "Test:  Can you replace with 'in addition to'? → use 'bukod'",
+                "Test: Can you replace with 'except'? → use 'maliban'"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng 'bukod' at 'maliban'.",
+            "detailed_feedback":  "Ang 'bukod' ay nangangahulugang 'dagdag pa' habang ang 'maliban' ay nangangahulugang 'hindi kasama'.",
+            "teacher_feedback":  "Gumamit ng mga konkretong halimbawa upang ipakita ang pagkakaiba ng dalawa."
+        },
+        "severity": {
+            "impact_on_clarity": "high",
+            "impact_on_grammar_score": 0.18,
+            "frequency_weight":  1.2
+        },
+        "sources":  ["SRC-FP101-2020", "SRC-UPCAT-2019"],
+        "rag_metadata": {
+            "embedding_tags": ["bukod maliban", "Filipino prepositions", "addition exception", "pang-ukol"],
+            "retrieval_priority": "high",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-019",
+        "error_name": "Incorrect Verb Focus Selection",
+        "error_category":  "grammar",
+        "sub_category": "verb_morphology",
+        "linguistic_focus": ["actor focus", "object focus", "locative focus", "benefactive focus"],
+        "error_type": "morphological",
+        "description": "Selecting the wrong verb focus (pokus) resulting in unclear or grammatically incorrect sentences.",
+        "why_it_occurs": [
+            "Complex Filipino focus system not present in English",
+            "Difficulty understanding which element to emphasize",
+            "Confusion between -in, i-, -an affixes"
+        ],
+        "difficulty_level": "advanced",
+        "grade_alignment":  ["Grade 8", "Grade 9", "Grade 10"],
+        "examples": {
+            "incorrect": [
+                "**Binili** ng nanay ang palengke ng isda.",
+                "**Kumain** ng bata ang kanin."
+            ],
+            "correct":  [
+                "**Binilhan** ng nanay ang palengke ng isda.  (locative focus)",
+                "**Kinain** ng bata ang kanin.  (object focus)"
+            ],
+            "explanation": "The focus system determines which noun phrase is the grammatical subject (marked by 'ang'). Actor focus uses um-/mag-, object focus uses -in, locative focus uses -an, and benefactive focus uses i-."
+        },
+        "grammar_rule": {
+            "rule_name": "Verb Focus Selection",
+            "rule_statement":  "Choose the appropriate verb affix based on which element (actor, object, location, beneficiary) is the focus of the sentence.",
+            "decision_guide": [
+                "If emphasizing WHO did the action → actor focus (um-, mag-)",
+                "If emphasizing WHAT was acted upon → object focus (-in)",
+                "If emphasizing WHERE action took place → locative focus (-an)",
+                "If emphasizing FOR WHOM action was done → benefactive focus (i-)"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling pokus ng pandiwa.",
+            "detailed_feedback": "Hindi tumutugma ang panlapi ng pandiwa sa pokus ng pangungusap. Suriin kung ano ang nais bigyang-diin.",
+            "teacher_feedback":  "Ituro ang apat na uri ng pokus at ang kaukulang mga panlapi."
+        },
+        "severity": {
+            "impact_on_clarity": "high",
+            "impact_on_grammar_score": 0.25,
+            "frequency_weight":  1.6
+        },
+        "sources":  ["SRC-BALARILA-KWF", "SRC-DEPED-K12-2016"],
+        "rag_metadata": {
+            "embedding_tags": ["verb focus Filipino", "pokus ng pandiwa", "actor object locative benefactive", "Filipino morphology"],
+            "retrieval_priority": "high",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-020",
+        "error_name": "Ikaw/Ka/Mo pronoun confusion",
+        "error_category": "grammar",
+        "sub_category": "pronouns",
+        "linguistic_focus": ["ikaw", "ka", "mo"],
+        "error_type":  "substitution",
+        "description": "Incorrect interchange of second person singular pronouns 'ikaw', 'ka', and 'mo' in different grammatical contexts.",
+        "why_it_occurs": [
+            "All three translate to 'you' in English",
+            "Different grammatical cases not present in English",
+            "Confusion about when each form is appropriate"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment": ["Grade 4", "Grade 5", "Grade 6"],
+        "examples":  {
+            "incorrect": [
+                "Maganda **ikaw**.",
+                "Nasaan ang libro **ka**? ",
+                "**Mo** ba ay gutom?"
+            ],
+            "correct": [
+                "Maganda **ka**.",
+                "Nasaan ang libro **mo**?",
+                "**Ikaw** ba ay gutom?  / Gutom **ka** ba?"
+            ],
+            "explanation": "'Ikaw' is the independent/emphatic form used at the start of sentences or for emphasis.  'Ka' is the enclitic form used after verbs/adjectives.  'Mo' is the possessive/genitive form."
+        },
+        "grammar_rule": {
+            "rule_name": "Ikaw/Ka/Mo Usage",
+            "rule_statement":  "'Ikaw' is independent nominative, 'ka' is enclitic nominative, and 'mo' is genitive (possessive or actor in object-focus constructions).",
+            "decision_guide": [
+                "At the start of a sentence or after 'ay' → use 'ikaw'",
+                "After a verb or adjective → use 'ka'",
+                "To show possession or as unfocused actor → use 'mo'"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling anyo ng panghalip para sa ikalawang panauhan.",
+            "detailed_feedback":  "Piliin ang tamang anyo:  'ikaw' sa simula, 'ka' pagkatapos ng pandiwa, 'mo' para sa pag-aari.",
+            "teacher_feedback":  "Ipakita ang tatlong anyo at ang tamang posisyon sa pangungusap."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_grammar_score": 0.15,
+            "frequency_weight":  1.5
+        },
+        "sources": ["SRC-FP101-2020", "SRC-8LIST-2021"],
+        "rag_metadata": {
+            "embedding_tags": ["ikaw ka mo", "Filipino pronouns", "second person", "panghalip panauhan"],
+            "retrieval_priority": "high",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-021",
+        "error_name": "Maging vs. Magkaroon confusion",
+        "error_category":  "vocabulary/usage",
+        "sub_category": "verbs",
+        "linguistic_focus": ["maging", "magkaroon"],
+        "error_type": "semantic confusion",
+        "description": "Using 'maging' (to become) when 'magkaroon' (to have/acquire) is appropriate, or vice versa.",
+        "why_it_occurs": [
+            "Both verbs relate to change of state",
+            "English 'to be' and 'to have' overlap in some contexts",
+            "Direct translation without considering Filipino semantics"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment": ["Grade 6", "Grade 7", "Grade 8"],
+        "examples":  {
+            "incorrect": [
+                "Gusto kong **maging** ng sariling bahay.",
+                "Sana **magkaroon** siyang mabuting tao."
+            ],
+            "correct": [
+                "Gusto kong **magkaroon** ng sariling bahay.",
+                "Sana **maging** siyang mabuting tao."
+            ],
+            "explanation": "'Maging' means to become or to be (transformation into a state), while 'magkaroon' means to have or acquire (possession or obtaining something)."
+        },
+        "grammar_rule": {
+            "rule_name": "Maging vs Magkaroon Rule",
+            "rule_statement": "'Maging' indicates transformation into a state or identity, while 'magkaroon' indicates acquisition or possession of something.",
+            "decision_guide": [
+                "If about becoming something (identity change) → use 'maging'",
+                "If about having or acquiring something → use 'magkaroon'",
+                "Test:  'to become X' → maging; 'to have X' → magkaroon"
+            ]
+        },
+        "feedback_templates":  {
+            "short_feedback":  "Maling gamit ng 'maging' at 'magkaroon'.",
+            "detailed_feedback": "Gamitin ang 'maging' para sa pagbabago ng estado at 'magkaroon' para sa pagkakaroon o pagkakamit.",
+            "teacher_feedback": "Ipakita ang semantic na pagkakaiba gamit ang mga kongkretong halimbawa."
+        },
+        "severity": {
+            "impact_on_clarity":  "medium",
+            "impact_on_grammar_score": 0.12,
+            "frequency_weight":  1.1
+        },
+        "sources":  ["SRC-BALARILA-KWF", "SRC-DEPED-K12-2016"],
+        "rag_metadata": {
+            "embedding_tags": ["maging magkaroon", "Filipino verbs", "become have", "pandiwa"],
+            "retrieval_priority": "medium",
+            "chunk_type":  "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-022",
+        "error_name": "Incorrect use of 'ba' particle placement",
+        "error_category":  "grammar",
+        "sub_category": "particles",
+        "linguistic_focus": ["ba"],
+        "error_type": "syntactic",
+        "description": "Placing the question particle 'ba' in incorrect positions within interrogative sentences.",
+        "why_it_occurs": [
+            "English question formation differs significantly",
+            "Uncertainty about enclitic placement rules",
+            "Interference from other Philippine languages"
+        ],
+        "difficulty_level": "beginner",
+        "grade_alignment": ["Grade 3", "Grade 4", "Grade 5"],
+        "examples":  {
+            "incorrect": [
+                "Kumain ka **ba** na? ",
+                "**Ba** ikaw ay gutom?",
+                "Siya **ba** kumain?"
+            ],
+            "correct": [
+                "Kumain ka na **ba**?",
+                "Gutom ka **ba**?  / Ikaw **ba** ay gutom?",
+                "Kumain **ba** siya?"
+            ],
+            "explanation": "'Ba' is an enclitic particle that typically follows the first full word or phrase in a question, or comes after the predicate and before the subject in yes/no questions."
+        },
+        "grammar_rule": {
+            "rule_name": "Ba Particle Placement",
+            "rule_statement":  "The question particle 'ba' is placed after the first content word or phrase, or after enclitics like 'na', 'pa', pronouns in second position.",
+            "decision_guide": [
+                "In predicate-first sentences → place 'ba' after the predicate",
+                "With other enclitics → 'ba' typically comes last among enclitics",
+                "After pronouns like 'ka', 'siya' → 'ba' follows the pronoun"
+            ]
+        },
+        "feedback_templates":  {
+            "short_feedback":  "Maling posisyon ng 'ba' sa tanong.",
+            "detailed_feedback": "Ang 'ba' ay dapat ilagay pagkatapos ng unang salita o parirala sa pangungusap.",
+            "teacher_feedback": "Ituro ang tamang pagkakasunod-sunod ng mga enclitic sa Filipino."
+        },
+        "severity": {
+            "impact_on_clarity": "low",
+            "impact_on_grammar_score": 0.08,
+            "frequency_weight":  1.3
+        },
+        "sources":  ["SRC-FP101-2020", "SRC-BALARILA-KWF"],
+        "rag_metadata": {
+            "embedding_tags": ["ba particle", "Filipino questions", "interrogative", "enclitic placement"],
+            "retrieval_priority": "medium",
+            "chunk_type":  "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-023",
+        "error_name": "Hindi vs. Huwag confusion",
+        "error_category":  "grammar",
+        "sub_category":  "negation",
+        "linguistic_focus": ["hindi", "huwag"],
+        "error_type": "substitution",
+        "description": "Using 'hindi' (not - for statements) when 'huwag' (don't - for commands) is needed, or vice versa.",
+        "why_it_occurs": [
+            "Both are negation words",
+            "English uses 'not' and 'don't' which have clearer distinctions",
+            "Confusion about imperative vs declarative mood"
+        ],
+        "difficulty_level": "beginner",
+        "grade_alignment": ["Grade 3", "Grade 4", "Grade 5"],
+        "examples": {
+            "incorrect": [
+                "**Hindi** kang kumain ng marami! ",
+                "**Huwag** siya pumunta kahapon."
+            ],
+            "correct":  [
+                "**Huwag** kang kumain ng marami!",
+                "**Hindi** siya pumunta kahapon."
+            ],
+            "explanation": "'Hindi' negates statements and descriptions (is not, did not, will not), while 'huwag' is used for negative commands and prohibitions (don't, do not)."
+        },
+        "grammar_rule": {
+            "rule_name": "Hindi vs Huwag Rule",
+            "rule_statement": "'Hindi' is the general negator for declarative sentences, while 'huwag' is used specifically for negative imperatives (commands/prohibitions).",
+            "decision_guide": [
+                "If making a statement → use 'hindi'",
+                "If giving a command or prohibition → use 'huwag'",
+                "If describing a state → use 'hindi'",
+                "If telling someone not to do something → use 'huwag'"
+            ]
+        },
+        "feedback_templates":  {
+            "short_feedback":  "Maling gamit ng 'hindi' at 'huwag'.",
+            "detailed_feedback": "Gamitin ang 'hindi' para sa mga pahayag at 'huwag' para sa mga utos o pagbabawal.",
+            "teacher_feedback":  "Ituro ang pagkakaiba ng declarative at imperative mood."
+        },
+        "severity":  {
+            "impact_on_clarity": "medium",
+            "impact_on_grammar_score":  0.10,
+            "frequency_weight":  1.2
+        },
+        "sources":  ["SRC-BALARILA-KWF", "SRC-DEPED-K12-2016"],
+        "rag_metadata": {
+            "embedding_tags": ["hindi huwag", "Filipino negation", "imperative declarative", "negative commands"],
+            "retrieval_priority": "high",
+            "chunk_type":  "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-024",
+        "error_name": "Wala vs. Hindi confusion",
+        "error_category": "grammar",
+        "sub_category": "negation",
+        "linguistic_focus": ["wala", "hindi"],
+        "error_type": "substitution",
+        "description":  "Using 'hindi' when 'wala' is needed for expressing absence or non-existence, or vice versa.",
+        "why_it_occurs": [
+            "Both are negation words but serve different functions",
+            "English 'no' and 'not' overlap in ways that don't map to Filipino",
+            "Difficulty distinguishing negation of existence vs negation of quality"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment":  ["Grade 4", "Grade 5", "Grade 6"],
+        "examples": {
+            "incorrect": [
+                "**Hindi** akong pera.",
+                "**Wala** siya maganda."
+            ],
+            "correct":  [
+                "**Wala** akong pera.",
+                "**Hindi** siya maganda."
+            ],
+            "explanation": "'Wala' expresses absence, non-existence, or lack of something (I don't have, there is no). 'Hindi' negates verbs, adjectives, and adverbs (not beautiful, did not go)."
+        },
+        "grammar_rule": {
+            "rule_name": "Wala vs Hindi Rule",
+            "rule_statement": "'Wala' is an existential negator expressing absence or lack, while 'hindi' is a standard negator for qualities, actions, and states.",
+            "decision_guide": [
+                "If expressing absence/lack of possession → use 'wala'",
+                "If negating an adjective or verb → use 'hindi'",
+                "If saying 'there is no.. .' → use 'wala'",
+                "If saying 'it is not...' → use 'hindi'"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng 'wala' at 'hindi'.",
+            "detailed_feedback":  "Gamitin ang 'wala' para sa kawalan at 'hindi' para sa pagtanggi ng katangian o kilos.",
+            "teacher_feedback": "Ipakita ang pagkakaiba ng existential at standard negation."
+        },
+        "severity":  {
+            "impact_on_clarity": "high",
+            "impact_on_grammar_score": 0.15,
+            "frequency_weight":  1.4
+        },
+        "sources": ["SRC-BALARILA-KWF", "SRC-DEPED-K12-2016"],
+        "rag_metadata": {
+            "embedding_tags": ["wala hindi", "Filipino negation", "existential negation", "pagtanggi"],
+            "retrieval_priority":  "high",
+            "chunk_type":  "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-025",
+        "error_name": "Incorrect Aspect/Tense Conjugation",
+        "error_category": "grammar",
+        "sub_category": "verb_morphology",
+        "linguistic_focus": ["aspekto", "nakaraan", "kasalukuyan", "panghinaharap"],
+        "error_type": "morphological",
+        "description": "Errors in conjugating verbs for the correct aspect (completed, ongoing, contemplated).",
+        "why_it_occurs": [
+            "Filipino aspect system differs from English tense",
+            "Complex affix combinations for each aspect",
+            "Difficulty with reduplication patterns"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment": ["Grade 5", "Grade 6", "Grade 7"],
+        "examples": {
+            "incorrect": [
+                "**Mag-aral** ako kahapon.  (wrong:  infinitive used for past)",
+                "**Kumain** na siya bukas. (wrong: past used for future)"
+            ],
+            "correct":  [
+                "**Nag-aral** ako kahapon.",
+                "**Kakain** siya bukas."
+            ],
+            "explanation": "Filipino verbs conjugate for aspect:  completed (perfective), ongoing (imperfective), and contemplated (future). Each verb type has specific patterns."
+        },
+        "grammar_rule": {
+            "rule_name": "Filipino Aspect Conjugation",
+            "rule_statement": "Verbs must be conjugated to match the aspect:  nakaraan (completed), kasalukuyan (ongoing with reduplication), and panghinaharap (contemplated).",
+            "decision_guide": [
+                "For completed actions → use past/perfective form (nag-, um-, etc.)",
+                "For ongoing actions → use imperfective with CV reduplication (nag-a-, uma-, etc.)",
+                "For future/intended actions → use contemplated form (mag-, CV reduplication of root)"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Mali ang aspekto ng pandiwa.",
+            "detailed_feedback": "Hindi tumutugma ang anyo ng pandiwa sa panahon ng pangungusap.  Suriin ang aspekto.",
+            "teacher_feedback": "Ituro ang tatlong aspekto at ang kaukulang pagbabago ng pandiwa."
+        },
+        "severity": {
+            "impact_on_clarity": "high",
+            "impact_on_grammar_score": 0.20,
+            "frequency_weight":  1.7
+        },
+        "sources":  ["SRC-BALARILA-KWF", "SRC-TUTTLE-2015"],
+        "rag_metadata": {
+            "embedding_tags": ["Filipino verb aspect", "tense conjugation", "aspekto ng pandiwa", "verb morphology"],
+            "retrieval_priority": "high",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-026",
+        "error_name": "Linker (na/-ng) omission or misuse",
+        "error_category":  "grammar",
+        "sub_category": "linkers",
+        "linguistic_focus":  ["na", "-ng", "linker"],
+        "error_type": "omission / substitution",
+        "description": "Omitting the required linker between modifiers and head words, or using the wrong form.",
+        "why_it_occurs": [
+            "English does not have equivalent linker particles",
+            "Uncertainty about when to use 'na' vs '-ng'",
+            "Phonological rules not internalized"
+        ],
+        "difficulty_level": "beginner",
+        "grade_alignment": ["Grade 3", "Grade 4", "Grade 5"],
+        "examples": {
+            "incorrect": [
+                "maliit bahay (missing linker)",
+                "malaki**na** bahay (wrong form after vowel)",
+                "mabait**-ng** bata (wrong form after consonant)"
+            ],
+            "correct": [
+                "maliit **na** bahay",
+                "malaki**ng** bahay",
+                "mabait **na** bata"
+            ],
+            "explanation": "Linkers connect modifiers to head words.  Use '-ng' when the preceding word ends in a vowel, and 'na' when it ends in a consonant (except 'n', which takes '-g')."
+        },
+        "grammar_rule": {
+            "rule_name": "Linker (Na/-ng) Rule",
+            "rule_statement":  "Use '-ng' after vowels, 'na' after consonants (except 'n' which takes '-g'). Linkers are required between modifiers and head words.",
+            "decision_guide": [
+                "Word ends in vowel (a, e, i, o, u) → attach '-ng'",
+                "Word ends in consonant → use separate 'na'",
+                "Word ends in 'n' → change to '-ng' (attached)"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Kulang o mali ang linker (na/-ng).",
+            "detailed_feedback": "Maglagay ng tamang linker sa pagitan ng pang-uri at pangngalan.  '-ng' pagkatapos ng patinig, 'na' pagkatapos ng katinig.",
+            "teacher_feedback": "Ituro ang phonological rule para sa pagpili ng linker."
+        },
+        "severity": {
+            "impact_on_clarity": "low",
+            "impact_on_grammar_score": 0.10,
+            "frequency_weight":  1.8
+        },
+        "sources":  ["SRC-BALARILA-KWF", "SRC-FP101-2020"],
+        "rag_metadata": {
+            "embedding_tags": ["linker na ng", "Filipino linkers", "pangawing", "modifier connection"],
+            "retrieval_priority": "high",
+            "chunk_type":  "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-027",
+        "error_name": "Code-switching interference errors",
+        "error_category":  "vocabulary/usage",
+        "sub_category":  "language_mixing",
+        "linguistic_focus":  ["Taglish", "code-switching", "borrowing"],
+        "error_type": "interference",
+        "description": "Grammatical errors caused by mixing Filipino and English structures inappropriately, especially in formal writing.",
+        "why_it_occurs": [
+            "Prevalence of Taglish in everyday speech",
+            "Uncertainty about Filipino equivalents of English terms",
+            "Influence of English-medium instruction"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment":  ["Grade 7", "Grade 8", "Grade 9", "Grade 10"],
+        "examples": {
+            "incorrect":  [
+                "Nag-**enjoy** ako sa party. (using English verb with Filipino affix incorrectly)",
+                "I-**submit** mo ang assignment mo. (formal writing with unnecessary English)"
+            ],
+            "correct":  [
+                "Nag-**enjoy** ako sa party.  (acceptable in informal) / **Nasiyahan** ako sa party. (formal)",
+                "**Ipasa** mo ang takdang-aralin mo."
+            ],
+            "explanation":  "In formal Filipino writing, use Filipino equivalents when available. When borrowing English words, apply Filipino affixes consistently."
+        },
+        "grammar_rule": {
+            "rule_name": "Code-switching Guidelines",
+            "rule_statement":  "In formal writing, prefer Filipino words over English.  When borrowing is necessary, integrate English words using Filipino morphology consistently.",
+            "decision_guide":  [
+                "For formal academic writing → use Filipino equivalents",
+                "If no Filipino equivalent exists → borrow with proper affixation",
+                "Avoid mid-sentence language switches in formal contexts"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "May code-switching na hindi angkop sa pormal na pagsulat.",
+            "detailed_feedback": "Gamitin ang katumbas na salitang Filipino sa halip na hiram na salitang Ingles sa pormal na konteksto.",
+            "teacher_feedback": "Turuan ang mga estudyante ng mga katumbas na Filipino ng karaniwang Ingles na salita."
+        },
+        "severity": {
+            "impact_on_clarity": "low",
+            "impact_on_grammar_score": 0.08,
+            "frequency_weight":  1.5
+        },
+        "sources": ["SRC-DEPED-K12-2016", "SRC-DLSU-2016"],
+        "rag_metadata": {
+            "embedding_tags": ["code-switching Filipino", "Taglish errors", "language mixing", "borrowing"],
+            "retrieval_priority": "medium",
+            "chunk_type":  "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-028",
+        "error_name": "Ang/Ng/Sa marker misuse",
+        "error_category": "grammar",
+        "sub_category": "case_markers",
+        "linguistic_focus":  ["ang", "ng", "sa"],
+        "error_type":  "substitution",
+        "description": "Using incorrect case markers resulting in unclear grammatical relationships between sentence elements.",
+        "why_it_occurs": [
+            "English lacks equivalent case marker system",
+            "Confusion about nominative, genitive, and oblique functions",
+            "Difficulty identifying the focused element"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment": ["Grade 5", "Grade 6", "Grade 7"],
+        "examples": {
+            "incorrect": [
+                "Kumain **ang** kanin **ng** bata.",
+                "Binigay ko **ang** libro **ang** kaibigan ko."
+            ],
+            "correct":  [
+                "Kumain **ng** kanin **ang** bata.  / Kinain **ng** bata **ang** kanin.",
+                "Binigay ko **ang** libro **sa** kaibigan ko."
+            ],
+            "explanation": "'Ang' marks the focus/topic (nominative), 'ng' marks the non-focused actor or object (genitive), and 'sa' marks direction, location, or indirect object (oblique)."
+        },
+        "grammar_rule":  {
+            "rule_name":  "Case Marker Usage",
+            "rule_statement":  "'Ang' marks the grammatical subject/focus, 'ng' marks possessor or non-focused core arguments, 'sa' marks oblique arguments (location, direction, beneficiary).",
+            "decision_guide": [
+                "Which element is the focus? → mark with 'ang'",
+                "What/whom is being acted upon (non-focus)? → mark with 'ng'",
+                "Where/to whom?  → mark with 'sa'"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng pananda (ang/ng/sa).",
+            "detailed_feedback": "Suriin kung alin ang pokus ng pangungusap at gamitin ang tamang pananda.",
+            "teacher_feedback": "Ituro ang sistema ng kaso (case system) ng Filipino gamit ang mga pagsasanay."
+        },
+        "severity": {
+            "impact_on_clarity": "high",
+            "impact_on_grammar_score": 0.22,
+            "frequency_weight":  1.6
+        },
+        "sources":  ["SRC-BALARILA-KWF", "SRC-TUTTLE-2015"],
+        "rag_metadata": {
+            "embedding_tags": ["ang ng sa markers", "Filipino case system", "pananda", "grammatical focus"],
+            "retrieval_priority": "high",
+            "chunk_type": "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-029",
+        "error_name": "Para/Upang vs. Para sa confusion",
+        "error_category":  "grammar",
+        "sub_category": "prepositions_conjunctions",
+        "linguistic_focus": ["para", "upang", "para sa"],
+        "error_type": "substitution",
+        "description": "Confusing 'para/upang' (in order to - purpose conjunction) with 'para sa' (for - benefactive preposition).",
+        "why_it_occurs": [
+            "Both relate to purpose in English",
+            "'For' in English covers both meanings",
+            "Structural differences not clearly taught"
+        ],
+        "difficulty_level": "intermediate",
+        "grade_alignment": ["Grade 6", "Grade 7", "Grade 8"],
+        "examples":  {
+            "incorrect": [
+                "Nag-aral ako **para sa** pumasa.  (wrong: used preposition before verb)",
+                "Ito ay **upang** iyo.  (wrong: used conjunction without verb)"
+            ],
+            "correct": [
+                "Nag-aral ako **para/upang** pumasa.",
+                "Ito ay **para sa** iyo."
+            ],
+            "explanation":  "'Para' or 'upang' introduces purpose clauses (followed by verbs). 'Para sa' is a preposition meaning 'for' (followed by nouns/pronouns)."
+        },
+        "grammar_rule": {
+            "rule_name": "Para/Upang vs Para sa",
+            "rule_statement": "'Para' and 'upang' introduce purpose clauses (+ verb). 'Para sa' is a benefactive preposition (+ noun/pronoun).",
+            "decision_guide": [
+                "If followed by a verb (action) → use 'para' or 'upang'",
+                "If followed by a noun/pronoun (recipient) → use 'para sa'",
+                "Test:  'in order to' → para/upang; 'for (someone)' → para sa"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Maling gamit ng 'para/upang' at 'para sa'.",
+            "detailed_feedback": "Gamitin ang 'para/upang' bago ang pandiwa at 'para sa' bago ang pangngalan o panghalip.",
+            "teacher_feedback":  "Ituro ang pagkakaiba ng purpose conjunction at benefactive preposition."
+        },
+        "severity": {
+            "impact_on_clarity": "medium",
+            "impact_on_grammar_score": 0.12,
+            "frequency_weight":  1.2
+        },
+        "sources":  ["SRC-BALARILA-KWF", "SRC-DEPED-K12-2016"],
+        "rag_metadata":  {
+            "embedding_tags":  ["para upang para sa", "Filipino purpose", "conjunction preposition", "layunin"],
+            "retrieval_priority": "medium",
+            "chunk_type":  "error_pattern"
+        }
+    },
+    {
+        "error_id": "ERR-FIL-030",
+        "error_name": "Subject-Predicate Agreement in Focus",
+        "error_category":  "grammar",
+        "sub_category": "agreement",
+        "linguistic_focus":  ["subject-verb agreement", "focus agreement"],
+        "error_type": "agreement",
+        "description": "Mismatch between the verb focus and the case marking of arguments, causing unclear or ungrammatical sentences.",
+        "why_it_occurs": [
+            "Complex interaction between verb focus and case markers",
+            "Transferring English subject-verb agreement concepts",
+            "Failure to identify which element should be the grammatical subject"
+        ],
+        "difficulty_level": "advanced",
+        "grade_alignment":  ["Grade 8", "Grade 9", "Grade 10"],
+        "examples": {
+            "incorrect": [
+                "**Kinain** ang bata ng mangga. (object focus verb but child marked as focus)",
+                "**Bumili** ng sapatos ang tindahan. (actor focus but store marked as focus)"
+            ],
+            "correct": [
+                "**Kinain** ng bata ang mangga.",
+                "**Bumili** ng sapatos sa tindahan ang nanay.  / **Binilhan** ng nanay ng sapatos ang tindahan."
+            ],
+            "explanation": "The element marked with 'ang' must correspond to the verb's focus.  Actor-focus verbs require the actor to be marked with 'ang', object-focus verbs require the object to be marked with 'ang', etc."
+        },
+        "grammar_rule": {
+            "rule_name": "Focus-Case Agreement",
+            "rule_statement": "The verb focus must agree with the case marking:  ang-marked NP must match the semantic role indicated by the verb's focus affix.",
+            "decision_guide": [
+                "Actor focus (um-, mag-) → actor is 'ang'",
+                "Object focus (-in) → object is 'ang'",
+                "Locative focus (-an) → location is 'ang'",
+                "Benefactive focus (i-) → beneficiary is 'ang'"
+            ]
+        },
+        "feedback_templates": {
+            "short_feedback": "Hindi tugma ang pokus ng pandiwa at ang pananda.",
+            "detailed_feedback":  "Tiyakin na ang elementong may 'ang' ay tumutugma sa pokus ng pandiwa.",
+            "teacher_feedback": "Ituro ang relasyon ng verb focus at case marking gamit ang mga pagsasanay."
+        },
+        "severity": {
+            "impact_on_clarity":  "high",
+            "impact_on_grammar_score": 0.25,
+            "frequency_weight": 1.4
+        },
+        "sources":  ["SRC-BALARILA-KWF", "SRC-TUTTLE-2015"],
+        "rag_metadata": {
+            "embedding_tags": ["focus agreement Filipino", "case marking agreement", "verb focus matching", "subject predicate"],
+            "retrieval_priority":  "high",
+            "chunk_type": "error_pattern"
+        }
     }
+
 ]

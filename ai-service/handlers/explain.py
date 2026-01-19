@@ -185,17 +185,19 @@ def build_explanation_prompt_with_rag(data: dict, return_chunks: bool = False) -
                     rag_context = context_response
 
             elif mode == "reading-comprehension":
-                # Reading comprehension context
+                # Reading comprehension context - USE DEDICATED STRATEGY
                 rag_query = f"Reading comprehension: {word}. Passage: {sentence}"
                 context_response = rag.get_context(
                     rag_query,
-                    context_type="vocabulary",
+                    context_type="reading-comprehension",  # CHANGED: Use dedicated type
                     top_k=2,
                     min_similarity=0.3,
                     include_mistakes=False,
                     return_chunks=return_chunks,
                     word=word,
                     sentence=sentence,
+                    selected_answer=selected,
+                    correct_answer=correct,
                 )
 
                 if return_chunks:
@@ -204,6 +206,51 @@ def build_explanation_prompt_with_rag(data: dict, return_chunks: bool = False) -
                     retrieval_metadata = context_response.retrieval_metadata
                 else:
                     rag_context = context_response
+
+            elif mode == "sentence-ordering":
+                # Sentence ordering - USE DEDICATED STRATEGY
+                rag_query = f"Filipino sentence ordering: Correct: {correct}"
+                context_response = rag.get_context(
+                    rag_query,
+                    context_type="sentence-ordering",  # CHANGED: Use dedicated type
+                    top_k=3,
+                    min_similarity=0.20,
+                    include_mistakes=True,
+                    return_chunks=return_chunks,
+                    sentence=correct,  # Pass correct sentence as reference
+                    selected_answer=selected,
+                    correct_answer=correct,
+                )
+
+                if return_chunks:
+                    rag_context = context_response.formatted_context
+                    retrieved_chunks = context_response.retrieved_chunks
+                    retrieval_metadata = context_response.retrieval_metadata
+                else:
+                    rag_context = context_response
+
+            elif mode == "choose-sentence":
+                # Choose sentence - USE DEDICATED STRATEGY
+                rag_query = f"Filipino sentence selection: Context: {sentence}. Best: {correct}"
+                context_response = rag.get_context(
+                    rag_query,
+                    context_type="choose-sentence",  # CHANGED: Use dedicated type
+                    top_k=3,
+                    min_similarity=0.20,
+                    include_mistakes=True,
+                    return_chunks=return_chunks,
+                    sentence=sentence,  # Pass context
+                    selected_answer=selected,
+                    correct_answer=correct,
+                )
+
+                if return_chunks:
+                    rag_context = context_response.formatted_context
+                    retrieved_chunks = context_response.retrieved_chunks
+                    retrieval_metadata = context_response.retrieval_metadata
+                else:
+                    rag_context = context_response
+
         except Exception as e:
             print(f"⚠️ Error getting RAG context: {e}")
             import traceback

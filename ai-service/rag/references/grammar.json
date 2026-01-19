@@ -967,6 +967,576 @@
                 ]
             }
         ]
+    },
+    {
+        "source": "DepEd K-12 Filipino Curriculum Guide",
+        "url": "https://www.deped.gov.ph/k-to-12/curriculum-guides/",
+        "topic": "Filipino Grammar for K-12 Education",
+        "grammar_sections": [
+            {
+                "section_name": "Pagbubuo ng Salita (Word Formation)",
+                "rules": [
+                    {
+                        "name": "Pag-uulit (Reduplication)",
+                        "description":  "Repeating syllables or words to create new meanings or grammatical forms.",
+                        "examples": [
+                            {"Type": "CV Reduplication (Aspect)", "Base": "kain", "Reduplicated": "kakain", "Meaning": "will eat"},
+                            {"Type": "Full Reduplication (Intensity)", "Base": "dahan", "Reduplicated": "dahan-dahan", "Meaning": "very slowly"},
+                            {"Type": "Full Reduplication (Plurality)", "Base": "bahay", "Reduplicated": "bahay-bahay", "Meaning": "toy houses / each house"},
+                            {"Type": "Full Reduplication (Distribution)", "Base": "isa", "Reduplicated": "isa-isa", "Meaning": "one by one"},
+                            {"Type": "Partial Reduplication (Diminutive)", "Base": "laki", "Reduplicated": "maliliit", "Meaning": "very small (plural)"}
+                        ],
+                        "common_errors": "Incorrect placement of reduplication or wrong syllable reduplicated.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name":  "Pagtatambal (Compounding)",
+                        "description": "Combining two or more words to create new words.",
+                        "examples": [
+                            {"Components": "araw + gabi", "Compound": "araw-gabi", "Meaning":  "day and night"},
+                            {"Components": "bahay + kubo", "Compound": "bahay-kubo", "Meaning": "nipa hut"},
+                            {"Components": "tanong + sagot", "Compound":  "tanungan", "Meaning": "quiz/test"},
+                            {"Components": "kama + tulog", "Compound": "kamatulugan", "Meaning": "bedroom"},
+                            {"Components": "ulo + nan", "Compound": "ulunan", "Meaning": "pillow"}
+                        ],
+                        "common_errors": "Incorrect hyphenation or improper blending of compound elements.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Paglalagay ng Panlapi (Affixation)",
+                        "description":  "Adding prefixes, infixes, or suffixes to root words to derive new words.",
+                        "examples": [
+                            {"Type": "Prefix (Unlapi)", "Affix": "mag-", "Root": "aral", "Result": "mag-aral", "Meaning":  "to study"},
+                            {"Type": "Infix (Gitlapi)", "Affix": "-um-", "Root": "kain", "Result": "kumain", "Meaning": "ate"},
+                            {"Type": "Suffix (Hulapi)", "Affix": "-in", "Root": "kain", "Result": "kainin", "Meaning": "to be eaten"},
+                            {"Type":  "Circumfix (Kabilaan)", "Affix": "ka-.. .-an", "Root": "buti", "Result": "kabutihan", "Meaning": "goodness"},
+                            {"Type": "Multiple Affixes", "Affix": "pinaka- + ma-", "Root": "ganda", "Result": "pinakamaganda", "Meaning": "most beautiful"}
+                        ],
+                        "common_errors": "Wrong affix selection or incorrect placement of infixes.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Pagpapaikli (Clipping/Abbreviation)",
+                        "description":  "Shortening words while retaining meaning, common in informal Filipino.",
+                        "examples": [
+                            {"Full Form": "opo", "Clipped":  "'po", "Context": "respectful affirmation"},
+                            {"Full Form": "sa akin", "Clipped": "sa'kin", "Context": "to me/mine"},
+                            {"Full Form":  "hindi", "Clipped": "'di", "Context": "not"},
+                            {"Full Form": "ganoon", "Clipped": "ganon", "Context": "like that"}
+                        ],
+                        "common_errors": "Using clipped forms in formal writing contexts.",
+                        "difficulty_level": "Beginner"
+                    }
+                ]
+            },
+            {
+                "section_name":  "Mga Parirala at Sugnay (Phrases and Clauses)",
+                "rules": [
+                    {
+                        "name": "Pariralang Pangngalan (Noun Phrase)",
+                        "description": "A group of words with a noun as the head, including modifiers and determiners.",
+                        "examples":  [
+                            {"Filipino":  "ang magandang bulaklak", "English": "the beautiful flower"},
+                            {"Filipino": "mga matalinong estudyante", "English": "intelligent students"},
+                            {"Filipino":  "bahay na bato", "English": "stone house"}
+                        ],
+                        "common_errors": "Omitting linkers between modifiers and nouns.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Pariralang Pandiwa (Verb Phrase)",
+                        "description": "A group of words with a verb as the head, including auxiliaries and complements.",
+                        "examples":  [
+                            {"Filipino": "kumakain ng mangga", "English": "eating mango"},
+                            {"Filipino":  "nag-aaral ng Filipino", "English": "studying Filipino"},
+                            {"Filipino": "gustong matulog", "English": "wants to sleep"}
+                        ],
+                        "common_errors": "Incorrect aspect marking within verb phrases.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Pariralang Pang-uri (Adjective Phrase)",
+                        "description": "A group of words with an adjective as the head.",
+                        "examples": [
+                            {"Filipino": "napakaganda", "English": "very beautiful"},
+                            {"Filipino": "masyadong mataas", "English": "too tall"},
+                            {"Filipino": "medyo malungkot", "English": "somewhat sad"}
+                        ],
+                        "common_errors": "Incorrect intensifier placement.",
+                        "difficulty_level":  "Intermediate"
+                    },
+                    {
+                        "name": "Sugnay na Makaangkop (Dependent Clause)",
+                        "description": "Clauses that cannot stand alone and must be attached to an independent clause.",
+                        "examples": [
+                            {"Type": "Temporal", "Filipino": "nang dumating siya", "English": "when he arrived"},
+                            {"Type": "Conditional", "Filipino": "kung mag-aaral ka", "English": "if you study"},
+                            {"Type": "Causal", "Filipino": "dahil umuulan", "English": "because it's raining"},
+                            {"Type": "Purpose", "Filipino": "upang matuto", "English": "in order to learn"},
+                            {"Type": "Concessive", "Filipino": "kahit mahirap", "English": "even though it's difficult"}
+                        ],
+                        "common_errors":  "Using dependent clauses as complete sentences.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Sugnay na Malaya (Independent Clause)",
+                        "description": "Clauses that can stand alone as complete sentences.",
+                        "examples":  [
+                            {"Filipino": "Kumain ang bata.", "English": "The child ate. "},
+                            {"Filipino": "Maganda ang panahon.", "English": "The weather is beautiful."},
+                            {"Filipino": "Pupunta ako sa palengke.", "English": "I will go to the market."}
+                        ],
+                        "common_errors": "Run-on sentences without proper connectors.",
+                        "difficulty_level": "Beginner"
+                    }
+                ]
+            },
+            {
+                "section_name": "Mga Pananda at Pantukoy (Markers and Determiners)",
+                "rules": [
+                    {
+                        "name": "Mga Pantukoy sa Pangngalan (Noun Markers)",
+                        "description": "Markers that indicate the grammatical role of noun phrases.",
+                        "examples":  [
+                            {"Marker": "ang", "Function": "Nominative (focus/topic)", "Example": "Kumain ang bata. "},
+                            {"Marker":  "ng", "Function": "Genitive (non-focus actor/object, possessive)", "Example": "Kinain ng bata ang mangga."},
+                            {"Marker": "sa", "Function": "Oblique (location, direction, beneficiary)", "Example": "Pumunta siya sa palengke."},
+                            {"Marker": "si/sina", "Function": "Personal name marker (singular/plural)", "Example": "Kumain si Maria.  / Kumain sina Maria at Pedro."},
+                            {"Marker": "ni/nina", "Function": "Personal name genitive (singular/plural)", "Example": "Aklat ni Juan. / Bahay nina Lola."},
+                            {"Marker": "kay/kina", "Function": "Personal name oblique (singular/plural)", "Example": "Pumunta siya kay Lola. / Pumunta siya kina Tito."}
+                        ],
+                        "common_errors": "Confusing 'si/sina' with 'siya/sila' or using wrong case markers.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Mga (Plural Marker)",
+                        "description": "The particle 'mga' indicates plurality of nouns.",
+                        "examples": [
+                            {"Singular": "aklat", "Plural": "mga aklat", "English": "books"},
+                            {"Singular": "bata", "Plural": "mga bata", "English": "children"},
+                            {"Usage Note": "mga + time expression", "Example": "mga alas-tres", "English": "around three o'clock"}
+                        ],
+                        "common_errors":  "Forgetting 'mga' or using it with already plural-marked words.",
+                        "difficulty_level": "Beginner"
+                    }
+                ]
+            },
+            {
+                "section_name":  "Mga Ekspresyong Panretorika (Rhetorical Expressions)",
+                "rules": [
+                    {
+                        "name": "Pagpapatibay (Affirmation)",
+                        "description": "Words and expressions used to affirm or agree.",
+                        "examples": [
+                            {"Filipino": "Oo", "English": "Yes", "Formality": "Neutral"},
+                            {"Filipino": "Opo", "English": "Yes (respectful)", "Formality": "Formal/Respectful"},
+                            {"Filipino":  "Oho", "English": "Yes (respectful, regional)", "Formality": "Formal/Regional"},
+                            {"Filipino": "Siyempre", "English": "Of course", "Formality": "Neutral"},
+                            {"Filipino": "Talaga", "English": "Really/Indeed", "Formality": "Neutral"}
+                        ],
+                        "common_errors": "Using 'oo' when 'opo' is required for respect.",
+                        "difficulty_level": "Beginner"
+                    },
+                    {
+                        "name":  "Pagtanggi (Negation)",
+                        "description":  "Words and expressions used to negate or deny.",
+                        "examples": [
+                            {"Filipino": "Hindi", "English": "No/Not", "Usage": "General negation"},
+                            {"Filipino": "Hindi po", "English": "No (respectful)", "Usage": "Respectful negation"},
+                            {"Filipino": "Wala", "English": "None/Nothing/Not have", "Usage": "Existential negation"},
+                            {"Filipino": "Huwag", "English": "Don't", "Usage": "Negative imperative"},
+                            {"Filipino": "Ayaw", "English": "Don't want", "Usage": "Negation of desire"}
+                        ],
+                        "common_errors": "Using 'hindi' for existential negation instead of 'wala'.",
+                        "difficulty_level": "Beginner"
+                    },
+                    {
+                        "name": "Pagpapahayag ng Kagustuhan (Expressing Desire/Want)",
+                        "description": "Expressions for stating wants, likes, and preferences.",
+                        "examples":  [
+                            {"Filipino": "Gusto ko.. .", "English": "I want/like...", "Structure": "Gusto + ng-pronoun + ng/verb"},
+                            {"Filipino": "Ibig kong.. .", "English": "I want to...", "Structure": "Ibig + ng-pronoun + verb"},
+                            {"Filipino": "Nais kong...", "English": "I wish to...  (formal)", "Structure": "Nais + ng-pronoun + verb"},
+                            {"Filipino": "Ayaw kong...", "English": "I don't want.. .", "Structure": "Ayaw + ng-pronoun + verb"}
+                        ],
+                        "common_errors": "Using 'ako' instead of 'ko' after gusto/ayaw.",
+                        "difficulty_level": "Beginner"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "source": "UPCAT Filipino Review Materials",
+        "url": "https://upcat.up.edu. ph/",
+        "topic": "Advanced Filipino Grammar for College Entrance Examinations",
+        "grammar_sections": [
+            {
+                "section_name": "Pagsusuri ng Pangungusap (Sentence Analysis)",
+                "rules": [
+                    {
+                        "name": "Paksa at Panaguri (Subject and Predicate)",
+                        "description": "Identifying the topic (paksa) and comment (panaguri) in Filipino sentences.",
+                        "examples":  [
+                            {"Filipino": "Maganda ang bulaklak.", "Panaguri": "Maganda", "Paksa": "ang bulaklak"},
+                            {"Filipino": "Kumain ng mangga ang bata.", "Panaguri": "Kumain ng mangga", "Paksa":  "ang bata"},
+                            {"Filipino": "Si Maria ay matalino.", "Paksa": "Si Maria", "Panaguri": "matalino"}
+                        ],
+                        "common_errors": "Confusing grammatical subject with semantic agent.",
+                        "difficulty_level": "Advanced"
+                    },
+                    {
+                        "name": "Kayarian ng Pangungusap (Sentence Patterns)",
+                        "description": "Different structural patterns in Filipino sentences.",
+                        "examples": [
+                            {"Pattern": "Payak (Simple)", "Example": "Kumain ang bata.", "Description": "Single independent clause"},
+                            {"Pattern":  "Tambalan (Compound)", "Example": "Kumain ang bata at uminom siya.", "Description": "Two independent clauses joined by conjunction"},
+                            {"Pattern": "Hugnayan (Complex)", "Example": "Kumain ang bata nang dumating ang nanay.", "Description": "Independent + dependent clause"},
+                            {"Pattern": "Tambalan-Hugnayan (Compound-Complex)", "Example": "Kumain ang bata at uminom siya nang dumating ang nanay.", "Description": "Multiple clauses of different types"}
+                        ],
+                        "common_errors": "Improper joining of clauses or missing connectors.",
+                        "difficulty_level": "Advanced"
+                    },
+                    {
+                        "name": "Uri ng Panaguri (Types of Predicates)",
+                        "description":  "Classification of predicates by their semantic content.",
+                        "examples": [
+                            {"Type": "Pandiwa (Verbal)", "Example": "Kumain ang bata.", "Description": "Predicate is a verb phrase"},
+                            {"Type": "Pangngalan (Nominal)", "Example": "Guro ang nanay ko.", "Description": "Predicate is a noun"},
+                            {"Type": "Pang-uri (Adjectival)", "Example": "Maganda ang bulaklak.", "Description": "Predicate is an adjective"},
+                            {"Type": "Pang-abay (Adverbial)", "Example": "Dito ang pulong.", "Description": "Predicate is an adverb"},
+                            {"Type": "Panumbas (Existential)", "Example": "May pagkain sa mesa.", "Description": "Predicate expresses existence"}
+                        ],
+                        "common_errors": "Misidentifying predicate types in inverted sentences.",
+                        "difficulty_level": "Advanced"
+                    }
+                ]
+            },
+            {
+                "section_name":  "Mga Karaniwang Pagkakamali sa Pagsulat (Common Writing Errors)",
+                "rules": [
+                    {
+                        "name": "Kalabisan (Redundancy)",
+                        "description":  "Unnecessary repetition of ideas or words.",
+                        "examples":  [
+                            {"Redundant": "umakyat pataas", "Correct": "umakyat", "Explanation": "'Umakyat' already implies upward movement"},
+                            {"Redundant": "bumalik pabalik", "Correct": "bumalik", "Explanation":  "'Bumalik' already implies returning"},
+                            {"Redundant":  "bago pa lamang", "Correct": "bago pa / bago lamang", "Explanation": "Choose one intensifier"},
+                            {"Redundant":  "muling ulitin", "Correct": "ulitin", "Explanation": "'Muling' is redundant with 'ulitin'"}
+                        ],
+                        "common_errors": "Adding unnecessary words that repeat the meaning.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name":  "Kakulangan (Incomplete Construction)",
+                        "description": "Missing essential elements in sentences.",
+                        "examples": [
+                            {"Incomplete": "Dahil sa ulan.", "Complete": "Hindi siya pumasok dahil sa ulan.", "Missing": "Main clause"},
+                            {"Incomplete":  "Ang bata na matalino.", "Complete": "Ang batang matalino ay nanalo.", "Missing": "Predicate"},
+                            {"Incomplete": "Kumain at uminom.", "Complete": "Kumain at uminom ang bisita.", "Missing": "Subject"}
+                        ],
+                        "common_errors": "Treating dependent clauses as complete sentences.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name":  "Pagkakasunud-sunod (Word Order Issues)",
+                        "description": "Problems with the arrangement of sentence elements.",
+                        "examples":  [
+                            {"Awkward": "Kinain mangga ng bata ang.", "Natural": "Kinain ng bata ang mangga.", "Issue": "Incorrect marker and noun placement"},
+                            {"Awkward": "Ako gusto ng kape.", "Natural": "Gusto ko ng kape.", "Issue": "Subject-predicate inversion error"}
+                        ],
+                        "common_errors": "Applying English word order to Filipino sentences.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Di-wastong Pag-uugnay (Faulty Parallelism)",
+                        "description": "Inconsistent grammatical structure in coordinated elements.",
+                        "examples": [
+                            {"Faulty": "Mahilig siyang kumanta, sumayaw, at pagluluto.", "Correct": "Mahilig siyang kumanta, sumayaw, at magluto.", "Issue": "Inconsistent verb forms"},
+                            {"Faulty": "Matalino, masipag, at may kagandahan.", "Correct": "Matalino, masipag, at maganda.", "Issue": "Mixing adjective types"}
+                        ],
+                        "common_errors": "Not maintaining consistent structure in lists or series.",
+                        "difficulty_level": "Advanced"
+                    }
+                ]
+            },
+            {
+                "section_name": "Retorika at Estilo (Rhetoric and Style)",
+                "rules": [
+                    {
+                        "name": "Paggamit ng Tayutay (Figures of Speech)",
+                        "description": "Literary devices used in Filipino writing and speaking.",
+                        "examples":  [
+                            {"Tayutay": "Simile (Pagtutulad)", "Example": "Kasing puti ng busilak ang kanyang balat.", "English": "Her skin is as white as snow."},
+                            {"Tayutay": "Metaphor (Pagwawangis)", "Example": "Siya ang liwanag ng aking buhay.", "English": "She is the light of my life."},
+                            {"Tayutay": "Personification (Pagtatao)", "Example": "Sumayaw ang mga dahon sa hangin.", "English": "The leaves danced in the wind."},
+                            {"Tayutay": "Hyperbole (Pagmamalabis)", "Example": "Namatay ako sa kahihintay.", "English": "I died waiting. "},
+                            {"Tayutay": "Onomatopoeia (Pagsasatao ng Tunog)", "Example": "Kaluskos ng mga dahon", "English": "Rustling of leaves"},
+                            {"Tayutay": "Alliteration (Pag-uulit-tunog)", "Example": "Batang bagito sa bayan", "English": "Young newcomer to town"},
+                            {"Tayutay": "Irony (Kabalintunaan)", "Example": "Ang yaman mo naman!  (to someone poor)", "English": "How rich you are!  (sarcastic)"}
+                        ],
+                        "common_errors":  "Overusing figures of speech or using them inappropriately.",
+                        "difficulty_level": "Advanced"
+                    },
+                    {
+                        "name": "Antas ng Wika (Language Registers)",
+                        "description": "Different levels of formality in Filipino language use.",
+                        "examples": [
+                            {"Register": "Pormal (Formal)", "Example": "Magandang umaga po.  Maaari po bang makahingi ng tulong?", "Context": "Official settings, elders"},
+                            {"Register": "Di-pormal (Informal)", "Example": "Uy, good morning!  Pwede bang humingi ng tulong?", "Context": "Friends, peers"},
+                            {"Register": "Kolokyal (Colloquial)", "Example": "Pre, tulungan mo naman ako.", "Context": "Close friends, casual"},
+                            {"Register": "Balbal (Slang)", "Example": "Pare, astig naman 'yan!", "Context": "Very casual, street language"}
+                        ],
+                        "common_errors": "Using informal register in formal writing contexts.",
+                        "difficulty_level": "Intermediate"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "source": "Komisyon sa Wikang Filipino (KWF)",
+        "url": "https://kwf.gov.ph/",
+        "topic": "Ortograpiyang Pambansa (National Orthography)",
+        "grammar_sections": [
+            {
+                "section_name": "Alpabetong Filipino (Filipino Alphabet)",
+                "rules": [
+                    {
+                        "name": "28-Letter Filipino Alphabet",
+                        "description": "The modern Filipino alphabet consists of 28 letters including letters from Spanish and English.",
+                        "examples": [
+                            {"Letters": "A B C D E F G H I J K L M N Ñ Ng O P Q R S T U V W X Y Z"},
+                            {"Native Letters": "A B K D E G H I L M N Ng O P R S T U W Y"},
+                            {"Borrowed Letters": "C F J Ñ Q V X Z"}
+                        ],
+                        "common_errors": "Forgetting that 'Ng' is a single letter in alphabetization.",
+                        "difficulty_level": "Beginner"
+                    },
+                    {
+                        "name": "Pagbabaybay ng mga Hiram na Salita (Spelling of Borrowed Words)",
+                        "description": "Rules for spelling words borrowed from other languages.",
+                        "examples":  [
+                            {"Original": "computer", "Filipino": "kompyuter", "Rule": "Adapt to Filipino phonology"},
+                            {"Original": "chemistry", "Filipino": "kemistri", "Rule": "Use 'k' for hard 'c'"},
+                            {"Original": "juice", "Filipino": "dyus", "Rule": "Adapt diphthongs"},
+                            {"Original": "cake", "Filipino": "keyk", "Rule": "Represent sounds accurately"},
+                            {"Retained": "pizza, taxi, xerox", "Note": "Some words retain original spelling", "Rule": "Technical or widely recognized terms may be retained"}
+                        ],
+                        "common_errors": "Inconsistent application of borrowing rules.",
+                        "difficulty_level": "Intermediate"
+                    }
+                ]
+            },
+            {
+                "section_name":  "Bantas (Punctuation)",
+                "rules": [
+                    {
+                        "name":  "Tuldok (Period)",
+                        "description": "Used at the end of declarative sentences and abbreviations.",
+                        "examples":  [
+                            {"Usage": "End of statement", "Example": "Kumain na ang mga bata. "},
+                            {"Usage": "Abbreviation", "Example": "Dr. Santos, G.  Reyes"}
+                        ],
+                        "common_errors": "Omitting periods in abbreviations.",
+                        "difficulty_level": "Beginner"
+                    },
+                    {
+                        "name": "Kuwit (Comma)",
+                        "description": "Used to separate items in a series, clauses, and introductory elements.",
+                        "examples": [
+                            {"Usage": "Series", "Example": "Bumili siya ng mansanas, saging, at mangga."},
+                            {"Usage": "Introductory", "Example": "Noong nakaraang taon, lumipat kami ng bahay."},
+                            {"Usage": "Appositive", "Example": "Si Juan, ang aking kaibigan, ay dumating. "},
+                            {"Usage": "Direct address", "Example": "Maria, halika na. "}
+                        ],
+                        "common_errors": "Missing commas after introductory elements or in complex sentences.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Pananong (Question Mark)",
+                        "description":  "Used at the end of interrogative sentences.",
+                        "examples": [
+                            {"Usage": "Direct question", "Example": "Kumain ka na ba?"},
+                            {"Usage":  "Tag question", "Example": "Maganda, hindi ba?"}
+                        ],
+                        "common_errors": "Using question marks for indirect questions.",
+                        "difficulty_level": "Beginner"
+                    },
+                    {
+                        "name": "Padamdam (Exclamation Point)",
+                        "description": "Used after exclamatory sentences or interjections.",
+                        "examples": [
+                            {"Usage":  "Exclamation", "Example": "Ang ganda ng tanawin!"},
+                            {"Usage": "Interjection", "Example": "Aray!  Naku!  Aba!"}
+                        ],
+                        "common_errors": "Overusing exclamation points in formal writing.",
+                        "difficulty_level": "Beginner"
+                    },
+                    {
+                        "name": "Gitling (Hyphen)",
+                        "description":  "Used in compound words, reduplicated forms, and affixed borrowed words.",
+                        "examples":  [
+                            {"Usage": "Compound words", "Example": "bahay-kubo, araw-gabi"},
+                            {"Usage":  "Reduplication", "Example": "dahan-dahan, isa-isa"},
+                            {"Usage": "Affixed borrowings", "Example": "mag-text, i-save, nag-computer"},
+                            {"Usage": "Repeated roots", "Example": "kain nang kain (no hyphen)", "Note": "Use hyphen for compound words, not repeated verbs"}
+                        ],
+                        "common_errors": "Incorrect hyphenation of reduplicated forms or affixed words.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Tutuldok (Colon)",
+                        "description":  "Used before lists, explanations, or quotations.",
+                        "examples": [
+                            {"Usage":  "Before list", "Example": "Kailangan mo ang mga sumusunod:  papel, lapis, at pambura."},
+                            {"Usage":  "Before explanation", "Example": "Isang bagay ang kailangan:  tiyaga. "},
+                            {"Usage": "Time", "Example": "8:30 ng umaga"}
+                        ],
+                        "common_errors": "Using colon after incomplete sentences.",
+                        "difficulty_level":  "Intermediate"
+                    },
+                    {
+                        "name": "Tuldok-kuwit (Semicolon)",
+                        "description": "Used to separate closely related independent clauses or items in a complex series.",
+                        "examples": [
+                            {"Usage": "Related clauses", "Example": "Umuulan sa labas; hindi ako lalabas."},
+                            {"Usage": "Complex series", "Example": "Dumalo sina Juan, ang presidente; Maria, ang kalihim; at Pedro, ang ingat-yaman."}
+                        ],
+                        "common_errors": "Using semicolons where commas or periods are appropriate.",
+                        "difficulty_level": "Advanced"
+                    }
+                ]
+            },
+            {
+                "section_name": "Paggamit ng Malaki at Maliit na Titik (Capitalization)",
+                "rules": [
+                    {
+                        "name":  "Mga Tuntunin sa Paggamit ng Malaking Titik",
+                        "description": "Rules for using capital letters in Filipino.",
+                        "examples": [
+                            {"Rule": "Start of sentence", "Example": "Kumain na ang mga bata."},
+                            {"Rule": "Proper nouns", "Example": "Si Maria ay taga-Maynila."},
+                            {"Rule": "Titles before names", "Example": "Dr.  Santos, Gng. Reyes, Bb. Cruz"},
+                            {"Rule": "Days and months", "Example": "Lunes, Enero (follow Filipino terms)"},
+                            {"Rule":  "Languages and nationalities", "Example": "Filipino, Pilipino, Ingles"},
+                            {"Rule": "Titles of works", "Example": "Noli Me Tangere, Florante at Laura"},
+                            {"Rule": "Deity references", "Example": "Diyos, Panginoon, Allah"}
+                        ],
+                        "common_errors": "Not capitalizing proper nouns or over-capitalizing common nouns.",
+                        "difficulty_level": "Beginner"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "source":  "Filipino Linguistics Research",
+        "url": "https://www.dlsu.edu.ph/research/research-centers/adric/",
+        "topic": "Advanced Filipino Linguistic Structures",
+        "grammar_sections":  [
+            {
+                "section_name": "Pragmatika (Pragmatics)",
+                "rules": [
+                    {
+                        "name": "Po/Opo System (Respect Markers)",
+                        "description": "Particles used to show respect to elders or people of higher status.",
+                        "examples": [
+                            {"Without Respect": "Kumain ka na ba?", "With Respect": "Kumain na po ba kayo?"},
+                            {"Without Respect": "Oo.", "With Respect": "Opo."},
+                            {"Without Respect": "Hindi.", "With Respect": "Hindi po."},
+                            {"Placement": "After first content word", "Example": "Maganda po ang panahon ngayon."}
+                        ],
+                        "common_errors": "Placing 'po' in wrong positions or omitting it when addressing elders.",
+                        "difficulty_level": "Beginner"
+                    },
+                    {
+                        "name":  "Mga Pandiwang Pakiusap (Polite Request Forms)",
+                        "description": "Expressions used for polite requests.",
+                        "examples": [
+                            {"Level":  "Direct", "Example": "Bigyan mo ako ng tubig."},
+                            {"Level": "Polite", "Example": "Pakibigyan mo ako ng tubig. "},
+                            {"Level": "More Polite", "Example": "Maaari mo ba akong bigyan ng tubig?"},
+                            {"Level": "Very Polite", "Example": "Kung maaari po sana, mabibigyan n'yo po ba ako ng tubig? "}
+                        ],
+                        "common_errors": "Using direct forms when politeness is required.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name": "Pagtangi at Pagtatanong (Hedging and Questioning)",
+                        "description": "Softening expressions and indirect question forms.",
+                        "examples": [
+                            {"Hedge": "yata, siguro, parang", "Example": "Parang mali yata ito.", "Function": "Uncertainty marker"},
+                            {"Hedge":  "sana", "Example": "Sana dumating ka.", "Function": "Hope/wish marker"},
+                            {"Indirect": "Hindi ko alam kung.. .", "Example": "Hindi ko alam kung tama ba ito.", "Function": "Indirect question"}
+                        ],
+                        "common_errors": "Being too direct in contexts requiring hedging.",
+                        "difficulty_level": "Intermediate"
+                    }
+                ]
+            },
+            {
+                "section_name":  "Diskurso (Discourse)",
+                "rules": [
+                    {
+                        "name": "Mga Pang-ugnay sa Diskurso (Discourse Connectors)",
+                        "description":  "Words and phrases that connect ideas across sentences and paragraphs.",
+                        "examples": [
+                            {"Type": "Addition", "Connectors": "bukod dito, dagdag pa, gayundin", "English": "besides this, in addition, likewise"},
+                            {"Type": "Contrast", "Connectors":  "ngunit, subalit, gayunman, sa kabila nito", "English": "but, however, nevertheless, despite this"},
+                            {"Type":  "Cause-Effect", "Connectors": "dahil dito, kaya, samakatuwid, bunga nito", "English": "because of this, so, therefore, as a result"},
+                            {"Type": "Sequence", "Connectors": "una, ikalawa, sa wakas, pagkatapos", "English": "first, second, finally, after"},
+                            {"Type": "Example", "Connectors": "halimbawa, tulad ng, gaya ng", "English": "for example, such as, like"},
+                            {"Type": "Summary", "Connectors": "sa kabuuan, sa madaling salita, bilang konklusyon", "English": "in summary, in short, in conclusion"}
+                        ],
+                        "common_errors": "Overusing one type of connector or using connectors incorrectly.",
+                        "difficulty_level": "Intermediate"
+                    },
+                    {
+                        "name":  "Kohesyon at Koherens (Cohesion and Coherence)",
+                        "description": "Linguistic devices that create text unity and flow.",
+                        "examples": [
+                            {"Device": "Pronominal Reference", "Example": "Si Maria ay dumating.  Siya ay pagod.", "Function": "Pronoun refers back to noun"},
+                            {"Device": "Lexical Cohesion", "Example": "Bumili ako ng kotse. Ang sasakyan ay pula.", "Function": "Synonyms maintain reference"},
+                            {"Device": "Ellipsis", "Example":  "Kumain si Juan ng mangga. Si Pedro naman, ng saging.", "Function": "Omitting repeated elements"},
+                            {"Device": "Conjunction", "Example": "Umuulan ngunit lumabas pa rin siya.", "Function": "Explicit connection between clauses"}
+                        ],
+                        "common_errors": "Unclear pronoun reference or abrupt topic shifts.",
+                        "difficulty_level": "Advanced"
+                    }
+                ]
+            },
+            {
+                "section_name":  "Semantika (Semantics)",
+                "rules": [
+                    {
+                        "name": "Mga Uri ng Kahulugan (Types of Meaning)",
+                        "description": "Different layers of meaning in Filipino words and expressions.",
+                        "examples": [
+                            {"Type": "Denotasyon (Denotation)", "Word": "aso", "Meaning": "Four-legged domesticated animal"},
+                            {"Type": "Konotasyon (Connotation)", "Word": "aso", "Meaning": "Can imply loyalty or (negatively) servility"},
+                            {"Type": "Idyoma (Idiom)", "Expression": "balat-sibuyas", "Literal": "onion skin", "Meaning": "overly sensitive person"},
+                            {"Type": "Sawikain (Proverb)", "Expression": "Ang hindi marunong lumingon sa pinanggalingan.. .", "Meaning": "One who doesn't look back at where they came from won't reach their destination"}
+                        ],
+                        "common_errors": "Using words without awareness of connotations.",
+                        "difficulty_level": "Advanced"
+                    },
+                    {
+                        "name": "Relasyong Leksikal (Lexical Relations)",
+                        "description": "Semantic relationships between words.",
+                        "examples": [
+                            {"Relation": "Sinonimo (Synonym)", "Example": "maganda = marilag = kaaya-aya"},
+                            {"Relation": "Antonimo (Antonym)", "Example": "maganda ↔ pangit"},
+                            {"Relation":  "Hiponimo (Hyponym)", "Example": "rosas, sampaguita, gumamela → bulaklak"},
+                            {"Relation": "Meronimo (Meronym)", "Example": "dahon, sanga, ugat → puno"},
+                            {"Relation": "Homograpo (Homograph)", "Example": "basa (read) vs.  basa (wet)"}
+                        ],
+                        "common_errors": "Using near-synonyms without understanding nuanced differences.",
+                        "difficulty_level": "Advanced"
+                    }
+                ]
+            }
+        ]
     }
 ]
 
