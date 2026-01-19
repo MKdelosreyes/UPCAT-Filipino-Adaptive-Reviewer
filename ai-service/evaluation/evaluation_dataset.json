@@ -2,12 +2,13 @@
   {
     "id": "vocab_001",
     "exercise_type": "quiz",
+    "word": "nagbunsod",
     "correct_answer": "sanhi",
     "student_answer": "kaagapay",
     "contexts": [
-      "[VOCABULARY] bunsod: Sanhi o dahilan na nagtutulak sa isang pangyayari o kilos."
+      "[VOCABULARY] bunsod:  Sanhi o dahilan na nagtutulak sa isang pangyayari o kilos. Mga kasingkahulugan: sanhi, dulot, ugat, dahilan. Mga kasalungat: bunga, kinalabasan, resulta."
     ],
-    "answer": "1. Ang \"sanhi\" ang tamang sagot dahil ito ay direktang katumbas ng kahulugan ng salitang \"bunsod\" ayon sa reference materials, na nagsasabi na ito ay \"Sanhi o dahilan na nagtutulak sa isang pangyayari o kilos\". Ito rin ay nakalista bilang isa sa mga synonym ng \"bunsod\" sa reference materials.\n\n2. Ang \"kaagapay\" ay mali dahil ito ay may ibang kahulugan at hindi nakalista bilang synonym o kahit na antonym ng \"bunsod\" sa reference materials, kaya ito ay isang common mistake pattern na nagpapakita ng kawalan ng pagkakaintindi sa mga konsepto ng synonyms at antonyms.",
+    "answer": "Ang \"sanhi\" ang tamang sagot dahil ito ay direktang katumbas ng opisyal na kahulugan ng salitang \"bunsod\", na nagsasabi na ito ay \"Sanhi o dahilan na nagtutulak sa isang pangyayari o kilos\". Ito rin ay nakalista bilang isa sa mga synonym ng \"bunsod\" sa reference materials.\n\nAng \"kaagapay\" ay mali dahil ito ay may ibang kahulugan at hindi nakalista bilang synonym ng \"bunsod\" sa reference materials, at ito ay isang pangkaraniwang pagkakamali dahil hindi ito direktang nauugnay sa kahulugan ng \"bunsod\" na tumutukoy sa sanhi o dahilan ng isang pangyayari.",
     "ground_truth": "Ang \"nagbunsod\" ay tumutukoy sa dahilan o rason kung bakit nangyari ang isang bagay, kaya ito ay kasingkahulugan ng \"sanhi.\" Ang \"kaagapay\" ay nangangahulugang kasama o katulong, na malayo sa konteksto ng dahilan ng isang desisyon.",
     "retrieval_metadata": {
       "total_chunks": 1,
@@ -22,80 +23,77 @@
   {
     "id": "vocab_002",
     "exercise_type": "quiz",
+    "word": "simbuyo",
     "correct_answer": "silakbo",
     "student_answer": "nilalakbay",
     "contexts": [
-        "[COMMON MISTAKE] Ng vs. Nang misuse: Confusion between the Filipino function words 'ng' and 'nang', often misused in place of one another.",
-        "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
-        "[VOCABULARY] bulay: Ang malalim na pagsusuri o pag-iisip tungkol sa isang bagay.",
-        "[VOCABULARY] pasanin: Isang mabigat na tungkulin, problema, o obligasyong kailangang harapin."
+      "[VOCABULARY] simbuyo:  Tumutukoy sa biglaan at matinding pag-usbong o pagsabog ng damdamin na kadalasang nagmumula sa naipong emosyon. Mga kasingkahulugan: silakbo, bugso, pag-alab, sidhi. Mga kasalungat: kahinahunan, katahimikan, kapayapaan.",
+      "[VOCABULARY] silakbo:  Ang biglaang paglabas o pagbulas ng matinding damdamin, emosyon, o puwersa. Mga kasingkahulugan: bugso, simbuyo, pag-alab, matindi, sidhi. Mga kasalungat: kahinahunan, katahimikan, kapanatagan."
     ],
-    "answer": "1. Ang \"silakbo\" ang tamang sagot dahil ito ang kahulugan na tumutukoy sa biglaan at matinding pag-usbong o pagsabog ng damdamin, na katulad ng kahulugan ng salitang \"simbuyo\". Ito ay sumasalamin sa opisyal na kahulugan ng salita, kaya't ito ang pinakanaangkop na sagot.\n\n2. Ang napiling sagot na \"nilalakbay\" ay mali dahil ito ay hindi tumutukoy sa biglaan at matinding pag-usbong o pagsabog ng damdamin, at hindi ito katulad ng kahulugan ng salitang \"simbuyo\". Ito ay maaaring isang halimbawa ng pagkakamali sa paggamit ng ligature at function words, na isang karaniwang pagkakamali sa paggamit ng wikang Filipino.",
+    "answer": "1. Ang \"silakbo\" ang tamang sagot dahil ito ay may kahulugang kapareho ng \"simbuyo\", na tumutukoy sa biglaan at matinding pag-usbong o pagsabog ng damdamin. Ito ay nakasaad sa reference materials na ang \"silakbo\" ay isa sa mga synonym ng \"simbuyo\".\n\n2. Ang \"nilalakbay\" ay mali dahil ito ay hindi nakapaloob sa mga synonym o kahulugan ng \"simbuyo\" at \"silakbo\" sa reference materials, at ito ay isang salita na may ibang kahulugan. Ito ay isang halimbawa ng common mistake pattern kung saan ang estudyante ay nagpapalit ng mga salita na may kahulugan na hindi direktang nauugnay sa tanong.",
     "ground_truth": "Ang \"simbuyo\" at \"silakbo\" ay kapwa tumutukoy sa biglaang pag-apaw o pagtindi ng isang nararamdaman, tulad ng galit. Karaniwang pagkakamali ito dahil sa pagkakatunog ng mga salita, pero ang \"nilalakbay\" ay tumutukoy sa biyahe at hindi sa emosyon.",
     "retrieval_metadata": {
-        "total_chunks": 4,
-        "sources": [
-            "mistakes",
-            "vocabulary"
-        ],
-        "avg_relevance": 0.8209247449782865,
-        "query": "Filipino word: simbuyo. Definition: Tumutukoy sa biglaan at matinding pag-usbong o pagsabog ng damdamin na kadalasang nagmumula sa naipong emosyon, lalo na kung dulot ng mga hindi inaasahang pangyayari, at na[...] | Filipino word: simbuyo | Student selected: nilalakbay | Correct answer: silakbo",
-        "context_type": "vocabulary"
+      "total_chunks": 2,
+      "sources": [
+        "vocabulary"
+      ],
+      "avg_relevance": 1.0,
+      "query": "Filipino word: simbuyo. Definition: Tumutukoy sa biglaan at matinding pag-usbong o pagsabog ng damdamin na kadalasang nagmumula sa naipong emosyon, lalo na kung dulot ng mga hindi inaasahang pangyayari, at na[...] salita: simbuyo maling sagot: nilalakbay tamang sagot: silakbo kahulugan kasingkahulugan kasalungat",
+      "context_type": "vocabulary"
     }
   },
   {
     "id": "vocab_003",
     "exercise_type": "quiz",
+    "word": "susog",
     "correct_answer": "siyasat",
     "student_answer": "dalampasigan",
     "contexts": [
-        "[COMMON MISTAKE] Mechanics Errors in Filipino Essays: Errors in writing mechanics including spelling, punctuation, capitalization, and word breaks.",
-        "[COMMON MISTAKE] Spelling and Word Merging Errors: Errors involving spelling mistakes or incorrectly merged words.",
-        "[VOCABULARY] bulay: Ang malalim na pagsusuri o pag-iisip tungkol sa isang bagay.",
-        "[VOCABULARY] gimbal: Matinding pagkabigla o pagkagitla dahil sa nakapanlulumong o nakakatakot na pangyayari."
+      "[VOCABULARY] susog:  Ang pagbabago, pagwawasto, o pagdaragdag sa isang batas, panukala, dokumento, o pahayag. Mga kasingkahulugan: amendment, pagbabago, pagwawasto, rebisyon, siyasat. Mga kasalungat: orihinal, hindi binago."
     ],
-    "answer": "1. Ang \"siyasat\" ang tamang sagot dahil ito ang kahulugan ng salitang \"susog\", na tumutukoy sa pagbabago o pagdaragdag sa isang batas, panukala, o dokumento. Ito ay sumusunod sa opisyal na kahulugan ng salita, kaya't ito ang wastong pagpili.\n\n2. Ang napiling sagot na \"dalampasigan\" ay mali dahil ito ay hindi sumusunod sa opisyal na kahulugan ng salitang \"susog\", at ito ay isang halimbawa ng spelling and word merging error, isang karaniwang pagkakamali na nakatala sa mga common mistake patterns, kung saan ang isang salita ay hindi wastong binaybay o ginamit.",
-    "ground_truth": "Sa konteksto ng batas, ang \"susog\" ay tumutukoy sa isang pagbabago o pagrerebisa na dumaan sa masusing \"siyasat\" o pag-aaral. Ang \"dalampasigan\" ay tumutukoy sa baybayin ng dagat, at malayo ang kahulugan nito sa usaping legal; karaniwan itong napipili dahil sa pagkakatulad ng bilang ng pantig o dahil sa hindi pamilyar na malalim na salita.",
+    "answer": "1. Ang \"siyasat\" ang tamang sagot dahil ito ay isa sa mga sinunod na salita sa reference materials, at ito ay may kahulugang kapareho sa salitang \"susog\" na tumutukoy sa pagbabago o pagdaragdag sa isang batas, panukala, o dokumento. Ito ay nagpapakita na ang estudyante ay may pagkakaintindi sa kahulugan ng salitang \"susog\" at nakapili ng tamang kahalili.\n\n2. Ang \"dalampasigan\" ay mali dahil ito ay hindi kaugnay sa kahulugan ng salitang \"susog\" at hindi ito nakasama sa mga sinunod na salita sa reference materials. Ito ay isang halimbawa ng isang karaniwang pagkakamali kung saan ang estudyante ay hindi nakapili ng tamang kahalili dahil sa kawalan ng pagkakaintindi sa kahulugan ng salita o dahil sa pagpili ng isang salita na may ibang kahulugan.",
+    "ground_truth": "Ang 'siyasat' ang tamang kasingkahulugan ng 'susog' dahil ito ay tumutukoy sa pagsusuri o pag-eeksamen ng dokumento.  Ang 'dalampasigan' ay tumutukoy sa baybayin, na walang kaugnayan sa 'susog'.",
     "retrieval_metadata": {
-        "total_chunks": 4,
-        "sources": [
-            "mistakes",
-            "vocabulary"
-        ],
-        "avg_relevance": 0.7886395863651915,
-        "query": "Filipino word: susog. Definition: Ang pagbabago o pagdaragdag sa isang batas, panukala, o dokumento. | Filipino word: susog | Student selected: dalampasigan | Correct answer: siyasat",
-        "context_type": "vocabulary"
+      "total_chunks": 1,
+      "sources": [
+        "vocabulary"
+      ],
+      "avg_relevance": 1.0,
+      "query": "Filipino word: susog. Definition: Ang pagbabago o pagdaragdag sa isang batas, panukala, o dokumento. salita: susog maling sagot: dalampasigan tamang sagot: siyasat kahulugan kasingkahulugan kasalungat",
+      "context_type": "vocabulary"
     }
   },
   {
     "id": "vocab_004",
     "exercise_type": "quiz",
+    "word": "silakbo",
     "correct_answer": "matindi",
     "student_answer": "kariktan",
     "contexts": [
-      "[VOCABULARY] puyos: Matinding pag-aalab ng damdamin, lalo na ng galit o hinanakit."
+      "[VOCABULARY] silakbo:  Ang biglaang paglabas o pagbulas ng matinding damdamin, emosyon, o puwersa. Mga kasingkahulugan: bugso, simbuyo, pag-alab, matindi, sidhi. Mga kasalungat: kahinahunan, katahimikan, kapanatagan."
     ],
-    "answer": "1. Ang \"matindi\" ang tamang sagot dahil ito ang naglalarawan sa antas ng damdamin na tinutukoy ng salitang \"silakbo\", na isang synonym ng \"puyos\" na nangangahulugang matinding pag-aalab ng damdamin. Ito ay sumasalamin sa ideya na ang \"silakbo\" ay isang matinding emosyon, kaya't ang \"matindi\" ang tamang kahulugan nito.\n\n2. Ang \"kariktan\" ay mali dahil ito ay hindi kaugnay sa kahulugan ng \"silakbo\" o \"puyos\", at ito ay isang halimbawa ng isang common mistake pattern kung saan ang estudyante ay nagpapalit ng mga salita na may magkakaibang kahulugan, na nagreresulta sa isang maling pagkaintindi ng konsepto. Ito ay nagpapakita ng kahalagahan ng pag-aaral at pag-unawa sa mga tamang kahulugan ng mga salita upang maiwasan ang mga ganitong pagkakamali.",
+    "answer": "1. Ang \"matindi\" ay tamang sagot dahil ito ay isa sa mga sinonimo ng salitang \"silakbo\" ayon sa reference material, na nagsasabi na ang mga synonym nito ay kasama ang \"matindi\". Ito ay nagpapakita na ang \"matindi\" ay may kaugnayan sa kahulugan ng \"silakbo\" bilang isang biglaang paglabas o pagbulas ng matinding damdamin.\n\n2. Ang \"kariktan\" ay mali dahil hindi ito nakalista bilang synonym o antonym ng \"silakbo\" sa reference material, at wala rin itong direktang kaugnayan sa kahulugan ng \"silakbo\" na biglaang paglabas o pagbulas ng matinding damdamin, kaya ito ay isang common mistake pattern na hindi pagbabase sa tamang kahulugan at konteksto ng salita.",
     "ground_truth": "Sa pangungusap na ito, inilalarawan ng \"silakbo\" ang pagiging \"matindi\" o labis na damdamin na hindi na kayang kontrolin. Ang \"kariktan\" ay kagandahan, na madalas mapili dahil sa pagkalito sa mga malalalim na salitang Tagalog na parehong nagsisimula sa titik \"k.\"..",
     "retrieval_metadata": {
       "total_chunks": 1,
       "sources": [
         "vocabulary"
       ],
-      "avg_relevance": 0.8597295265458296,
+      "avg_relevance": 1.0,
       "query": "Filipino word: silakbo. Definition: Ang biglaang paglabas o pagbulas ng matinding damdamin. salita: silakbo maling sagot: kariktan tamang sagot: matindi kahulugan kasingkahulugan kasalungat",
       "context_type": "vocabulary"
     }
-  }, 
+  },
   {
     "id": "vocab_005",
     "exercise_type": "quiz",
+    "word": "pagtangis",
     "correct_answer": "pagluha",
     "student_answer": "maalab",
     "contexts": [
-      "[VOCABULARY] tangis: Ang malalim at masidhing pag-iyak na madalas ay dulot ng matinding pait o lungkot."
+      "[VOCABULARY] tangis:  Ang malalim at masidhing pag-iyak na madalas ay dulot ng matinding pait o lungkot. Mga kasingkahulugan: pagluha, pag-iyak, panaghoy, paghagulgol. Mga kasalungat: pagtawa, kagalakan, katuwaan."
     ],
-    "answer": "1. Ang \"pagluha\" ay tamang sagot dahil ito ay isa sa mga sinabi na synonyms ng \"tangis\" ayon sa reference materials, kung saan nakalista ito kasama ng iba pang mga salita tulad ng \"pag-iyak\", \"panaghoy\", at \"paghagulgol\". Ito ay nangangahulugang ang \"pagluha\" at \"tangis\" ay may kahalintulad na kahulugan.\n\n2. Ang \"maalab\" ay mali dahil hindi ito nakalista bilang synonym o kahulugan ng \"tangis\" sa reference materials, at ito ay may ibang kahulugan na hindi direktang nauugnay sa pag-iyak o lungkot. Ito ay isang common mistake pattern kung saan ang mga estudyante ay nagpapalit ng mga salita na may kahalintulad na kahulugan pero hindi eksakto.",
+    "answer": "1. Ang \"pagluha\" ay tamang sagot dahil ito ay isa sa mga sinabi na synonyms ng \"tangis\" ayon sa reference materials, kung saan nakalista ito kasama ng iba pang mga salita tulad ng \"pag-iyak\", \"panaghoy\", at \"paghagulgol\". Ito ay nangangahulugang ang \"pagluha\" at \"tangis\" ay may kahalagahang pag-iyak o lumuha dahil sa lungkot o pait.\n\n2. Ang \"maalab\" ay mali dahil hindi ito nakalista bilang synonym o kahulugan ng \"tangis\" sa reference materials, at ito ay may ibang kahulugan na may kaugnayan sa intensity o kasidhian ng isang emosyon o kilos, ngunit hindi ito direktang nauugnay sa pag-iyak o lumuha. Ito ay isang karaniwang pagkakamali dahil ang \"maalab\" ay may malapit na kahulugan sa \"masidhi\" na ginamit sa opisyal na kahulugan ng \"tangis\", ngunit hindi ito angkop na kahalili para sa \"tangis\" o \"pagluha\".",
     "ground_truth": "Ang \"pagtangis\" ay isang pormal o masidhing salita para sa pag-iyak o \"pagluha\" dahil sa matinding lungkot. Ang \"maalab\" ay nangangahulugang nagbabaga o masigasig (madalas gamitin sa pag-ibig), kaya hindi ito angkop sa konteksto ng pagdadalamhati ng isang ina.",
     "retrieval_metadata": {
       "total_chunks": 1,
@@ -110,37 +108,35 @@
   {
     "id": "vocab_006",
     "exercise_type": "antonym",
+    "word": "nagkamal",
     "correct_answer": "nagwaldas",
     "student_answer": "humpay",
     "contexts": [
-        "[COMMON MISTAKE] Ng vs. Nang misuse: Confusion between the Filipino function words 'ng' and 'nang', often misused in place of one another.",
-        "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
-        "[VOCABULARY] kamal: Pag-iipon o pagkalap ng maraming bagay, lalo na ng kayamanan o ari-arian.",
-        "[VOCABULARY] gimbal: Matinding pagkabigla o pagkagitla dahil sa nakapanlulumong o nakakatakot na pangyayari."
+      "[VOCABULARY] nagkamal:  Pag-iipon o pagkalap ng maraming bagay, lalo na ng kayamanan o ari-arian; pagtitipon ng mga bagay gamit ang mga kamay. Mga kasingkahulugan: nag-ipon, nagtipon, nakalap, nagkamalig. Mga kasalungat: nagwaldas, nagtapon, nag-aksaya, nagpalustay."
     ],
-    "answer": "1. Ang \"nagwaldas\" ay tamang kasalungat ng \"nagkamal\" dahil ang \"nagkamal\" ay tumutukoy sa pag-iipon o pagkalap ng maraming bagay, lalo na ng kayamanan o ari-arian, samantala ang \"nagwaldas\" ay nangangahulugang paggasta o pagtapon ng mga bagay, partikular na ang yaman.\n\n2. Ang \"humpay\" ay mali dahil ito ay hindi kasalungat ng \"nagkamal\". Sa katunayan, walang ibinigay na kahulugan para sa \"humpay\" sa mga reference materials, at ang \"nagkamal\" ay may kasalungat na \"nagwaldas\", \"ubusin\", o \"magpakawala\" ayon sa mga binigay na impormasyon.",
+    "answer": "1. Ang \"nagwaldas\" ay tamang kasalungat ng \"nagkamal\" dahil ito ay nangangahulugang paggasta o pagtapon ng mga bagay, na kabaliktaran ng pag-iipon o pagkalap ng maraming bagay.\n\n2. Ang \"humpay\" ay mali dahil hindi ito kasalungat ng \"nagkamal\". Sa halip, walang nakalista na ganitong salita sa mga kasalungat o kahulugan ng \"nagkamal\" sa reference materials. Kailangan pang hanapin ang kahulugan ng \"humpay\" upang malaman kung may kaugnayan ito sa \"nagkamal\".",
     "ground_truth": "Ang \"nagkamal\" ay nangangahulugang nag-ipon o nagkamit ng marami, kaya ang kasalungat nito ay \"nagwaldas\" na ang ibig sabihin ay walang pakundangang paggastos o pagtatapon ng pera. Ang \"humpay\" ay tumutukoy sa paghinto o pagtigil (madalas gamitin sa \"walang humpay\"), kaya hindi ito direktang kaugnay ng pag-iipon o paggastos ng kayamanan..",
     "retrieval_metadata": {
-        "total_chunks": 4,
-        "sources": [
-            "mistakes",
-            "vocabulary"
-        ],
-        "avg_relevance": 0.8833986506803869,
-        "query": "Filipino word: nagkamal. Definition: Pag-iipon o pagkalap ng maraming bagay, lalo na ng kayamanan o ari-arian. | Filipino word: nagkamal | Student selected: humpay | Correct answer: nagwaldas",
-        "context_type": "vocabulary"
+      "total_chunks": 1,
+      "sources": [
+        "vocabulary"
+      ],
+      "avg_relevance": 1.0,
+      "query": "Filipino word: nagkamal. Definition: Pag-iipon o pagkalap ng maraming bagay, lalo na ng kayamanan o ari-arian. salita: nagkamal maling sagot: humpay tamang sagot: nagwaldas kahulugan kasingkahulugan kasalungat",
+      "context_type": "vocabulary"
     }
   },
   {
     "id": "vocab_007",
     "exercise_type": "antonym",
+    "word": "biyaya",
     "correct_answer": "kapinsalan",
     "student_answer": "ilanlang",
     "contexts": [
-      "[VOCABULARY] biyaya: Kaloob o pagpapalang tinatanggap nang walang hinihinging kapalit, kadalasan mula sa Diyos o kapalaran."
+      "[VOCABULARY] biyaya:  Kaloob o pagpapalang tinatanggap nang walang hinihinging kapalit, kadalasan mula sa Diyos o kapalaran. Mga kasingkahulugan: grasya, basbas, pagpapala. Mga kasalungat: kapinsalaan, parusa."
     ],
-    "answer": "1. Ang \"kapinsalan\" ay tamang kasalungat ng \"biyaya\" dahil ito ay tumutukoy sa isang bagay na hindi kanais-nais o nakakasama, samantalang ang \"biyaya\" ay tumutukoy sa isang kaloob o pagpapalang tinatanggap nang walang hinihinging kapalit.\n\n2. Mali ang napiling sagot na \"ilanlang\" dahil ito ay hindi kasalungat ng \"biyaya\". Sa halip, ang \"kapinsalan\" ay nakalistang kasalungat ng \"biyaya\" sa reference materials, at walang kaugnayan ang \"ilanlang\" sa kahulugan ng \"biyaya\".",
-    "ground_truth": "Ang tamang kasalungat ng \"biyaya\" ay kapinsalaan). Ang biyaya ay isang regalo o positibong bagay, habang ang kapinsalaan ay tumutukoy sa pinsala, hirap, o kamalasan. Ang \"ilanlang\" ay nangangahulugang paglipad nang mataas o pagpapailanlang; wala itong kinalaman sa konsepto ng biyaya o swerte..",
+    "answer": "1. Ang \"kapinsalaan\" ay tamang kasalungat ng \"biyaya\" dahil ito ay tumutukoy sa isang bagay na hindi kanais-nais o nakakasama, samantalang ang \"biyaya\" ay tumutukoy sa isang kaloob o pagpapalang tinatanggap nang walang hinihinging kapalit.\n\n2. Mali ang napiling sagot na \"ilanlang\" dahil ito ay hindi kasalungat ng \"biyaya\". Sa halip, ang \"kapinsalaan\" ay nakalistang kasalungat sa reference materials. Ang \"ilanlang\" ay wala ring kaugnayan sa kahulugan ng \"biyaya\" at hindi ito isang synonym o antonym nito.",
+    "ground_truth": "Ang tamang kasalungat ng \"biyaya\" ay kapinsalaan. Ang biyaya ay isang regalo o positibong bagay, habang ang kapinsalaan ay tumutukoy sa pinsala, hirap, o kamalasan. Ang \"ilanlang\" ay nangangahulugang paglipad nang mataas o pagpapailanlang; wala itong kinalaman sa konsepto ng biyaya o swerte..",
     "retrieval_metadata": {
       "total_chunks": 1,
       "sources": [
@@ -154,36 +150,34 @@
   {
     "id": "vocab_008",
     "exercise_type": "antonym",
+    "word": "pagtalima",
     "correct_answer": "sumuway",
     "student_answer": "tuyot",
     "contexts": [
-        "[COMMON MISTAKE] Ligature and Function Word Errors: Errors involving ligatures and function words such as 'na', '-ng', and misuse of 'nang' vs 'ng'.",
-        "[COMMON MISTAKE] Incorrect Affix Spacing (pa + na): Incorrect joining of 'pa' + 'na' forms into one unit, e.g., 'palang', 'parin' instead of correct separate forms.",
-        "[VOCABULARY] bulay: Ang malalim na pagsusuri o pag-iisip tungkol sa isang bagay.",
-        "[VOCABULARY] gimbal: Matinding pagkabigla o pagkagitla dahil sa nakapanlulumong o nakakatakot na pangyayari."
+      "[VOCABULARY] pagtalima:  Ang matapat at kusang-loob na pagsunod sa isang utos, tagubilin, o awtoridad. Mga kasingkahulugan: pagsunod, pagkamasunurin, paggalang, katapatan. Mga kasalungat: pagsuway, sumuway, pagbalewala, paghihimagsik."
     ],
-    "answer": "1. Ang \"sumuway\" ay tamang kasalungat ng \"pagtalima\" dahil ang \"sumuway\" ay nangangahulugang hindi pagsunod o paglabag sa isang utos o tagubilin, samantalang ang \"pagtalima\" ay nangangahulugang matapat na pagsunod sa isang utos o tagubilin.\n\n2. Mali ang napiling sagot na \"tuyot\" dahil ito ay hindi kasalungat ng \"pagtalima\". Ang \"tuyot\" ay isang salitang may ibang kahulugan at hindi ito direktang kaugnay ng konsepto ng pagsunod o paglabag sa isang utos o tagubilin.",
+    "answer": "1. Ang \"sumuway\" ay tamang kasalungat ng \"pagtalima\" dahil ito ay tumutukoy sa pagsuway o hindi pagsunod sa isang utos, tagubilin, o awtoridad, na kabaliktaran ng kahulugan ng \"pagtalima\" na pagsunod sa isang utos o tagubilin.\n\n2. Ang \"tuyot\" ay mali dahil hindi ito kasalungat ng \"pagtalima\". Hindi rin ito nakalista bilang isang antonym o synonym ng \"pagtalima\" sa reference materials.",
     "ground_truth": "Ang \"pagtalima\" ay ang pagsunod sa utos o patakaran, kaya ang kabaligtaran nito ay ang \"suway\" o ang hindi pagsunod at pagrerebelde sa iniutos. Ang \"tuyot\" ay tumutukoy sa kawalan ng tubig o pagkatuyo ng lupa, na isang karaniwang maling sagot dahil wala itong lohikal na koneksyon sa kilos ng pagsunod..",
     "retrieval_metadata": {
-        "total_chunks": 4,
-        "sources": [
-            "mistakes",
-            "vocabulary"
-        ],
-        "avg_relevance": 0.8191036339566689,
-        "query": "Filipino word: pagtalima. Definition: Ang matapat na pagsunod sa isang utos o tagubilin. | Filipino word: pagtalima | Student selected: tuyot | Correct answer: sumuway",
-        "context_type": "vocabulary"
+      "total_chunks": 1,
+      "sources": [
+        "vocabulary"
+      ],
+      "avg_relevance": 1.0,
+      "query": "Filipino word: pagtalima. Definition: Ang matapat na pagsunod sa isang utos o tagubilin. salita: pagtalima maling sagot: tuyot tamang sagot: sumuway kahulugan kasingkahulugan kasalungat",
+      "context_type": "vocabulary"
     }
   },
   {
     "id": "vocab_009",
     "exercise_type": "antonym",
+    "word": "alindog",
     "correct_answer": "kapangitan",
     "student_answer": "marubdob",
-    "contexts": [ 
-      "[VOCABULARY] alindog: Likas na ganda o kaakit-akit na anyo, kilos, o dating ng isang tao o bagay."
+    "contexts": [
+      "[VOCABULARY] alindog:  Likas na ganda o kaakit-akit na anyo, kilos, o dating ng isang tao o bagay. Mga kasingkahulugan: ganda, kariktan, akit. Mga kasalungat: kapangitan, pangit."
     ],
-    "answer": "1. Ang \"kapangitan\" ang tamang kasalungat ng \"alindog\" dahil ito ay tumutukoy sa kawalan ng likas na ganda o kaakit-akit na anyo, kilos, o dating ng isang tao o bagay, na kabaliktaran ng kahulugan ng \"alindog\".\n\n2. Mali ang napiling sagot na \"marubdob\" dahil ito ay hindi kasalungat ng \"alindog\". Sa halip, walang ibinigay na impormasyon sa reference materials na nagsasabi na \"marubdob\" ay isang antonym o synonym ng \"alindog\". Sa reference materials, ang ibinigay na antonym ay \"kapangitan\" at ang ibinigay na synonyms ay \"ganda\", \"kariktan\", at \"akit\".",
+    "answer": "1. Ang \"kapangitan\" ang tamang kasalungat ng \"alindog\" dahil ito ay tumutukoy sa kawalan ng likas na ganda o kaakit-akit na anyo, kilos, o dating, na kabaliktaran ng kahulugan ng \"alindog\".\n\n2. Mali ang napiling sagot na \"marubdob\" dahil hindi ito kasalungat ng \"alindog\". Sa halip, \"marubdob\" ay isang salita na may kahulugan na malakas o matapang, na hindi direktang kaugnay ng kahulugan ng \"alindog\" bilang isang kasalungat. Ayon sa reference materials, ang mga tamang kasalungat ng \"alindog\" ay \"kapangitan\" at \"pangit\".",
     "ground_truth": "Ang \"alindog\" ay tumutukoy sa ganda o kariktan ng isang tao, kaya ang direkta at lohikal na kasalungat nito ay \"kapangitan.\" Ang \"marubdob\" ay naglalarawan ng matinding damdamin o pagnanasa; madalas itong mapili dahil pareho silang \"malalim\" na salita, pero magkaiba ang kanilang kategorya..",
     "retrieval_metadata": {
       "total_chunks": 1,
@@ -198,19 +192,20 @@
   {
     "id": "vocab_010",
     "exercise_type": "antonym",
+    "word": "nabalisa",
     "correct_answer": "kalmado",
     "student_answer": "hiyas",
     "contexts": [
-      "[VOCABULARY] balisa: Kalagayan ng pagkabalisa o hindi mapakali dahil sa pag-aalala o tensiyon."
+      "[VOCABULARY] nabalisa:  Kalagayan ng pagkabalisa, pagkabahala, o hindi mapakali dahil sa pag-aalala o tensiyon. Mga kasingkahulugan: nag-alala, naliligalig, aburido, kabado, balisa. Mga kasalungat: kalmado, panatag, mapayapa, tahimik."
     ],
-    "answer": "1. Ang \"kalmado\" ang tamang kasalungat ng \"nabalisa\" dahil ito ay sumasagot sa kawalan ng pag-aalala o tensiyon. Ibig sabihin, kalmado ang isang tao kapag wala siya sa kalagayan ng pagkabalisa o pag-aalala.\n\n2. Mali ang \"hiyas\" bilang kasalungat ng \"nabalisa\" dahil wala itong kaugnayan sa kahulugan ng \"nabalisa\". Hindi rin ito isang synonym ng \"nabalisa\", kundi isang salita na may ibang kahulugan. Sa reference materials, ang mga synonym ng \"nabalisa\" ay \"naliligalig\", \"aburido\", at \"kabado\", at ang mga antonym nito ay \"kalmado\" at \"panatag\".",
+    "answer": "1. Ang \"kalmado\" ang tamang kasalungat ng \"nabalisa\" dahil ito ay nagsasabi ng isang kalagayan ng kawalan ng pag-aalala o tensiyon, na kabaligtaran ng pagkabalisa o pagkabahala na ibig sabihin ng \"nabalisa\".\n\n2. Mali ang \"hiyas\" bilang kasalungat ng \"nabalisa\" dahil \"hiyas\" ay hindi kasalungat ng \"nabalisa\" at wala ito sa listahan ng mga kasalungat na ibinigay sa reference materials. Hindi rin ito isang synonym ng \"nabalisa\", kundi isang salita na may ibang kahulugan.",
     "ground_truth": "Ang \"nabalisa\" ay ang pakiramdam ng pag-aalala o hindi mapakali, kaya ang kasalungat nito ay ang pagiging \"kalmado\" o payapa ang isip. Ang \"hiyas\" ay tumutukoy sa mamahaling bato o alahas; ito ay isang pangngalan na walang kinalaman sa emosyonal na kalagayan ng isang tao..",
     "retrieval_metadata": {
       "total_chunks": 1,
       "sources": [
         "vocabulary"
       ],
-      "avg_relevance": 0.7692939308879837,
+      "avg_relevance": 1.0,
       "query": "Filipino word: nabalisa. Definition: Kalagayan ng pagkabalisa o hindi mapakali dahil sa pag-aalala o tensiyon. salita: nabalisa maling sagot: hiyas tamang sagot: kalmado kahulugan kasingkahulugan kasalungat",
       "context_type": "vocabulary"
     }
