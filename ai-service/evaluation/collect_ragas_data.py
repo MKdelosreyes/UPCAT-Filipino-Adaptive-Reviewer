@@ -119,105 +119,105 @@ async def collect_evaluation_dataset():
     print("🚀 Starting evaluation data collection...")
     print("="*60 + "\n")
 
-    # =========== CLOSEST MEANING ITEMS ==========
+    # =========== ERROR IDENTIFICATION ITEMS ==========
     item1 = await collect_single_sample(
-        sample_id="vocab_001",
-        mode="quiz",
-        word="nagbunsod",
-        correct="sanhi",
-        selected="kaagapay",
-        ground_truth="Ang 'sanhi' ang tamang kasingkahulugan ng 'nagbunsod' dahil ang 'bunsod' ay nangangahulugang dahilan o sanhi na nagtutulak sa isang pangyayari.  Ang 'kaagapay' naman ay tumutukoy sa kasama o katuwang, na walang kaugnayan sa kahulugan ng 'bunsod'."
+        sample_id="gram_001",
+        mode="error-identification",
+        word="",
+        correct="Walang Mali",
+        selected="buhay ay",
+        sentence="Ang kanyang buhay ay parang pinagtagpi-tagping kwento ng tagumpay at kabiguan."
     )
     samples.append(item1)
 
     item2 = await collect_single_sample(
-        sample_id="vocab_002",
-        mode="quiz",
-        word="simbuyo",
-        correct="silakbo",
-        selected="nilalakbay",
-        ground_truth="Ang 'silakbo' ang tamang kasingkahulugan ng 'simbuyo' dahil pareho silang tumutukoy sa biglaan at matinding pagbulas ng damdamin. Ang 'nilalakbay' ay tumutukoy sa dinaraanan o tinatahak na landas, na ibang-iba ang kahulugan."
+        sample_id="gram_002",
+        mode="error-identification",
+        word="",
+        correct="hikahos kalagayan",
+        selected="nabubuhay sa",
+        sentence="Maraming pamilya ang nabubuhay sa hikahos kalagayan."
     )
     samples.append(item2)
 
     item3 = await collect_single_sample(
-        sample_id="vocab_003",
-        mode="quiz",
-        word="susog",
-        correct="siyasat",
-        selected="dalampasigan",
-        ground_truth="Ang 'siyasat' ang tamang kasingkahulugan ng 'susog' dahil ito ay tumutukoy sa pagsusuri o pag-eeksamen ng dokumento.  Ang 'dalampasigan' ay tumutukoy sa baybayin, na walang kaugnayan sa 'susog'."
+        sample_id="gram_003",
+        mode="error-identification",
+        word="",
+        correct="binalibag",
+        selected="Walang Mali",
+        sentence="Sa sobrang galit, binalibag niya ang telepono sa pader."
     )
     samples.append(item3)
 
     item4 = await collect_single_sample(
-        sample_id="vocab_004",
-        mode="quiz",
-        word="silakbo",
-        correct="matindi",
-        selected="kariktan",
-        ground_truth="Ang 'matindi' ang tamang kasingkahulugan ng 'silakbo' dahil ang silakbo ay tumutukoy sa matinding pagbulas ng damdamin. Ang 'kariktan' ay tumutukoy sa kagandahan, na hindi kaugnay sa kahulugan ng 'silakbo'."
+        sample_id="gram_004",
+        mode="error-identification",
+        word="",
+        correct="Walang Mali",
+        selected="sa social",
+        sentence="Naglipana ang mga pekeng balita sa social media."
     )
     samples.append(item4)
 
     item5 = await collect_single_sample(
-        sample_id="vocab_005",
-        mode="quiz",
-        word="pagtangis",
-        correct="pagluha",
-        selected="maalab",
-        ground_truth="Ang 'pagluha' ang tamang kasingkahulugan ng 'pagtangis' dahil pareho silang tumutukoy sa pag-iyak.  Ang 'maalab' ay pang-uri na tumutukoy sa matinding sigla, na ibang-iba ang kahulugan."
+        sample_id="gram_005",
+        mode="error-identification",
+        word="",
+        correct="matingkad na kulay",
+        selected="Walang Mali",
+        sentence="Pinatingkad ng ilaw ang matingkad na kulay ng kanyang damit."
     )
     samples.append(item5)
 
-    # =========== ANTONYM ITEMS ==========
+    # =========== FILL THE BLANK ITEMS ==========
     item6 = await collect_single_sample(
-        sample_id="vocab_006",
-        mode="antonym",
-        word="nagkamal",
-        correct="nagwaldas",
-        selected="humpay",
-        ground_truth="Ang 'nagwaldas' ang tamang kasalungat ng 'nagkamal' dahil ang 'nagkamal' ay nangangahulugang nag-ipon, samantalang ang 'nagwaldas' ay nangangahulugang nag-aksaya.  Ang 'humpay' ay tumutukoy sa pagtigil, na hindi direktang kasalungat."
+        sample_id="gram_006",
+        mode="fill-blanks",
+        word="",
+        correct="pagbabaklas",
+        selected="baklasin",
+        sentence="Sila ay nagtutulong-tulong sa ______ ng kanilang mga tolda matapos ang camping."
     )
     samples.append(item6)
 
     item7 = await collect_single_sample(
-        sample_id="vocab_007",
-        mode="antonym",
-        word="biyaya",
-        correct="kapinsalan",
-        selected="ilanlang",
-        ground_truth="Ang 'kapinsalan' ang tamang kasalungat ng 'biyaya' dahil ang 'biyaya' ay tumutukoy sa pagpapala, samantalang ang 'kapinsalan' ay tumutukoy sa pinsala.  Ang 'ilanlang' ay tumutukoy sa bagay na nakakalat sa hangin, na walang kaugnayan."
+        sample_id="gram_007",
+        mode="fill-blanks",
+        word="",
+        correct="mabagabag",
+        selected="bagabag",
+        sentence="Huwag kang_______; malulutas din natin ang problemang ito."
     )
     samples.append(item7)
 
     item8 = await collect_single_sample(
-        sample_id="vocab_008",
-        mode="antonym",
-        word="pagtalima",
-        correct="sumuway",
-        selected="tuyot",
-        ground_truth="Ang 'sumuway' ang tamang kasalungat ng 'pagtalima' dahil ang 'pagtalima' ay tumutukoy sa pagsunod, samantalang ang 'sumuway' ay tumutukoy sa hindi pagsunod.  Ang 'tuyot' ay pang-uri na tumutukoy sa kawalan ng tubig, na walang kaugnayan."
+        sample_id="gram_008",
+        mode="fill-blanks",
+        word="",
+        correct="kahapuan",
+        selected="nahahapo",
+        sentence="Ang _____ na kanyang nararamdaman ay dulot ng kulang sa tulog."
     )
     samples.append(item8)
 
     item9 = await collect_single_sample(
-        sample_id="vocab_009",
-        mode="antonym",
-        word="alindog",
-        correct="kapangitan",
-        selected="marubdob",
-        ground_truth="Ang 'kapangitan' ang tamang kasalungat ng 'alindog' dahil ang 'alindog' ay tumutukoy sa kagandahan, samantalang ang 'kapangitan' ay tumutukoy sa kawalan ng ganda. Ang 'marubdob' ay pang-uri na tumutukoy sa matinding damdamin, na hindi kasalungat."
+        sample_id="gram_009",
+        mode="fill-blanks",
+        word="",
+        correct="apuhapin",
+        selected="inaapuhap",
+        sentence="Subukan mong _______ sa iyong isipan ang sagot sa tanong."
     )
     samples.append(item9)
 
     item10 = await collect_single_sample(
-        sample_id="vocab_010",
-        mode="antonym",
-        word="nabalisa",
-        correct="kalmado",
-        selected="hiyas",
-        ground_truth="Ang 'kalmado' ang tamang kasalungat ng 'nabalisa' dahil ang 'nabalisa' ay tumutukoy sa pagkabalisa, samantalang ang 'kalmado' ay tumutukoy sa katahimikan.  Ang 'hiyas' ay pangngalan na tumutukoy sa alahas, na walang kaugnayan."
+        sample_id="gram_010",
+        mode="fill-blanks",
+        word="",
+        correct="nabiyayaan",
+        selected="mabiyaya",
+        sentence="Siya ay _____ ng isang magandang pamilya."
     )
     samples.append(item10)
 

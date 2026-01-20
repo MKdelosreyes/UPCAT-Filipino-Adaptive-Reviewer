@@ -260,7 +260,15 @@ def build_explanation_prompt_with_rag(data: dict, return_chunks: bool = False) -
         print("⚠️ RAG not available")
 
     # System instruction for Groq
-    system_instruction = """You are a Filipino language tutor for UPCAT preparation. Use the provided reference materials to give accurate, evidence-based explanations. Be concise and educational. Respond in Filipino."""
+    system_instruction = """You are a Filipino language tutor for UPCAT preparation. 
+
+CRITICAL INSTRUCTIONS:
+1. Use information from the provided reference materials below. 
+2. If the reference materials don't contain relevant information, say "Batay sa mga sanggunian..." and provide a brief, conservative explanation.
+4. When explaining, CITE the specific reference (e.g., "Ayon sa vocabulary reference..." or "Batay sa grammar rule...").
+5. Use the provided reference materials to give accurate, evidence-based explanations. Be concise and educational.
+
+Respond in Filipino."""
 
     # Initialize prompt variable
     prompt = ""
@@ -580,7 +588,7 @@ async def handle_explain(request: ExplainRequest, return_chunks: bool = False) -
         for attempt in range(max_retries):
             try:
                 completion = get_groq_client().chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="llama-3.1-8b-instant",
                     messages=messages,
                     temperature=0.2,
                     max_tokens=300,

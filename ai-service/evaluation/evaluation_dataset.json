@@ -211,46 +211,46 @@
     }
   },
   {
-      "id": "gram_001",
-      "exercise_type": "error-identification",
-      "correct_answer": "Walang Mali",
-      "student_answer": "buhay ay",
-      "contexts": [
-          "[GRAMMAR] Pagtangi at Pagtatanong (Hedging and Questioning): Softening expressions and indirect question forms.",
-          "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words."
-      ],
-      "answer": "Ang pangungusap ay walang malinaw na pagkakabanggit kaya't hindi natin masabi kung may error o wala. Kung ang pangungusap ay may kahulugan na malinaw at sumusunod sa mga tuntunin ng pagtangi at pagtatanong o pagtatambal, maari itong ituring na walang mali. Ang pagpili ng estudyante na \"buhay ay\" ay hindi malinaw kung saang bahagi ng pangungusap ito umiiral, kaya't hindi natin masabi kung ito ang tamang pagpili. Kailangan ng karagdagang impormasyon upang masabi kung may error o wala sa pangungusap at kung bakit ang pagpili ng estudyante ay tama o mali.",
-      "ground_truth": "Walang anumang pagkakamali sa pangungusap dahil maayos na nagamit ang panandang \"ay\" upang ikabit ang simuno sa panaguri, kaya mali ang pagpili sa \"buhay ay.\" Ang buong pahayag ay sumusunod sa tamang balangkas ng wikang Filipino at malinaw na naiparating ang metapora ng buhay ng tao. Ang pagpili sa \"buhay ay\" bilang mali ay karaniwang nagmumula sa maling akala na hindi dapat magkasunod ang pangngalan at ang ayos na pananda..",
+    "id": "gram_001",
+    "exercise_type": "error-identification",
+    "correct_answer": "Walang Mali",
+    "student_answer": "buhay ay",
+    "contexts": [
+      "[GRAMMAR] Pagtangi at Pagtatanong (Hedging and Questioning): Softening expressions and indirect question forms.",
+      "[GRAMMAR] Adjective-Noun Identicals: Some adjectives have the same spelling as nouns but differ in pronunciation."
+    ],
+    "answer": "Ang kanyang buhay ay parang pinagtagpi-tagping kwento ng tagumpay at kabiguan. Ang pangungusap ay tama dahil ang \"buhay\" ay ginamit bilang isang salitang pang-uri (adjective) na nagpapahayag ng katayuan o kalagayan ng isang bagay o tao. Ayon sa mga sanggunian, ang \"buhay\" bilang salitang pang-uri ay may parehong pagbaybay at pagbigkas sa salitang pang-isa (noun), kaya't ang paggamit nito sa pangungusap ay tama.",
+    "ground_truth": "Walang anumang pagkakamali sa pangungusap dahil maayos na nagamit ang panandang \"ay\" upang ikabit ang simuno sa panaguri, kaya mali ang pagpili sa \"buhay ay.\" Ang buong pahayag ay sumusunod sa tamang balangkas ng wikang Filipino at malinaw na naiparating ang metapora ng buhay ng tao. Ang pagpili sa \"buhay ay\" bilang mali ay karaniwang nagmumula sa maling akala na hindi dapat magkasunod ang pangngalan at ang ayos na pananda..",
     "retrieval_metadata": {
-          "total_chunks": 2,
-          "sources": [
-              "grammar"
-          ],
-          "avg_relevance": 0.9098900699509258,
-          "query": "Filipino grammar: . Word: Walang Mali salita: Walang Mali maling sagot: buhay ay tamang sagot: Walang Mali gramatika balarila pangungusap",
-          "context_type": "grammar"
-      }
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.8423785045599833,
+      "query": "Filipino grammar: Ang kanyang buhay ay parang pinagtagpi-tagping kwento ng tagumpay at kabiguan.. Word:  pangungusap: Ang kanyang buhay ay parang pinagtagpi-tagping kwento ng tagumpay at kabiguan. maling sagot: buhay ay tamang sagot: Walang Mali gramatika balarila pangungusap",
+      "context_type": "grammar"
+    }
   },
   {
-      "id": "gram_002",
-      "exercise_type": "error-identification",
-      "correct_answer": "hikahos kalagayan",
-      "student_answer": "nabubuhay sa",
-      "contexts": [
-          "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
-          "[GRAMMAR] Pagpapaikli (Clipping/Abbreviation): Shortening words while retaining meaning, common in informal Filipino."
-      ],
-      "answer": "Ang pangungusap na may error ay \"hikahos kalagayan\" dahil ito ay dapat \"hikahos na kalagayan\" ayon sa pagtatambal o compounding. Ito ay lumabag sa rule ng pagtatambal kung saan dapat magkaroon ng hyphen (-) sa pagitan ng mga salitang pinagsasama upang bumuo ng isang bagong salita. Ang napili ng estudyante na \"nabubuhay sa\" ay hindi angkop na pagsasalin o pagpapalit sa salitang may error. Kaya, ang tamang pagsusuri ay may error ang pangungusap dahil sa mali o kulang na paggamit ng pagtatambal.",
-      "ground_truth": "Ang pariralang \"hikahos kalagayan\" ay mali dahil nangangailangan ito ng pang-angkop na \"-ng\" upang pag-ugnayin ang naglalarawan at ang inilalarawan, kaya dapat itong maging \"hikahos na kalagayan.\" Ang napiling sagot na \"nabubuhay sa\" ay tama naman ang gamit bilang pandiwa at pang-ukol na nagpapakita ng sitwasyon ng pamilya. Nilabag nito ang tuntunin sa wastong paggamit ng pang-angkop (ligatures) na mahalaga sa pagbuo ng makinis na parirala sa Filipino..",
+    "id": "gram_002",
+    "exercise_type": "error-identification",
+    "correct_answer": "hikahos kalagayan",
+    "student_answer": "nabubuhay sa",
+    "contexts": [
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible. Halimbawa: Kumain si Ana ng mangga.",
+      "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words."
+    ],
+    "answer": "Walang mali sa pangungusap ng estudyante. Ayon sa pagbuo ng pangungusap, ang katayuan ng salita ay predicate-first (Verb-Subject-Object), kaya't ang orihinal na pangungusap ay \"Maraming pamilya ang nabubuhay sa hikahos na kalagayan\" (Kumain si Ana ng mangga. → English: Ana ate a mango). Ang estudyante ay nagsabi ng \"nabubuhay sa\" na angkop sa orihinal na pangungusap, kaya't ang pagbuo ng pangungusap ng estudyante ay tama.",
+    "ground_truth": "Ang pariralang \"hikahos kalagayan\" ay mali dahil nangangailangan ito ng pang-angkop na \"-ng\" upang pag-ugnayin ang naglalarawan at ang inilalarawan, kaya dapat itong maging \"hikahos na kalagayan.\" Ang napiling sagot na \"nabubuhay sa\" ay tama naman ang gamit bilang pandiwa at pang-ukol na nagpapakita ng sitwasyon ng pamilya. Nilabag nito ang tuntunin sa wastong paggamit ng pang-angkop (ligatures) na mahalaga sa pagbuo ng makinis na parirala sa Filipino..",
     "retrieval_metadata": {
-          "total_chunks": 2,
-          "sources": [
-              "grammar"
-          ],
-          "avg_relevance": 0.8273067050237666,
-          "query": "Filipino grammar: . Word: hikahos kalagayan salita: hikahos kalagayan maling sagot: nabubuhay sa tamang sagot: hikahos kalagayan gramatika balarila pangungusap",
-          "context_type": "grammar"
-      }
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.9058423608064708,
+      "query": "Filipino grammar: Maraming pamilya ang nabubuhay sa hikahos kalagayan.. Word:  pangungusap: Maraming pamilya ang nabubuhay sa hikahos kalagayan. maling sagot: nabubuhay sa tamang sagot: hikahos kalagayan gramatika balarila pangungusap",
+      "context_type": "grammar"
+    }
   },
   {
     "id": "gram_003",
@@ -258,19 +258,19 @@
     "correct_answer": "binalibag",
     "student_answer": "Walang Mali",
     "contexts": [
-        "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
-        "[GRAMMAR] Pagpapaikli (Clipping/Abbreviation): Shortening words while retaining meaning, common in informal Filipino."
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible. Halimbawa: Kumain si Ana ng mangga.",
+      "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words."
     ],
-    "answer": "Ang pangungusap na \"binalibag\" ay may posibleng error sa pagtatambal o compounding. Ayon sa mga panuntunan, ang tamang pagsasama ng mga salita ay dapat sundin, halimbawa, \"araw + gabi\" ay naging \"araw-gabi\". Sa kasong ito, ang \"binalibag\" ay maaaring hindi sumusunod sa tamang pagsasama ng mga salita, kaya't ang pagpili ng estudyante na \"Walang Mali\" ay maaaring hindi tama. Kailangan ng mas malalim na pagsusuri upang matukoy kung ang \"binalibag\" ay talagang may error o hindi, ngunit sa una, ito ay tila may posibleng paglabag sa pagtatambal.",
+    "answer": "Hindi naman may mali sa pangungusap ng estudyante. Ayon sa mga sanggunian, ang mga pangungusap sa Filipino ay karaniwang predicate-first (Verb-Subject-Object) at ito ay gumagana sa pangungusap ng estudyante. Ang \"binalibag\" ay nasa posisyon ng predicate at ito ay sumusunod sa tumbas ng pangungusap. Kaya't ang sagot ng estudyante, \"Walang Mali\", ay tama.",
     "ground_truth": "May mali sa paggamit ng pandiwang \"binalibag\" dahil bagaman nagpapakita ito ng aksyon, hindi ito ang pinakaangkop na salita para sa paghagis ng telepono sa pader sa kontekstong ito; mas mainam ang \"inihagis\" o \"ibinalibag.\" Ang pagpili ng \"Walang Mali\" ay hindi wasto dahil hindi napansin ang kakulangan sa wastong gamit ng salita o diction na tumutugma sa galaw ng simuno. Mahalagang suriin ang nuances ng bawat pandiwa upang matiyak na tumpak ang emosyong ipinapahayag ng pangungusap.",
     "retrieval_metadata": {
-        "total_chunks": 2,
-        "sources": [
-            "grammar"
-        ],
-        "avg_relevance": 0.807474707400953,
-        "query": "Filipino grammar: . Word: binalibag salita: binalibag maling sagot: Walang Mali tamang sagot: binalibag gramatika balarila pangungusap",
-        "context_type": "grammar"
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.8903697508100061,
+      "query": "Filipino grammar: Sa sobrang galit, binalibag niya ang telepono sa pader.. Word:  pangungusap: Sa sobrang galit, binalibag niya ang telepono sa pader. maling sagot: Walang Mali tamang sagot: binalibag gramatika balarila pangungusap",
+      "context_type": "grammar"
     }
   },
   {
@@ -279,19 +279,19 @@
     "correct_answer": "Walang Mali",
     "student_answer": "sa social",
     "contexts": [
-        "[GRAMMAR] Pagtangi at Pagtatanong (Hedging and Questioning): Softening expressions and indirect question forms.",
-        "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words."
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible. Halimbawa: Kumain si Ana ng mangga.",
+      "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words."
     ],
-    "answer": "Ang pangungusap na \"Walang Mali\" ay walang error sa pagtatambal o pagtangi at pagtatanong, kaya't ang sagot ng estudyante ay tama. Ito ay dahil walang mga salitang pinagsasama o pinag-uusig upang makabuo ng bagong salita, at walang mga ekspresyon na nagpapahina o nagtatanong na kinakailangan. Ang pagpili ng estudyante sa \"sa social\" ay hindi umiiral sa pangungusap, kaya't hindi ito angkop na sagot. Sa kabuuan, ang pangungusap ay simple at walang error, kaya't ang sagot ng estudyante ay wasto.",
+    "answer": "Hindi naman may mali sa pangungusap ng estudyante, \"Naglipana ang mga pekeng balita sa social media.\" Ayon sa grammar rules, ang pangungusap ay nasa tamang pagbuo ng pangungusap (sentence structure) na predicate-first (Verb-Subject-Object). Ang \"Naglipana\" ay ang pangungusap, \"mga pekeng balita\" ay ang pangunahing pangungusap, at \"sa social media\" ay ang pangungusap na nagpapahayag ng lugar. Kaya't walang mali sa pagpili ng estudyante.",
     "ground_truth": "Ang pangungusap ay gramatikal na wasto dahil ang paggamit ng \"sa\" bilang pang-ukol para sa \"social media\" ay natural at tinatanggap sa modernong pakikipagtalastasan. Mali ang napiling sagot na \"sa social\" dahil walang batas sa balarila na nagbabawal sa paghiram ng mga terminong teknikal o dayuhan sa loob ng isang Filipino sentence. Ang buong pahayag ay malinaw, direkta, at walang nilabag na anumang tuntunin sa sintaks.",
     "retrieval_metadata": {
-        "total_chunks": 2,
-        "sources": [
-            "grammar"
-        ],
-        "avg_relevance": 0.9044547284682853,
-        "query": "Filipino grammar: . Word: Walang Mali salita: Walang Mali maling sagot: sa social tamang sagot: Walang Mali gramatika balarila pangungusap",
-        "context_type": "grammar"
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.8906958662121308,
+      "query": "Filipino grammar: Naglipana ang mga pekeng balita sa social media.. Word:  pangungusap: Naglipana ang mga pekeng balita sa social media. maling sagot: sa social tamang sagot: Walang Mali gramatika balarila pangungusap",
+      "context_type": "grammar"
     }
   },
   {
@@ -300,19 +300,19 @@
     "correct_answer": "matingkad na kulay",
     "student_answer": "Walang Mali",
     "contexts": [
-        "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
-        "[GRAMMAR] Pagpapaikli (Clipping/Abbreviation): Shortening words while retaining meaning, common in informal Filipino."
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible. Halimbawa: Kumain si Ana ng mangga.",
+      "[GRAMMAR] Paggamit ng Tayutay (Figures of Speech): Literary devices used in Filipino writing and speaking."
     ],
-    "answer": "Ang pangungusap na \"matingkad na kulay\" ay walang error sa pagtatambal o pagpapaikli ng salita. Ito ay isang tamang paggamit ng mga salita sa Filipino, kaya't ang pagpili ng estudyante na \"Walang Mali\" ay tama. Hindi mayroong paglabag sa mga tuntunin ng pagtatambal o pagpapaikli ng salita, at ang paggamit ng mga salita ay ayon sa wastong pagbubuo ng salita. Kaya, ang pagpili ng estudyante ay wasto at hindi mayroong anumang error sa pangungusap.",
+    "answer": "Ang sagot ng estudyante ay tama. Ayon sa pagbuo ng pangungusap, ang mga pangungusap na Filipino ay karaniwang predicate-first (Verb-Subject-Object), kaya't ang orihinal na pangungusap ng estudyante, \"Pinatingkad ng ilaw ang matingkad na kulay ng kanyang damit,\" ay tama. Ang orihinal na pangungusap ay sumunod sa tamang pagbuo ng pangungusap sa Filipino, kaya't walang mali sa pangungusap.",
     "ground_truth": "Ang pagkakamali ay nasa pariralang \"matingkad na kulay\" dahil nagkaroon ng redundansiya o pag-uulit ng diwa (tautology) dahil ginamit na ang salitang \"pinatingkad\" sa unahan ng pangungusap. Ang sagot na \"Walang Mali\" ay hindi tama dahil ang isang mahusay na pangungusap ay dapat umiiwas sa paggamit ng magkatulad na salitang-ugat sa loob ng iisang pahayag kung ito ay nagdudulot ng kalituhan. Ang tamang anyo ay dapat gumamit ng ibang salitang naglalarawan upang hindi maging paulit-ulit ang tunog at kahulugan nito..",
     "retrieval_metadata": {
-        "total_chunks": 2,
-        "sources": [
-            "grammar"
-        ],
-        "avg_relevance": 0.8297296940072263,
-        "query": "Filipino grammar: . Word: matingkad na kulay salita: matingkad na kulay maling sagot: Walang Mali tamang sagot: matingkad na kulay gramatika balarila pangungusap",
-        "context_type": "grammar"
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.9028011827451654,
+      "query": "Filipino grammar: Pinatingkad ng ilaw ang matingkad na kulay ng kanyang damit.. Word:  pangungusap: Pinatingkad ng ilaw ang matingkad na kulay ng kanyang damit. maling sagot: Walang Mali tamang sagot: matingkad na kulay gramatika balarila pangungusap",
+      "context_type": "grammar"
     }
   },
   {
@@ -321,19 +321,19 @@
     "correct_answer": "pagbabaklas",
     "student_answer": "baklasin",
     "contexts": [
-        "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
-        "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+      "[GRAMMAR] Antas ng Wika (Language Registers): Different levels of formality in Filipino language use.",
+      "[GRAMMAR] Quiz Corrections: Example learner sentences with corrections to reinforce correct structure."
     ],
-    "answer": "Ang \"pagbabaklas\" ang tamang salita dahil ito ay sumusunod sa pagtatambal o compounding, kung saan pinagsasama ang mga salita upang bumuo ng isang bagong salita. Ayon sa mga panuntunan ng pagtatambal, ang \"pagbabaklas\" ay isang tamang halimbawa nito, kung saan ang \"baklas\" ay pinagbabase sa salitang \"baklas\" at ang panlapi \"pagba-\" ay idinagdag upang mabuo ang salitang \"pagbabaklas\". Ang estudyante ay nagkamali nang pumili ng \"baklasin\" dahil ito ay sumusunod sa isang ibang anyo ng pagbubuo ng salita, at hindi sa pagtatambal. Dahil dito, ang \"baklasin\" ay hindi ang tamang salita sa konteksto ng tanong.",
+    "answer": "Sa pangungusap na ito, ang tamang sagot ay \"pagbabaklas\" dahil ito ay isang pormal na salita na ginagamit sa formal na konteksto. Ayon sa antas ng wika (Language Registers), ang \"pagbabaklas\" ay isang pormal na salita na ginagamit sa lugar ng \"baklasin\" na isang di-pormal na salita (Batay sa mga sanggunian, ang paggamit ng di-pormal na salita sa formal na konteksto ay isang karaniwang pagkakamali). Ang grammatical rule na ginamit dito ay ang paggamit ng pormal na salita sa formal na konteksto (Antas ng Wika, Retorika at Estilo). Ang estudyante ay nagkamali dahil nagpili ng di-pormal na salita (baklasin) sa halip na pormal na salita (pagbabaklas).",
     "ground_truth": "Ang \"pagbabaklas\" ang tamang sagot dahil ito ay isang pangngalang di-konkreto na tumutukoy sa mismong proseso o aktibidad, na kinakailangan pagkatapos ng pang-ukol na \"sa.\" Ayon sa balarila, ang panlaping pag- o pag- + pag-uulit ng pantig ay ginagamit upang gawing pangngalan ang isang pandiwa. Ang napiling sagot na \"baklasin\" ay mali dahil ito ay isang pandiwang pautos o pangkasalukuyan na hindi angkop sa estruktura ng parirala..",
     "retrieval_metadata": {
-        "total_chunks": 2,
-        "sources": [
-            "grammar"
-        ],
-        "avg_relevance": 0.8245175917286246,
-        "query": "Filipino grammar: . Word: pagbabaklas salita: pagbabaklas maling sagot: baklasin tamang sagot: pagbabaklas gramatika balarila pangungusap",
-        "context_type": "grammar"
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.875552456779492,
+      "query": "Filipino grammar: Sila ay nagtutulong-tulong sa ______ ng kanilang mga tolda matapos ang camping.. Word:  pangungusap: Sila ay nagtutulong-tulong sa ______ ng kanilang mga tolda matapos ang camping. maling sagot: baklasin tamang sagot: pagbabaklas gramatika balarila pangungusap",
+      "context_type": "grammar"
     }
   },
   {
@@ -342,19 +342,19 @@
     "correct_answer": "mabagabag",
     "student_answer": "bagabag",
     "contexts": [
-        "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
-        "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible. Halimbawa: Kumain si Ana ng mangga.",
+      "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words."
     ],
-    "answer": "Ang \"mabagabag\" ang tamang salita dahil ito ay isang salitang inayos sa pamamagitan ng pagtatambal ng mga salita, na sumusunod sa pagtatambal o compounding. Ayon sa mga panuntunan ng pagbubuo ng salita, ang \"mabagabag\" ay sumusunod sa tamang pag-iisa ng mga salita, kung saan hindi ginamit ang mali o di-tamang pagbubuo ng salita. Ang estudyante ay nagkamali sa pagpili ng \"bagabag\" dahil hindi ito sumusunod sa tamang pagbubuo ng salita, na isang karaniwang pagkakamali sa pagbubuo ng mga salita. Sa gayon, ang \"mabagabag\" ang tamang salita dahil sumusunod ito sa mga panuntunan ng pagbubuo ng salita at pagtatambal.",
+    "answer": "Sa pangungusap na ito, ang tamang salita ay \"mabagabag\" dahil sa kahulugan nito, na nangangahulugang \"nag-iingat\" o \"nagbabantay\". Ayon sa grammar rule ng pagbuo ng pangungusap (Basic Word Order), ang Filipino ay predicate-first (Verb-Subject-Object), kaya't dapat tukuyin ang verb (mabagabag) bago ang subject (kang). Sa halip, ang estudyante ay naglagay ng subject (kang) bago ang verb (bagabag), na isang common error na direktang pag-uugnay ng English SVO order. Kaya't mali ang napiling sagot ng estudyante, na \"bagabag\", dahil hindi ito ang tamang kahulugan at ayon sa gramatika.",
     "ground_truth": "Ang salitang \"mabagabag\" ang nararapat dahil ito ay nasa anyong pandiwa (infinitive/contemplative) na kailangan kasunod ng salitang \"Huwag.\" Ayon sa tuntunin, ang \"Huwag\" ay sinusundan ng pandiwang nasa panahunang pautos o pawatas, hindi ng payak na salitang-ugat. Ang napiling sagot na \"bagabag\" ay isang pangngalan, kaya nagkakaroon ng putol sa daloy ng diwa ng pangungusap..",
     "retrieval_metadata": {
-        "total_chunks": 2,
-        "sources": [
-            "grammar"
-        ],
-        "avg_relevance": 0.8256804417440289,
-        "query": "Filipino grammar: . Word: mabagabag salita: mabagabag maling sagot: bagabag tamang sagot: mabagabag gramatika balarila pangungusap",
-        "context_type": "grammar"
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.857838006933856,
+      "query": "Filipino grammar: Huwag kang_______; malulutas din natin ang problemang ito.. Word:  pangungusap: Huwag kang_______; malulutas din natin ang problemang ito. maling sagot: bagabag tamang sagot: mabagabag gramatika balarila pangungusap",
+      "context_type": "grammar"
     }
   },
   {
@@ -363,19 +363,19 @@
     "correct_answer": "kahapuan",
     "student_answer": "nahahapo",
     "contexts": [
-        "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
-        "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible."
+      "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible. Halimbawa: Kumain si Ana ng mangga."
     ],
-    "answer": "Ang \"kahapuan\" ang tamang salita dahil ito ang wastong termino para sa \"matinding pagod ng katawan o isipan matapos ang isang mabigat na gawain\". Ayon sa pagtatambal (compounding), ang \"kahapuan\" ay nabuo mula sa pagbubuo ng salita, kung saan ang mga komponente ay pinagsasama upang makalikha ng isang bagong salita. Ang estudyante ay nagkamali sa pagpili ng \"nahahapo\" dahil hindi ito sumusunod sa tamang pagbubuo ng salita, at ito ay isang halimbawa ng common error sa pagtatambal. Dahil dito, ang \"kahapuan\" ang mas wastong paggamit ng salita sa pangungusap.",
+    "answer": "Sa pangungusap na ito, ang tamang salita ay \"kahapuan\" dahil ito ay isang compound na salita na binubuo ng mga salitang \"ka\" at \"hapuan\" (Ayon sa grammar rule ng pagtatambal, \"Pagbubuo ng Salita (Word Formation)\"), na nangangahulugang \"kawalan ng hapunan\" o \"kawalan ng pagkain\". Ang estudyante ay nagkamali sa pagpili ng salita dahil hindi niya naiintindihan ang kahulugan ng compound na salita (Batay sa mga sanggunian, ang estudyante ay nagkamali sa pagbabasa ng kahulugan ng salita). Ang estudyante ay nagkamali rin sa pagpili ng salita dahil hindi niya nakaunawaan ang kahulugan ng pangungusap (Batay sa mga sanggunian, ang estudyante ay nagkamali sa pagbabasa ng kahulugan ng pangungusap).",
     "ground_truth": "Ang \"kahapuan\" ang tamang salita dahil ito ay isang pangngalan na nagsasaad ng kalagayan o kondisyon, na siyang simuno ng pangungusap. Batay sa morpolohiya ng Filipino, ang unaping ka- at hulaping -an ay ginagamit upang makabuo ng pangngalang abstract mula sa isang pang-uri o pandiwa. Ang \"nahahapo\" ay isang pandiwang naglalarawan ng kilos na ginagawa pa lamang, kaya hindi ito puwedeng magsilbing pangngalan sa kontekstong ito..",
     "retrieval_metadata": {
-        "total_chunks": 2,
-        "sources": [
-            "grammar"
-        ],
-        "avg_relevance": 0.8230114757091371,
-        "query": "Filipino grammar: . Word: kahapuan salita: kahapuan maling sagot: nahahapo tamang sagot: kahapuan gramatika balarila pangungusap",
-        "context_type": "grammar"
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.8099995621189111,
+      "query": "Filipino grammar: Ang _____ na kanyang nararamdaman ay dulot ng kulang sa tulog.. Word:  pangungusap: Ang _____ na kanyang nararamdaman ay dulot ng kulang sa tulog. maling sagot: nahahapo tamang sagot: kahapuan gramatika balarila pangungusap",
+      "context_type": "grammar"
     }
   },
   {
@@ -384,19 +384,19 @@
     "correct_answer": "apuhapin",
     "student_answer": "inaapuhap",
     "contexts": [
-        "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
-        "[GRAMMAR] Pagpapaikli (Clipping/Abbreviation): Shortening words while retaining meaning, common in informal Filipino."
+      "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
+      "[GRAMMAR] Basic Word Order: Typical Filipino sentences are predicate-first (Verb-Subject-Object) though other orders are grammatically possible. Halimbawa: Kumain si Ana ng mangga."
     ],
-    "answer": "Ang \"apuhapin\" ang tamang salita dahil ito ang wastong pagtatambal ng mga salita upang bumuo ng isang bagong salita. Ayon sa pagtatambal (compounding) na nakasaad sa mga panuntunan ng balarila, ito ay nangyayari kapag pinagsasama ang dalawang o higit pang salita upang makabuo ng isang bagong salita. Hindi ginamit ng estudyante ang tamang pagtatambal, kaya mali ang kanyang napiling sagot na \"inaapuhap\", na nagpapakita ng isang karaniwang pagkakamali sa pagbubuo ng salita. Sa kasong ito, ang estudyante ay dapat gumamit ng wastong pagtatambal upang makabuo ng salitang \"apuhapin\".",
+    "answer": "Ayon sa mga sanggunian, ang tamang salita ay \"apuhapin\" dahil sa pagtatambal ng mga salita. Batay sa rule ng pagtatambal, ang pagbuo ng salita ay nangangahulugang pagdaragdag ng mga salita upang makabuo ng bagong salita. Sa halip na \"inaapuhap\", ang estudyante ay nagkaroon ng common error sa pagtatambal, na kung saan ang pagdaragdag ng mga salita ay mali (Batay sa mga sanggunian, ang tamang pagtatambal ay araw + gabi → araw-gabi, at hindi araw + inaapuhap).",
     "ground_truth": "Ang \"apuhapin\" ang tamang sagot dahil ang pangungusap ay nagpapahayag ng isang utos o mungkahi na nangangailangan ng pandiwang nasa anyong pawatas (infinitive). Karaniwang pagkakamali ang paggamit ng \"inaapuhap\" dahil ito ay nasa aspektong nagaganap, na hindi tumutugma sa pautos na tono ng salitang \"Subukan.\" Ayon sa mga sanggunian sa gramatika, ang mga pandiwang sinusundan ng \"subukan\" o \"pilitin\" ay dapat nasa anyong hindi pa nasisimulan.",
     "retrieval_metadata": {
-        "total_chunks": 2,
-        "sources": [
-            "grammar"
-        ],
-        "avg_relevance": 0.8321665305068522,
-        "query": "Filipino grammar: . Word: apuhapin salita: apuhapin maling sagot: inaapuhap tamang sagot: apuhapin gramatika balarila pangungusap",
-        "context_type": "grammar"
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.7717903709209011,
+      "query": "Filipino grammar: Subukan mong _______ sa iyong isipan ang sagot sa tanong.. Word:  pangungusap: Subukan mong _______ sa iyong isipan ang sagot sa tanong. maling sagot: inaapuhap tamang sagot: apuhapin gramatika balarila pangungusap",
+      "context_type": "grammar"
     }
   },
   {
@@ -405,19 +405,19 @@
     "correct_answer": "nabiyayaan",
     "student_answer": "mabiyaya",
     "contexts": [
-        "[GRAMMAR] Pagtatambal (Compounding): Combining two or more words to create new words.",
-        "[GRAMMAR] Pagpapaikli (Clipping/Abbreviation): Shortening words while retaining meaning, common in informal Filipino."
+      "[GRAMMAR] Adjective Placement: Adjectives generally come before the noun they modify in Filipino. Halimbawa: magandang araw",
+      "[GRAMMAR] Quiz Corrections: Example learner sentences with corrections to reinforce correct structure."
     ],
-    "answer": "Ang \"nabiyayaan\" ang tamang salita dahil ito ang nasa anyo ng pandiwa na may kahulugan ng pagtanggap ng biyaya. Ayon sa mga panuntunan ng pagbubuo ng salita, ito ay sumusunod sa mga karaniwang anyo ng pandiwa sa Filipino. Ang estudyante ay nagkamali nang pumili ng \"mabiyaya\" dahil hindi ito sumusunod sa tamang anyo ng pandiwa, at hindi rin ito isang halimbawa ng pagtatambal o pagpapaikli ng salita. Sa halip, ang \"nabiyayaan\" ay isang halimbawa ng pagbubuo ng salita sa pamamagitan ng pagdaragdag ng panlapi sa salitang-ugat na \"biyaya\".",
+    "answer": "Ayon sa mga sanggunian, ang tamang sagot ay \"nabiyayaan\" dahil ito ay isang pangungusap na nagpapahayag ng pagkakaroon ng isang bagay o kalagayan. Batay sa grammar rule, ang mga katayuan ay karaniwang sinasagisag ng mga pangungusap na nagtatapos sa -in (Ayon sa mga sanggunian, ang mga katayuan ay karaniwang sinasagisag ng mga pangungusap na nagtatapos sa -in). Sa kaso ng pangungusap \"Siya ay _____ ng isang magandang pamilya\", ang tamang sagot ay \"nabiyayaan\" dahil ito ay isang katayuan na nagpapahayag ng pagkakaroon ng isang bagay o kalagayan. Ang napiling sagot ng estudyante, \"mabiyaya\", ay mali dahil ito ay isang katayuan na nagpapahayag ng pagkakaroon ng isang bagay o kalagayan, ngunit ang katayuan ay karaniwang sinasagisag ng mga pangungusap na nagtatapos sa -in.",
     "ground_truth": "Ang \"nabiyayaan\" ang wastong salita dahil ito ay pandiwang nasa aspektong naganap (perfective) na tumutukoy sa isang biyayang natanggap na ng simuno. Ang tuntunin sa paggamit ng panlaping na-...-an ay nagpapakita na ang simuno ang tagatanggap ng isang pangyayari. Mali ang \"mabiyaya\" dahil ito ay isang pang-uri na naglalarawan ng katangian (hal. mabiyayang lupain), sa halip na isang aksyong naganap na sa tao..",
     "retrieval_metadata": {
-        "total_chunks": 2,
-        "sources": [
-            "grammar"
-        ],
-        "avg_relevance": 0.8344704450419458,
-        "query": "Filipino grammar: . Word: nabiyayaan salita: nabiyayaan maling sagot: mabiyaya tamang sagot: nabiyayaan gramatika balarila pangungusap",
-        "context_type": "grammar"
+      "total_chunks": 2,
+      "sources": [
+        "grammar"
+      ],
+      "avg_relevance": 0.863884869467836,
+      "query": "Filipino grammar: Siya ay _____ ng isang magandang pamilya.. Word:  pangungusap: Siya ay _____ ng isang magandang pamilya. maling sagot: mabiyaya tamang sagot: nabiyayaan gramatika balarila pangungusap",
+      "context_type": "grammar"
     }
   },
   {
