@@ -53,7 +53,7 @@ export function useDashboardInsights() {
       const sentence = moduleData as SentenceProgress;
 
       allHistory = [
-        ...sentence["complete-sentence"].performanceHistory,
+        // ...sentence["complete-sentence"].performanceHistory,
         ...sentence["sentence-ordering"].performanceHistory,
         ...sentence["choose-sentence"].performanceHistory,
       ];
@@ -90,7 +90,7 @@ export function useDashboardInsights() {
       const sentence = moduleData as SentenceProgress;
 
       difficulties = [
-        sentence["complete-sentence"].lastDifficulty,
+        // sentence["complete-sentence"].lastDifficulty,
         sentence["sentence-ordering"].lastDifficulty,
         sentence["choose-sentence"].lastDifficulty,
       ];

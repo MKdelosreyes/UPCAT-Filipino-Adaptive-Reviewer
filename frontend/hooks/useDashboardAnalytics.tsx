@@ -118,11 +118,11 @@ export function useDashboardAnalytics() {
       } else if (module === "sentence-construction") {
         const sentence = moduleData as SentenceProgress;
 
-        if (hasAttempted(sentence["complete-sentence"])) {
-          attemptedQuizzes++;
-          if (sentence["complete-sentence"].score !== null)
-            scores.push(sentence["complete-sentence"].score);
-        }
+        // if (hasAttempted(sentence["complete-sentence"])) {
+        //   attemptedQuizzes++;
+        //   if (sentence["complete-sentence"].score !== null)
+        //     scores.push(sentence["complete-sentence"].score);
+        // }
         if (hasAttempted(sentence["sentence-ordering"])) {
           attemptedQuizzes++;
           if (sentence["sentence-ordering"].score !== null)
@@ -314,7 +314,7 @@ export function useDashboardAnalytics() {
     // Sentence construction skills - include choose-sentence
     const sentenceData = progress["sentence-construction"];
     const sentenceScores = [
-      sentenceData["complete-sentence"].score,
+      // sentenceData["complete-sentence"].score,
       sentenceData["sentence-ordering"].score,
       sentenceData["choose-sentence"].score,
     ].filter((s): s is number => s !== null);
@@ -324,7 +324,7 @@ export function useDashboardAnalytics() {
         : 0;
 
     const sentenceAttempted = [
-      sentenceData["complete-sentence"],
+      // sentenceData["complete-sentence"],
       sentenceData["sentence-ordering"],
       sentenceData["choose-sentence"],
     ].filter((ex) => hasAttempted(ex)).length;
@@ -482,15 +482,16 @@ export function useDashboardAnalytics() {
     totalAttempts += progress.vocabulary.antonym.attempts;
     totalAttempts += progress.grammar["error-identification"].attempts;
     totalAttempts += progress.grammar["fill-blanks"].attempts;
-    totalAttempts +=
-      progress["sentence-construction"]["complete-sentence"].attempts;
+    // totalAttempts +=
+    //   progress["sentence-construction"]["complete-sentence"].attempts;
     totalAttempts +=
       progress["sentence-construction"]["sentence-ordering"].attempts;
     totalAttempts +=
       progress["sentence-construction"]["choose-sentence"].attempts;
     totalAttempts +=
       progress["reading-comprehension"]["passage-questions"].attempts;
-    totalAttempts += progress["reading-comprehension"]["summary-exercise"].attempts;
+    totalAttempts +=
+      progress["reading-comprehension"]["summary-exercise"].attempts;
 
     const daysSinceStart = 30;
     let studyFrequency: "daily" | "frequent" | "occasional" | "rare" = "rare";

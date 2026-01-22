@@ -16,9 +16,8 @@ export type GrammarQuizExercise = "error-identification" | "fill-blanks";
 export type GrammarExercise = GrammarLessonExercise | GrammarQuizExercise;
 
 export type SentenceExercise =
-  | "complete-sentence"
-  | "sentence-ordering"
-  | "choose-sentence";
+  // | "complete-sentence"
+  "sentence-ordering" | "choose-sentence";
 export type ReadingExercise = "passage-questions" | "summary-exercise";
 
 export type ExerciseType =
@@ -78,7 +77,7 @@ export interface GrammarProgress {
 }
 
 export interface SentenceProgress {
-  "complete-sentence": QuizProgress;
+  // "complete-sentence": QuizProgress;
   "sentence-ordering": QuizProgress;
   "choose-sentence": QuizProgress;
   lastAccessedAt: string | null;
@@ -195,7 +194,7 @@ const createDefaultGrammarProgress = (): GrammarProgress => ({
 });
 
 const createDefaultSentenceProgress = (): SentenceProgress => ({
-  "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
+  // "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
   "sentence-ordering": { ...defaultQuizProgress, status: "not-started" },
   "choose-sentence": { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
@@ -271,7 +270,7 @@ export function LearningProgressProvider({
     } else if (module === "sentence-construction") {
       const sentenceData = moduleData as SentenceProgress;
       if (
-        exercise === "complete-sentence" ||
+        // exercise === "complete-sentence" ||
         exercise === "sentence-ordering" ||
         exercise === "choose-sentence"
       ) {
@@ -377,10 +376,9 @@ export function LearningProgressProvider({
           [module]: moduleProgress,
         };
       } else if (
-        module === "sentence-construction" &&
-        (exercise === "complete-sentence" ||
-          exercise === "sentence-ordering" ||
-          exercise === "choose-sentence")
+        module ===
+          "sentence-construction" /*exercise === "complete-sentence" ||*/ &&
+        (exercise === "sentence-ordering" || exercise === "choose-sentence")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
 
@@ -515,7 +513,7 @@ export function LearningProgressProvider({
           const exType = exercise.exercise_type;
 
           if (
-            exType === "complete-sentence" ||
+            // exType === "complete-sentence" ||
             exType === "sentence-ordering" ||
             exType === "choose-sentence"
           ) {
@@ -658,7 +656,7 @@ export function LearningProgressProvider({
       case "grammar":
         return ["lesson-cards", "error-identification", "fill-blanks"];
       case "sentence-construction":
-        return ["complete-sentence", "sentence-ordering", "choose-sentence"];
+        return ["sentence-ordering", "choose-sentence"];
       case "reading-comprehension":
         return ["passage-questions", "summary-exercise"];
       default:
@@ -841,10 +839,9 @@ export function LearningProgressProvider({
           [module]: moduleProgress,
         };
       } else if (
-        module === "sentence-construction" &&
-        (exercise === "complete-sentence" ||
-          exercise === "sentence-ordering" ||
-          exercise === "choose-sentence")
+        module ===
+          "sentence-construction" /*exercise === "complete-sentence" ||*/ &&
+        (exercise === "sentence-ordering" || exercise === "choose-sentence")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
         const quizProgress = moduleProgress[exercise];
