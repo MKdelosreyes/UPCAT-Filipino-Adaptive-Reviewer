@@ -2,7 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  Clock,
+  Award,
+  BookOpen,
+} from "lucide-react";
 import {
   motion,
   AnimatePresence,
@@ -10,6 +19,7 @@ import {
   animate,
 } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
+import confetti from "canvas-confetti";
 
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
@@ -35,62 +45,135 @@ interface CardState {
 
 interface LessonCardsCompletionModalProps {
   isOpen: boolean;
-  score: number;
-  masteredCount: number;
+  viewedCount: number; // Changed from masteredCount
   totalCards: number;
   onClose: () => void;
 }
 
 const LessonCardsCompletionModal: React.FC<LessonCardsCompletionModalProps> = ({
   isOpen,
-  score,
-  masteredCount,
+  viewedCount,
   totalCards,
   onClose,
 }) => {
-  if (!isOpen) return null;
+  const completionRate = Math.round((viewedCount / totalCards) * 100);
+
+  useEffect(() => {
+    if (isOpen) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    }
+  }, [isOpen]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-2xl font-bold text-blue-700 mb-2">Great Job! 🎉</h2>
-        <p className="text-gray-600 mb-6">
-          You&apos;ve completed the lesson cards!
-        </p>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50"
+            onClick={onClose}
+          />
 
-        <div className="bg-blue-50 rounded-xl p-4 mb-6 space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700 font-semibold">Total Cards:</span>
-            <span className="text-2xl font-bold text-blue-700">
-              {totalCards}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700 font-semibold">Cards Viewed:</span>
-            <span className="text-2xl font-bold text-green-600">
-              {masteredCount}
-            </span>
-          </div>
-        </div>
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 50 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 space-y-6">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                  <BookOpen className="w-12 h-12 text-blue-600" />
+                </div>
+              </div>
 
-        <Link
-          href="/grammar"
-          className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors text-center"
-        >
-          Back to Grammar
-        </Link>
-      </motion.div>
-    </motion.div>
+              {/* Title */}
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                  Lessons Complete!
+                </h2>
+                <p className="text-gray-600">
+                  You've reviewed all the grammar rules.
+                </p>
+              </div>
+
+              {/* Stats */}
+              <div className="space-y-3 bg-blue-50 rounded-2xl p-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 font-medium flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-blue-600" />
+                    Grammar Rules
+                  </span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {totalCards}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 font-medium flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    Cards Reviewed
+                  </span>
+                  <span className="text-xl font-bold text-green-600">
+                    {viewedCount}/{totalCards}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 font-medium flex items-center gap-2">
+                    <Award className="w-5 h-5 text-purple-600" />
+                    Progress
+                  </span>
+                  <span className="text-xl font-bold text-purple-600">
+                    {completionRate}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Performance Message */}
+              <div className="text-center p-4 bg-blue-50 rounded-xl">
+                <p className="text-sm text-blue-800 font-medium">
+                  {completionRate >= 100
+                    ? "Perfect! You've reviewed every rule. Time to practice!"
+                    : completionRate >= 70
+                    ? "Great! You've covered most grammar concepts."
+                    : "Good start! Review more to understand all rules."}
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/grammar/error-identification"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
+                >
+                  Practice Grammar Exercises →
+                </Link>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-colors"
+                >
+                  Review Again
+                </button>
+                <Link
+                  href="/grammar"
+                  className="w-full text-center text-gray-600 hover:text-gray-800 py-2 text-sm"
+                >
+                  Back to Grammar
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -123,11 +206,6 @@ const LessonCard: React.FC<{
             <p className="text-base text-blue-500 font-semibold">
               Tap to reveal
             </p>
-            {/* <div className="mt-8 inline-block bg-blue-200 px-5 py-3 rounded-full">
-              <span className="text-sm font-bold text-blue-800">
-                {card.difficulty}
-              </span>
-            </div> */}
           </motion.div>
         ) : (
           <motion.div
@@ -340,12 +418,12 @@ export default function LessonCardsPage() {
   const handleFinish = () => {
     const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
 
-    // updateProgress("lesson-cards", {
-    //   status: "completed",
-    //   completedAt: new Date().toISOString(),
-    //   timeSpent,
-    //   cardsReviewed: deck.length,
-    // });
+    updateProgress("lesson-cards", {
+      status: "in-progress",
+      completedAt: new Date().toISOString(),
+      timeSpent,
+      lessonsViewed: viewedCards.size,
+    });
 
     setShowCompletion(true);
   };
@@ -495,8 +573,7 @@ export default function LessonCardsPage() {
 
       <LessonCardsCompletionModal
         isOpen={showCompletion}
-        score={Math.round((viewedCards.size / deck.length) * 100)}
-        masteredCount={viewedCards.size}
+        viewedCount={viewedCards.size}
         totalCards={deck.length}
         onClose={() => setShowCompletion(false)}
       />

@@ -670,7 +670,7 @@ export function LearningProgressProvider({
     const exercises = getModuleExercises(module);
 
     let totalMasteryScore = 0;
-    const maxMasteryPerExercise = 5; // master = 5, advanced = 4, etc.
+    const maxMasteryPerExercise = 5;
 
     exercises.forEach((ex) => {
       const exerciseProgress = getExerciseProgressTyped(module, ex);
@@ -678,14 +678,21 @@ export function LearningProgressProvider({
       if (!exerciseProgress) return;
 
       if (isLessonExercise(module, ex)) {
-        // Lessons: score based on time spent
+        // Lessons use completion metrics, not scores
         const lesson = exerciseProgress as LessonProgress;
-        if (lesson.timeSpent >= 600) totalMasteryScore += 5; // 10+ min = max
-        else if (lesson.timeSpent >= 300)
-          totalMasteryScore += 3; // 5+ min = mid
-        else if (lesson.timeSpent > 0) totalMasteryScore += 1; // started
+
+        if (ex === "flashcards" && lesson.cardsReviewed) {
+          const reviewRate = Math.min(1, lesson.cardsReviewed / 50);
+          const timeRate = Math.min(1, lesson.timeSpent / 600);
+          totalMasteryScore += (reviewRate + timeRate) * 2.5;
+        } else if (ex === "lesson-cards" && lesson.lessonsViewed) {
+          const viewRate = Math.min(1, lesson.lessonsViewed / 15); // 15 lessons = full mastery
+          const timeRate = Math.min(1, lesson.timeSpent / 600);
+          totalMasteryScore += (viewRate + timeRate) * 2.5;
+        } else if (lesson.timeSpent >= 600) totalMasteryScore += 5;
+        else if (lesson.timeSpent >= 300) totalMasteryScore += 3;
+        else if (lesson.timeSpent > 0) totalMasteryScore += 1;
       } else {
-        // Quizzes: score based on mastery level
         const quiz = exerciseProgress as QuizProgress;
         if (quiz.performanceHistory.length === 0) return;
 
@@ -694,14 +701,13 @@ export function LearningProgressProvider({
           quiz.performanceHistory.length;
         const difficulty = quiz.lastDifficulty;
 
-        if (difficulty === "hard" && avgScore >= 90)
-          totalMasteryScore += 5; // master
+        if (difficulty === "hard" && avgScore >= 90) totalMasteryScore += 5;
         else if (difficulty === "hard" && avgScore >= 75)
-          totalMasteryScore += 4; // advanced
+          totalMasteryScore += 4;
         else if (difficulty === "medium" && avgScore >= 75)
-          totalMasteryScore += 3; // proficient
-        else if (avgScore >= 60) totalMasteryScore += 2; // developing
-        else totalMasteryScore += 1; // beginner
+          totalMasteryScore += 3;
+        else if (avgScore >= 60) totalMasteryScore += 2;
+        else totalMasteryScore += 1;
       }
     });
 

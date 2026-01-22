@@ -193,7 +193,6 @@ export function useGrammarProgress() {
   return {
     progress: progress.grammar,
 
-    // ✅ NEW: Smart update function that detects lesson vs quiz
     updateProgress: (
       exercise: GrammarExercise,
       data: Partial<LessonProgress> | Partial<QuizProgress>
