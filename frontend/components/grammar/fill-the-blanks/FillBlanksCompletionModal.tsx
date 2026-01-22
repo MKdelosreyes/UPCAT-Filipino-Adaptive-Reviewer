@@ -146,7 +146,7 @@ export default function FillBlanksCompletionModal({
                           ? "bg-green-100"
                           : score >= 60
                           ? "bg-yellow-100"
-                          : "bg-red-100"
+                          : "bg-amber-100"
                       }`}
                     >
                       {score >= 70 ? (

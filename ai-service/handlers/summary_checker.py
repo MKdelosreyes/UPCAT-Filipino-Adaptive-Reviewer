@@ -51,17 +51,18 @@ else:
     class SummaryCheckRequest(BaseModel):
         passage_text: str
         user_summary: str
+        main_idea: str
         passage_title: Optional[str] = "Reading Passage"
         difficulty: Optional[str] = "medium"
     
     class SummaryCheckResponse(BaseModel):
-        overall_score: int
+        quality_level: str  # "needs-work", "developing", "good", "excellent"
         feedback: str
         strengths: List[str]
         improvements: List[str]
-        key_points_covered: int
-        key_points_total: int
-        detailed_scores: dict
+        coverage_feedback: str
+        clarity_feedback: str
+        completeness_feedback: str
 
 
 # ============================================================
@@ -70,56 +71,45 @@ else:
 
 def build_summary_evaluation_prompt(data: dict) -> tuple:
     """Generate evaluation prompt for Groq"""
-    passage = data["passage_text"]
+    main_idea = data["main_idea"]
     summary = data["user_summary"]
     title = data.get("passage_title", "Reading Passage")
-    difficulty = data.get("difficulty", "medium")
 
-    system_instruction = """You are an expert Filipino language educator evaluating student reading comprehension summaries for UPCAT preparation. 
+    system_instruction = """You are an encouraging Filipino reading teacher evaluating student summaries. Focus on understanding and effort, not perfection. Be supportive but honest."""
 
-Be constructive, encouraging, and specific in your feedback. Focus on helping students improve their summarization skills."""
+    user_prompt = f"""Main Idea: {main_idea}
 
-    user_prompt = f"""**Passage Title:** {title}
-**Difficulty Level:** {difficulty}
+Student Summary: {summary}
 
-**Original Passage:**
-{passage}
+EVALUATION CRITERIA (be lenient and encouraging):
+- Completely off-topic or nonsensical: "needs-work"
+- Shows some understanding of the topic, even if incomplete: "developing"
+- Captures the main idea reasonably well: "good"
+- Demonstrates strong understanding and clear expression: "excellent"
 
----
+GRADING GUIDANCE:
+- If the student shows ANY grasp of the main idea, they deserve at least "developing"
+- Focus on what they GOT RIGHT, not what's missing
+- "good" should be given liberally if they understand the core concept
+- Only use "needs-work" for truly off-topic or incomprehensible responses
 
-**Student's Summary:**
-{summary}
+Provide DESCRIPTIVE feedback focusing on:
+1. Coverage - Did they capture the main idea? What did they understand?
+2. Clarity - Is their summary understandable?
+3. Completeness - What did they include? What could enhance their summary?
 
----
-
-**EVALUATION TASK:**
-
-Analyze this summary and provide detailed feedback. Evaluate on four criteria:
-
-1. **Key Points Coverage** (0-100): Did they identify and include the main ideas from the passage?
-2. **Accuracy** (0-100): Is the information correct without misinterpretations?
-3. **Clarity** (0-100): Is the summary well-written, coherent, and easy to understand?
-4. **Completeness** (0-100): Are all critical points included without being too verbose?
-
-**RESPONSE FORMAT (JSON):**
+Return JSON only (use Filipino for all text):
 {{
-  "coverage_score": <0-100>,
-  "accuracy_score": <0-100>,
-  "clarity_score": <0-100>,
-  "completeness_score": <0-100>,
-  "overall_score": <average of above>,
-  "key_points_identified": <number>,
-  "key_points_total": <total key points in passage>,
-  "strengths": ["strength1", "strength2", "strength3"],
-  "improvements": ["improvement1", "improvement2"],
-  "feedback": "2-3 encouraging sentences of overall feedback"
+  "quality_level": "needs-work" | "developing" | "good" | "excellent",
+  "feedback": "brief overall assessment (encouraging tone)",
+  "strengths": ["what they did well - always find at least one strength unless needs-work"],
+  "improvements": ["specific areas to improve - be gentle and constructive"],
+  "coverage_feedback": "What main ideas did they capture? Be positive.",
+  "clarity_feedback": "How clear is their summary? Acknowledge effort.",
+  "completeness_feedback": "What's included? What could enhance it? Be encouraging."
 }}
 
-**IMPORTANT:**
-- Be specific in strengths and improvements
-- Feedback should be encouraging and constructive
-- List exactly what key points were covered vs missed
-- Return ONLY valid JSON, no additional text
+Be descriptive, specific, and ENCOURAGING. No numbers or percentages.
 """
 
     return (system_instruction, user_prompt)
@@ -141,11 +131,13 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
             )
 
         # Build evaluation prompt
+        # Use main_idea if provided, otherwise use passage_text
+        main_idea = request.main_idea if request.main_idea else request.passage_text
+        
         system_instruction, user_prompt = build_summary_evaluation_prompt({
-            "passage_text": request.passage_text,
+            "main_idea": main_idea,
             "user_summary": request.user_summary,
             "passage_title": request.passage_title,
-            "difficulty": request.difficulty
         })
 
         messages = [
@@ -178,34 +170,35 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
             
             result = json.loads(response_text)
             
+            quality_level = result.get("quality_level", "needs-work")
+            
+            # Ensure strengths and improvements are always lists
+            strengths = result.get("strengths", [])
+            if not isinstance(strengths, list):
+                strengths = [strengths] if strengths and strengths.lower() not in ["no", "none", "n/a", "wala"] else []
+            
+            improvements = result.get("improvements", [])
+            if not isinstance(improvements, list):
+                improvements = [improvements] if improvements else []
+            
             return SummaryCheckResponse(
-                overall_score=int(result.get("overall_score", 0)),
+                quality_level=quality_level,
                 feedback=result.get("feedback", ""),
-                strengths=result.get("strengths", [])[:3],  # Max 3
-                improvements=result.get("improvements", [])[:3],  # Max 3
-                key_points_covered=int(result.get("key_points_identified", 0)),
-                key_points_total=int(result.get("key_points_total", 0)),
-                detailed_scores={
-                    "coverage": int(result.get("coverage_score", 0)),
-                    "accuracy": int(result.get("accuracy_score", 0)),
-                    "clarity": int(result.get("clarity_score", 0)),
-                    "completeness": int(result.get("completeness_score", 0))
-                }
+                strengths=strengths[:3],
+                improvements=improvements[:3],
+                coverage_feedback=result.get("coverage_feedback", ""),
+                clarity_feedback=result.get("clarity_feedback", ""),
+                completeness_feedback=result.get("completeness_feedback", "")
             )
 
         except json.JSONDecodeError as e:
             print(f"⚠️ Failed to parse JSON response: {e}")
             print(f"Raw response: {response_text}")
             
-            # Fallback: Return basic response
-            return SummaryCheckResponse(
-                overall_score=70,
-                feedback="Summary received and reviewed. Good effort!",
-                strengths=["Clear writing"],
-                improvements=["Try to include more key points"],
-                key_points_covered=0,
-                key_points_total=0,
-                detailed_scores={"coverage": 70, "accuracy": 70, "clarity": 70, "completeness": 70}
+            # Fallback: Indicate AI error
+            raise HTTPException(
+                status_code=503,
+                detail="AI is having trouble processing your summary. Please try submitting again."
             )
 
     except HTTPException:

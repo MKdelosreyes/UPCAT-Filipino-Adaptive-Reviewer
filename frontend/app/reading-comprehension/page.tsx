@@ -13,10 +13,10 @@ export default function ReadingComprehensionPage() {
 
   const masteryColors: Record<typeof mastery.level, string> = {
     beginner: "bg-gray-100 text-gray-700 border-gray-300",
-    developing: "bg-blue-100 text-blue-700 border-blue-300",
+    developing: "bg-purple-100 text-purple-700 border-purple-300",
     proficient: "bg-purple-100 text-purple-700 border-purple-300",
-    advanced: "bg-orange-100 text-orange-700 border-orange-300",
-    master: "bg-yellow-100 text-yellow-700 border-yellow-400",
+    advanced: "bg-purple-200 text-purple-800 border-purple-400",
+    master: "bg-purple-300 text-purple-900 border-purple-500",
   };
 
   return (
@@ -27,7 +27,7 @@ export default function ReadingComprehensionPage() {
           {/* Back Button - Left */}
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors"
+            className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -58,7 +58,7 @@ export default function ReadingComprehensionPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-purple-900 mb-2 text-center">
             Reading Comprehension
           </h1>
           <p className="text-center text-gray-600 mb-6">
@@ -74,8 +74,8 @@ export default function ReadingComprehensionPage() {
           <ReadingCard
             name="Reading Passages"
             description="Read passages and answer comprehension questions"
-            imagePath="/art/grammar-icon1.png"
-            color="bg-blue-50"
+            imagePath="/art/reading-comprehension-1.png"
+            color="bg-purple-50"
             url="/reading-comprehension/reading-exercise"
             exerciseType="passage-questions"
           />
@@ -83,7 +83,7 @@ export default function ReadingComprehensionPage() {
           <ReadingCard
             name="Summarization"
             description="Write comprehensive summaries of reading passages"
-            imagePath="/art/grammar-icon1.png"
+            imagePath="/art/reading-comprehension-2.png"
             color="bg-purple-50"
             url="/reading-comprehension/summary-exercise"
             exerciseType="summary-exercise"

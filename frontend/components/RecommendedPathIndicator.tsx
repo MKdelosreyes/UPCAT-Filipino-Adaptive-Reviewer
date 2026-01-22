@@ -36,7 +36,7 @@ const moduleIcons = {
   "reading-comprehension": "📖",
 };
 
-export default function RecommendedPathIndicator() {
+export default function RecommendedPathIndicator({ activeModule }: { activeModule?: ModuleType }) {
   const {
     progress,
     getRecommendedModule,
@@ -92,7 +92,7 @@ export default function RecommendedPathIndicator() {
       }
     } else if (module === "reading-comprehension") {
       const readingData = moduleData as ReadingProgress;
-      if (exercise === "reading-passages" || exercise === "summarization") {
+      if (exercise === "passage-questions" || exercise === "summary-exercise") {
         return readingData[exercise];
       }
     }
@@ -155,9 +155,115 @@ export default function RecommendedPathIndicator() {
     };
   };
 
+  // Get module-specific colors for circles only
+  const getModuleCircleColors = (module: ModuleType, isCompleted: boolean, isRecommended: boolean, hasProgress: boolean) => {
+    const colorMap = {
+      vocabulary: {
+        recommended: 'bg-yellow-600 text-white shadow-xl ring-4 ring-yellow-300',
+        inProgress: 'bg-yellow-100 text-yellow-600 border-2 border-yellow-400',
+      },
+      grammar: {
+        recommended: 'bg-green-600 text-white shadow-xl ring-4 ring-green-300',
+        inProgress: 'bg-green-100 text-green-600 border-2 border-green-400',
+      },
+      'sentence-construction': {
+        recommended: 'bg-blue-600 text-white shadow-xl ring-4 ring-blue-300',
+        inProgress: 'bg-blue-100 text-blue-600 border-2 border-blue-400',
+      },
+      'reading-comprehension': {
+        recommended: 'bg-purple-600 text-white shadow-xl ring-4 ring-purple-300',
+        inProgress: 'bg-purple-100 text-purple-600 border-2 border-purple-400',
+      },
+    };
+
+    if (isCompleted) {
+      return 'bg-green-500 text-white shadow-lg';
+    }
+    if (isRecommended) {
+      return colorMap[module].recommended + ' animate-pulse';
+    }
+    if (hasProgress) {
+      return colorMap[module].inProgress;
+    }
+    return 'bg-gray-200 text-gray-400 border-2 border-gray-300';
+  };
+
+  // Get module-specific colors for text
+  const getModuleTextColors = (module: ModuleType, isCompleted: boolean, isRecommended: boolean, hasProgress: boolean) => {
+    const colorMap = {
+      vocabulary: {
+        recommended: 'text-yellow-400',
+        inProgress: 'text-yellow-300',
+      },
+      grammar: {
+        recommended: 'text-green-700',
+        inProgress: 'text-green-600',
+      },
+      'sentence-construction': {
+        recommended: 'text-blue-700',
+        inProgress: 'text-blue-600',
+      },
+      'reading-comprehension': {
+        recommended: 'text-purple-700',
+        inProgress: 'text-purple-600',
+      },
+    };
+
+    if (isCompleted) {
+      return 'text-green-700';
+    }
+    if (isRecommended) {
+      return colorMap[module].recommended;
+    }
+    if (hasProgress) {
+      return colorMap[module].inProgress;
+    }
+    return 'text-gray-500';
+  };
+
+  // Background gradient mapping per module
+  const bgMap: Record<ModuleType, string> = {
+    vocabulary: 'from-yellow-50 via-yellow-50 to-yellow-50',
+    grammar: 'from-green-50 via-green-50 to-green-50',
+    'sentence-construction': 'from-blue-50 via-blue-50 to-blue-50',
+    'reading-comprehension': 'from-purple-50 via-purple-50 to-purple-50',
+  };
+
+  const active = activeModule || 'vocabulary';
+  const bgGradient = bgMap[active] ?? 'from-blue-50 via-indigo-50 to-purple-50';
+
+  // Border and header color mapping per module
+  const borderMap: Record<ModuleType, string> = {
+    vocabulary: 'border-yellow-200',
+    grammar: 'border-green-200',
+    'sentence-construction': 'border-blue-200',
+    'reading-comprehension': 'border-purple-200',
+  };
+
+  const headerTextMap: Record<ModuleType, string> = {
+    vocabulary: 'text-yellow-900',
+    grammar: 'text-green-900',
+    'sentence-construction': 'text-blue-900',
+    'reading-comprehension': 'text-purple-900',
+  };
+
+  const borderClass = borderMap[active] ?? 'border-blue-200';
+  const headerTextClass = headerTextMap[active] ?? 'text-blue-900';
+  const smallBorderClass = borderClass;
+
+  // Arrow color mapping for recommended state
+  const arrowColorMap: Record<ModuleType, string> = {
+    vocabulary: 'text-yellow-600',
+    grammar: 'text-green-600',
+    'sentence-construction': 'text-blue-600',
+    'reading-comprehension': 'text-purple-600',
+  };
+
+  const recommendedArrowClass = arrowColorMap[active] ?? 'text-blue-600';
+
   if (isLoading) {
     return (
-      <div className="w-full bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 shadow-md border border-blue-200">
+      <div className={`w-full bg-gradient-to-r ${bgGradient} rounded-xl p-4 shadow-md ${borderClass}`}>
         <div className="flex items-center justify-center py-8">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
@@ -171,10 +277,10 @@ export default function RecommendedPathIndicator() {
   }
 
   return (
-    <div className="w-full bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 shadow-md border border-blue-200">
+    <div className={`w-full bg-gradient-to-r ${bgGradient} rounded-xl p-4 shadow-md ${borderClass}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-blue-900 flex items-center gap-2">
+        <h3 className={`text-sm font-bold ${headerTextClass} flex items-center gap-2`}>
           Learning Path
         </h3>
       </div>
@@ -208,13 +314,7 @@ export default function RecommendedPathIndicator() {
                 {/* Module Circle */}
                 <div
                   className={`relative w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 z-10 ${
-                    status.isCompleted
-                      ? "bg-green-500 text-white shadow-lg"
-                      : status.isRecommended
-                      ? "bg-blue-600 text-white shadow-xl ring-4 ring-blue-300 animate-pulse"
-                      : status.completedCount > 0
-                      ? "bg-blue-100 text-blue-600 border-2 border-blue-400"
-                      : "bg-gray-200 text-gray-400 border-2 border-gray-300"
+                    getModuleCircleColors(module, status.isCompleted, status.isRecommended, status.completedCount > 0)
                   }`}
                 >
                   {status.isCompleted ? (
@@ -239,13 +339,7 @@ export default function RecommendedPathIndicator() {
                 <div className="mt-2 text-center">
                   <p
                     className={`text-xs font-semibold leading-tight ${
-                      status.isRecommended
-                        ? "text-blue-700"
-                        : status.isCompleted
-                        ? "text-green-700"
-                        : status.completedCount > 0
-                        ? "text-blue-600"
-                        : "text-gray-500"
+                      getModuleTextColors(module, status.isCompleted, status.isRecommended, status.completedCount > 0)
                     }`}
                   >
                     {moduleNames[module]}
@@ -323,10 +417,10 @@ export default function RecommendedPathIndicator() {
                     size={16}
                     className={`absolute -right-3 top-5 ${
                       status.isCompleted
-                        ? "text-green-500"
+                        ? 'text-green-500'
                         : status.isRecommended
-                        ? "text-blue-600"
-                        : "text-gray-300"
+                        ? recommendedArrowClass
+                        : 'text-gray-300'
                     }`}
                   />
                 )}
@@ -337,7 +431,7 @@ export default function RecommendedPathIndicator() {
       </div>
 
       {/* Compact Legend */}
-      <div className="mt-3 pt-3 border-t border-blue-200 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-gray-600">
+      <div className={`mt-3 pt-3 border-t ${smallBorderClass} flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-gray-600`}>
         <div className="flex items-center gap-1">
           <BookOpen size={10} className="text-green-600" />
           <span>Lessons</span>

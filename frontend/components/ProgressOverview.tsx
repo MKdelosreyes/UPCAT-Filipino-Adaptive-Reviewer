@@ -41,11 +41,11 @@ export default function ProgressOverview() {
         text: "text-blue-800",
         progress: "bg-blue-500",
       },
-      pink: {
-        bg: "bg-pink-100",
-        border: "border-pink-300",
-        text: "text-pink-800",
-        progress: "bg-pink-500",
+      purple: {
+        bg: "bg-purple-100",
+        border: "border-purple-300",
+        text: "text-purple-800",
+        progress: "bg-purple-500",
       },
     };
     return colorMap[color] || colorMap.blue;
@@ -147,7 +147,7 @@ export default function ProgressOverview() {
                           ? "#22c55e"
                           : module.color === "blue"
                           ? "#3b82f6"
-                          : "#ec4899",
+                          : "#8b5cf6",
                     }}
                   />
                   <span className="text-sm font-semibold text-gray-800">
@@ -182,7 +182,7 @@ export default function ProgressOverview() {
                         ? "#22c55e"
                         : module.color === "blue"
                         ? "#3b82f6"
-                        : "#ec4899",
+                        : "#8b5cf6",
                   }}
                 />
               </div>

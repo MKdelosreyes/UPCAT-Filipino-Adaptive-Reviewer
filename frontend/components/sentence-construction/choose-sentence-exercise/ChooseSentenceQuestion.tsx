@@ -2,6 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Lightbulb } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getExplanation } from "@/lib/api/ai-service";
 
 interface ChooseSentenceQuestionProps {
   questionNumber: number;
@@ -26,13 +28,45 @@ export default function ChooseSentenceQuestion({
   showResult,
   explanation,
 }: ChooseSentenceQuestionProps) {
+  const [aiExplanation, setAiExplanation] = useState<string>("");
+  const [loadingExplanation, setLoadingExplanation] = useState(false);
+  
   const showExplanation =
     showResult && selectedAnswer && selectedAnswer !== correctAnswer;
+
+  useEffect(() => {
+    if (showExplanation && !aiExplanation) {
+      fetchAIExplanation();
+    }
+  }, [showExplanation]);
+
+  const fetchAIExplanation = async () => {
+    if (!selectedAnswer) return;
+    
+    setLoadingExplanation(true);
+    try {
+      const data = await getExplanation({
+        mode: "choose-sentence",
+        word: "",
+        correct: correctAnswer,
+        selected: selectedAnswer,
+        sentence: context,
+        explanation: explanation,
+      });
+      
+      setAiExplanation(data.explanation);
+    } catch (error) {
+      console.error("Error fetching AI explanation:", error);
+      setAiExplanation("Pasensya na, may problema sa pagkuha ng AI explanation.");
+    } finally {
+      setLoadingExplanation(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Context */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-orange-200">
+      <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-blue-200">
         <div className="text-center">
           <p className="text-lg md:text-2xl text-gray-900 font-medium leading-relaxed">
             {context}
@@ -77,8 +111,8 @@ export default function ChooseSentenceQuestion({
                       : showWrong
                       ? "bg-red-100 border-red-500"
                       : isSelected
-                      ? "bg-orange-50 border-orange-400"
-                      : "bg-white border-orange-200 hover:border-orange-400"
+                      ? "bg-blue-50 border-blue-400"
+                      : "bg-white border-blue-200 hover:border-blue-400"
                   } ${showResult ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -90,8 +124,8 @@ export default function ChooseSentenceQuestion({
                           : showWrong
                           ? "bg-red-500 text-white"
                           : isSelected
-                          ? "bg-orange-400 text-white"
-                          : "bg-orange-100 text-orange-700"
+                          ? "bg-blue-400 text-white"
+                          : "bg-blue-100 text-blue-700"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}
@@ -129,24 +163,44 @@ export default function ChooseSentenceQuestion({
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="w-full lg:flex-[0_0_55%]"
             >
-              <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-200 p-6 h-full">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-orange-100">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <Lightbulb className="w-5 h-5 text-orange-600" />
+              <div className="bg-white rounded-2xl shadow-lg border-2 border-blue-200 p-6 h-full">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-100">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Lightbulb className="w-5 h-5 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-orange-900">
+                  <h3 className="text-lg font-bold text-blue-900">
                     Explanation
                   </h3>
                 </div>
-                <div className="text-sm text-gray-800 leading-relaxed">
-                  <p className="mb-3">
-                    <span className="font-semibold text-orange-700">
-                      Correct Answer:
-                    </span>{" "}
-                    {correctAnswer}
-                  </p>
-                  <p className="text-gray-700">{explanation}</p>
-                </div>
+                {loadingExplanation ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-800 leading-relaxed space-y-3">
+                    <p className="mb-3">
+                      <span className="font-semibold text-blue-700">
+                        Correct Answer:
+                      </span>{" "}
+                      {correctAnswer}
+                    </p>
+                    {aiExplanation && (
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-gray-700 whitespace-pre-line">
+                          {aiExplanation}
+                        </p>
+                      </div>
+                    )}
+                    {explanation && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 mb-2 font-medium">
+                          Additional Context:
+                        </p>
+                        <p className="text-gray-600 text-sm">{explanation}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

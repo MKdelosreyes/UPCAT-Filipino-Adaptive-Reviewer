@@ -12,10 +12,10 @@ export default function SentenceConstructionPage() {
 
   const masteryColors = {
     beginner: "bg-gray-100 text-gray-700 border-gray-300",
-    developing: "bg-orange-100 text-orange-700 border-orange-300",
-    proficient: "bg-orange-100 text-orange-700 border-orange-300",
-    advanced: "bg-orange-100 text-orange-700 border-orange-300",
-    master: "bg-yellow-100 text-yellow-700 border-yellow-400",
+    developing: "bg-blue-100 text-blue-700 border-blue-300",
+    proficient: "bg-blue-100 text-blue-700 border-blue-300",
+    advanced: "bg-blue-200 text-blue-800 border-blue-400",
+    master: "bg-blue-300 text-blue-900 border-blue-500",
   };
 
   return (
@@ -26,7 +26,7 @@ export default function SentenceConstructionPage() {
           {/* Back Button - Left */}
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -60,7 +60,7 @@ export default function SentenceConstructionPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-orange-900 mb-2 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2 text-center">
             Sentence Construction Activities
           </h1>
           <p className="text-center text-gray-600 mb-6">
@@ -72,30 +72,22 @@ export default function SentenceConstructionPage() {
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
           <SentenceConstructionCard
             name="Sentence Ordering"
             description="Drag and drop words to form correct sentences"
-            imagePath="/art/card1.png"
-            color="bg-yellow-50"
+            imagePath="/art/sentence-construction-1.png"
+            color="bg-blue-50"
             url="/sentence-construction/ordering"
             exerciseType="sentence-ordering"
           />
           <SentenceConstructionCard
             name="Choose the Best Sentence"
             description="Evaluate overall sentence quality and naturalness"
-            imagePath="/art/card2.png"
-            color="bg-orange-50"
+            imagePath="/art/sentence-construction-2.png"
+            color="bg-blue-50"
             url="/sentence-construction/choose-sentence"
             exerciseType="choose-sentence"
-          />
-          <SentenceConstructionCard
-            name="Create a Sentence"
-            description="Write your own sentences with AI review"
-            imagePath="/art/card3.png"
-            color="bg-red-50"
-            url="/sentence-construction/create"
-            exerciseType="complete-sentence"
           />
         </div>
       </div>

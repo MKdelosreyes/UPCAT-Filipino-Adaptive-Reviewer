@@ -125,20 +125,20 @@ export default function FlashcardsPage() {
 
   if (authLoading || srsLoading || !deckInitializedRef.current) {
     return (
-      <div className="h-screen bg-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+      <div className="h-screen bg-yellow-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600" />
       </div>
     );
   }
 
   if (error || deck.length === 0) {
     return (
-      <div className="h-screen bg-blue-50 flex items-center justify-center">
+      <div className="h-screen bg-yellow-50 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
-          <p className="text-blue-900 font-semibold mb-2">
+          <p className="text-yellow-900 font-semibold mb-2">
             {error || "🎉 No flashcards due right now!"}
           </p>
-          <p className="text-sm text-blue-600 mb-4">
+          <p className="text-sm text-yellow-600 mb-4">
             Come back later for more practice.
           </p>
           <Link
@@ -276,18 +276,18 @@ export default function FlashcardsPage() {
   };
 
   return (
-    <div className="h-screen max-h-screen overflow-hidden flex flex-col bg-blue-50">
-      <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
+    <div className="h-screen max-h-screen overflow-hidden flex flex-col bg-yellow-50">
+      <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
         <Link
           href="/vocabulary"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+          className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+          <h1 className="text-xl md:text-2xl font-bold text-yellow-700">
             Flashcards Lesson
           </h1>
           {/* <p className="text-xs text-gray-500 mt-1">

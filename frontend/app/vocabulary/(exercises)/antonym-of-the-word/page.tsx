@@ -282,8 +282,8 @@ export default function AntonymExercisePage() {
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-red-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="h-screen bg-yellow-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
       </div>
     );
   }
@@ -291,8 +291,8 @@ export default function AntonymExercisePage() {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="h-screen bg-red-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-red-200">
+      <div className="h-screen bg-yellow-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
           <Link
             href="/vocabulary"
             className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold text-sm"
@@ -318,8 +318,8 @@ export default function AntonymExercisePage() {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-            <p className="text-red-600 font-semibold">Loading exercise...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
+            <p className="text-yellow-600 font-semibold">Loading exercise...</p>
           </div>
         </div>
       </div>
@@ -329,8 +329,8 @@ export default function AntonymExercisePage() {
   // Show error state
   if (error || questions.length === 0) {
     return (
-      <div className="h-screen bg-red-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-red-200">
+      <div className="h-screen bg-yellow-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
           <Link
             href="/vocabulary"
             className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold text-sm"
@@ -350,7 +350,7 @@ export default function AntonymExercisePage() {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md px-4">
-            <p className="text-red-600 font-semibold mb-4">
+            <p className="text-yellow-600 font-semibold mb-4">
               {error || "No antonym questions available"}
             </p>
             <button
@@ -509,19 +509,19 @@ export default function AntonymExercisePage() {
   };
 
   return (
-    <div className="h-screen bg-red-50 overflow-auto flex flex-col scrollbar-red">
+    <div className="h-screen bg-yellow-50 overflow-auto flex flex-col scrollbar-yellow">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-red-200">
+      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
         <Link
           href="/vocabulary"
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold text-sm"
+          className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-red-900">
+          <h1 className="text-xl md:text-2xl font-bold text-yellow-900">
             Antonym Exercise
           </h1>
           <p className="text-xs text-gray-500 mt-1">
@@ -571,7 +571,7 @@ export default function AntonymExercisePage() {
           />
         </motion.div>
 
-        {showResult ? (
+        {showResult && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -581,16 +581,12 @@ export default function AntonymExercisePage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
             >
               {isLastQuestion ? "Finish Exercise" : "Next Question"}
               <ChevronRight className="w-5 h-5" />
             </motion.button>
           </motion.div>
-        ) : (
-          <div className="text-center text-xs text-red-600">
-            💡 Select the antonym of the underlined word
-          </div>
         )}
       </div>
 

@@ -108,7 +108,7 @@ export default function ErrorQuestion({
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Sentence Display */}
-      <div className="bg-white md:mx-40 rounded-2xl p-6 shadow-lg border-2 border-red-200 flex items-center justify-center">
+      <div className="bg-white md:mx-40 rounded-2xl p-6 shadow-lg border-2 border-green-200 flex items-center justify-center">
         <p className="text-base md:text-lg text-gray-900 font-medium leading-relaxed">
           &quot;{sentence}&quot;
         </p>
@@ -147,12 +147,12 @@ export default function ErrorQuestion({
                   disabled={showResult}
                   className={`relative p-4 rounded-xl border-3 text-left transition-all duration-300 ${
                     showCorrect
-                      ? "bg-red-100 border-red-500"
+                      ? "bg-green-100 border-green-500"
                       : showWrong
                       ? "bg-gray-100 border-gray-400"
                       : isSelected
-                      ? "bg-red-50 border-red-400"
-                      : "bg-white border-red-200 hover:border-red-400"
+                      ? "bg-green-50 border-green-400"
+                      : "bg-white border-green-200 hover:border-green-400"
                   } ${showResult ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -160,12 +160,12 @@ export default function ErrorQuestion({
                     <div
                       className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                         showCorrect
-                          ? "bg-red-500 text-white"
+                          ? "bg-green-500 text-white"
                           : showWrong
                           ? "bg-gray-400 text-white"
                           : isSelected
-                          ? "bg-red-400 text-white"
-                          : "bg-red-100 text-red-700"
+                          ? "bg-green-400 text-white"
+                          : "bg-green-100 text-green-700"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}
@@ -181,10 +181,10 @@ export default function ErrorQuestion({
                       <div className="flex-shrink-0">
                         {isCorrect ? (
                           <div className="flex items-center gap-2">
-                            {/* <span className="text-xs text-red-700 font-semibold">
+                            {/* <span className="text-xs text-green-700 font-semibold">
                               Error here!
                             </span> */}
-                            <Check className="w-6 h-6 text-red-600" />
+                            <Check className="w-6 h-6 text-green-600" />
                           </div>
                         ) : (
                           isSelected && <X className="w-6 h-6 text-gray-600" />
@@ -208,19 +208,19 @@ export default function ErrorQuestion({
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="w-full lg:flex-[0_0_55%]"
             >
-              <div className="bg-white rounded-2xl shadow-lg border-2 border-red-200 p-6 h-full">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-red-100">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <Lightbulb className="w-5 h-5 text-red-600" />
+              <div className="bg-white rounded-2xl shadow-lg border-2 border-green-200 p-6 h-full">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-green-100">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Lightbulb className="w-5 h-5 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-red-900">
+                  <h3 className="text-lg font-bold text-green-900">
                     Explanation
                   </h3>
                 </div>
                 <div className="text-sm text-gray-800 leading-relaxed">
                   {isLoadingExplanation ? (
                     <div className="flex flex-col items-center justify-center py-8 space-y-3">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
                       <p className="text-sm text-gray-600">
                         Loading explanation...
                       </p>
@@ -228,7 +228,7 @@ export default function ErrorQuestion({
                   ) : (
                     <>
                       <p className="mb-3">
-                        <span className="font-semibold text-red-700">
+                        <span className="font-semibold text-green-700">
                           Correct Answer:
                         </span>{" "}
                         {correctAnswer}
@@ -236,10 +236,10 @@ export default function ErrorQuestion({
                       {renderExplanation()}
 
                       {/* AI Chat Button */}
-                      <div className="mt-4 pt-4 border-t border-red-100">
+                      <div className="mt-4 pt-4 border-t border-green-100">
                         <button
                           onClick={() => setIsChatOpen(true)}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors font-medium"
+                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors font-medium"
                         >
                           <MessageCircle className="w-4 h-4" />
                           Ask AI for More Help

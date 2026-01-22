@@ -59,7 +59,7 @@ const cards: Card[] = [
     imagePath: "/art/reading-comprehension.png",
     description:
       "Basahin ang maiikling teksto at sagutin ang tanong para hasain ang comprehension skills.",
-    color: "bg-pink-100",
+    color: "bg-purple-100",
     url: "/reading-comprehension",
     moduleType: "reading-comprehension",
   },
@@ -69,6 +69,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"progress" | "skills">("progress");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const { user, isLoading: authLoading } = useAuthGuard();
   const { isLoading: progressLoading } = useLearningProgress();
 
@@ -97,10 +98,20 @@ export default function Dashboard() {
 
       <div className="relative min-h-screen mx-2 pt-18 md:pt-20 pb-2 flex flex-row justify-center items-center gap-2">
         {/* Left Side - Module Cards */}
+        {/* dynamic border color depends on active carousel card */}
         <div
           className={`${
             isPanelOpen ? "hidden lg:flex" : "flex"
-          } flex-col flex-[2] h-full bg-white rounded-2xl overflow-hidden border-7 border-blue-300`}
+          } flex-col flex-[2] h-full bg-white rounded-2xl overflow-hidden border-7 ${(() => {
+            const map: Record<string, string> = {
+              vocabulary: 'border-yellow-300',
+              grammar: 'border-green-300',
+              'sentence-construction': 'border-blue-300',
+              'reading-comprehension': 'border-purple-300',
+            };
+            const moduleType = cards[carouselIndex]?.moduleType || 'vocabulary';
+            return map[moduleType] ?? 'border-blue-300';
+          })()}`}
         >
           {progressLoading ? (
             <div className="flex items-center justify-center h-full">
@@ -114,9 +125,9 @@ export default function Dashboard() {
           ) : (
             <>
               <div className="w-auto z-30 bg-white md:mx-3 md:mt-3 px-3 pt-3">
-                <RecommendedPathIndicator />
+                <RecommendedPathIndicator activeModule={cards[carouselIndex]?.moduleType} />
               </div>
-              <CardCarousel skill_cards={cards} />
+              <CardCarousel skill_cards={cards} onIndexChange={setCarouselIndex} />
             </>
           )}
         </div>

@@ -168,13 +168,13 @@ export default function ErrorCompletionModal({
                   </div>
 
                   {/* Stats */}
-                  <div className="space-y-3 bg-red-50 rounded-2xl p-6">
+                  <div className="space-y-3 bg-green-50 rounded-2xl p-6">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-700 font-medium flex items-center gap-2">
-                        <Award className="w-5 h-5 text-red-600" />
+                        <Award className="w-5 h-5 text-green-600" />
                         Score
                       </span>
-                      <span className="text-2xl font-bold text-red-600">
+                      <span className="text-2xl font-bold text-green-600">
                         {score}%
                       </span>
                     </div>
@@ -190,8 +190,8 @@ export default function ErrorCompletionModal({
                   </div>
 
                   {/* Performance Message */}
-                  <div className="text-center p-4 bg-blue-50 rounded-xl">
-                    <p className="text-sm text-blue-800 font-medium">
+                  <div className="text-center p-4 bg-green-50 rounded-xl">
+                    <p className="text-sm text-green-800 font-medium">
                       {getPerformanceMessage()}
                     </p>
                   </div>
@@ -221,7 +221,7 @@ export default function ErrorCompletionModal({
                   <div className="flex flex-col gap-3 mt-auto">
                     <Link
                       href="/grammar/fill-blanks"
-                      className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
                     >
                       Continue to next exercise →
                     </Link>
@@ -253,12 +253,12 @@ export default function ErrorCompletionModal({
                   >
                     <div className="h-full flex flex-col">
                       {/* Header */}
-                      <div className="p-6 border-b border-red-100 bg-gradient-to-r from-red-50 to-pink-50">
+                      <div className="p-6 border-b border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-white rounded-lg shadow-sm">
-                            <Sparkles className="w-6 h-6 text-red-600" />
+                            <Sparkles className="w-6 h-6 text-green-600" />
                           </div>
-                          <h3 className="text-xl font-bold text-red-900">
+                          <h3 className="text-xl font-bold text-green-900">
                             Personalized Study Tips
                           </h3>
                         </div>

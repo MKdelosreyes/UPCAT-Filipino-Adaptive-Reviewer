@@ -48,9 +48,9 @@ export default function FillBlanksProgress({
               {correctCount}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 bg-red-100 px-3 py-1.5 rounded-full">
-            <X size={14} className="text-red-600" />
-            <span className="text-xs font-semibold text-red-700">
+          <div className="flex items-center gap-1.5 bg-amber-100 px-3 py-1.5 rounded-full">
+            <X size={14} className="text-amber-600" />
+            <span className="text-xs font-semibold text-amber-700">
               {wrongCount}
             </span>
           </div>
@@ -72,7 +72,7 @@ export default function FillBlanksProgress({
                     : isCorrect
                     ? "border-green-500 bg-green-100 text-green-700"
                     : isAnswered
-                    ? "border-red-500 bg-red-100 text-red-700"
+                    ? "border-amber-500 bg-amber-100 text-amber-700"
                     : "border-gray-300 bg-white text-gray-400"
                 }`}
               >
@@ -101,9 +101,9 @@ export default function FillBlanksProgress({
               Correct: {correctCount}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 bg-red-100 px-3 py-1.5 rounded-full">
-            <X size={14} className="text-red-600" />
-            <span className="text-xs font-semibold text-red-700">
+          <div className="flex items-center gap-1.5 bg-amber-100 px-3 py-1.5 rounded-full">
+            <X size={14} className="text-amber-600" />
+            <span className="text-xs font-semibold text-amber-700">
               Wrong: {wrongCount}
             </span>
           </div>
@@ -125,7 +125,7 @@ export default function FillBlanksProgress({
                     : isCorrect
                     ? "border-green-500 bg-green-100 text-green-700"
                     : isAnswered
-                    ? "border-red-500 bg-red-100 text-red-700"
+                    ? "border-amber-500 bg-amber-100 text-amber-700"
                     : "border-gray-300 bg-white text-gray-400"
                 }`}
               >

@@ -192,7 +192,7 @@ export default function AIChatModal({
               {/* Error message */}
               {error && (
                 <div className="flex justify-center">
-                  <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
                     {error}
                   </p>
                 </div>

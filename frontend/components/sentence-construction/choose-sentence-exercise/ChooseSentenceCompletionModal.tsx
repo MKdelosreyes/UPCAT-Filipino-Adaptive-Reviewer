@@ -160,13 +160,13 @@ export default function ChooseSentenceCompletionModal({
                   </div>
 
                   {/* Stats */}
-                  <div className="space-y-3 bg-orange-50 rounded-2xl p-6">
+                  <div className="space-y-3 bg-blue-50 rounded-2xl p-6">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-700 font-medium flex items-center gap-2">
-                        <Award className="w-5 h-5 text-orange-600" />
+                        <Award className="w-5 h-5 text-blue-600" />
                         Score
                       </span>
-                      <span className="text-2xl font-bold text-orange-600">
+                      <span className="text-2xl font-bold text-blue-600">
                         {score}%
                       </span>
                     </div>
@@ -193,7 +193,7 @@ export default function ChooseSentenceCompletionModal({
                     <button
                       onClick={handleGetTips}
                       disabled={loadingTips}
-                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-6 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loadingTips ? (
                         <>
@@ -213,7 +213,7 @@ export default function ChooseSentenceCompletionModal({
                   <div className="flex flex-col gap-3 mt-auto">
                     <Link
                       href="/sentence-construction/create"
-                      className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
                     >
                       Continue to Create a Sentence →
                     </Link>
@@ -245,12 +245,12 @@ export default function ChooseSentenceCompletionModal({
                   >
                     <div className="h-full flex flex-col">
                       {/* Header */}
-                      <div className="p-6 border-b border-orange-100 bg-gradient-to-r from-orange-50 to-red-50">
+                      <div className="p-6 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-white rounded-lg shadow-sm">
-                            <Sparkles className="w-6 h-6 text-orange-600" />
+                            <Sparkles className="w-6 h-6 text-blue-600" />
                           </div>
-                          <h3 className="text-xl font-bold text-orange-900">
+                          <h3 className="text-xl font-bold text-blue-900">
                             Personalized Study Tips
                           </h3>
                         </div>

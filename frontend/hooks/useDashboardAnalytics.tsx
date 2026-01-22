@@ -135,15 +135,15 @@ export function useDashboardAnalytics() {
         }
       } else if (module === "reading-comprehension") {
         const reading = moduleData as ReadingProgress;
-        if (hasAttempted(reading["reading-passages"])) {
+        if (hasAttempted(reading["passage-questions"])) {
           attemptedQuizzes++;
-          if (reading["reading-passages"].score !== null)
-            scores.push(reading["reading-passages"].score);
+          if (reading["passage-questions"].score !== null)
+            scores.push(reading["passage-questions"].score);
         }
-        if (hasAttempted(reading.summarization)) {
+        if (hasAttempted(reading["summary-exercise"])) {
           attemptedQuizzes++;
-          if (reading.summarization.score !== null)
-            scores.push(reading.summarization.score);
+          if (reading["summary-exercise"].score !== null)
+            scores.push(reading["summary-exercise"].score);
         }
       }
 
@@ -354,8 +354,8 @@ export function useDashboardAnalytics() {
     // Reading comprehension
     const readingData = progress["reading-comprehension"];
     const readingScores = [
-      readingData["reading-passages"].score,
-      readingData.summarization.score,
+      readingData["passage-questions"].score,
+      readingData["summary-exercise"].score,
     ].filter((s): s is number => s !== null);
     const readingAvg =
       readingScores.length > 0
@@ -363,8 +363,8 @@ export function useDashboardAnalytics() {
         : 0;
 
     const readingAttempted = [
-      readingData["reading-passages"],
-      readingData.summarization,
+      readingData["passage-questions"],
+      readingData["summary-exercise"],
     ].filter((ex) => hasAttempted(ex)).length;
 
     skills.push({
@@ -489,8 +489,8 @@ export function useDashboardAnalytics() {
     totalAttempts +=
       progress["sentence-construction"]["choose-sentence"].attempts;
     totalAttempts +=
-      progress["reading-comprehension"]["reading-passages"].attempts;
-    totalAttempts += progress["reading-comprehension"].summarization.attempts;
+      progress["reading-comprehension"]["passage-questions"].attempts;
+    totalAttempts += progress["reading-comprehension"]["summary-exercise"].attempts;
 
     const daysSinceStart = 30;
     let studyFrequency: "daily" | "frequent" | "occasional" | "rare" = "rare";

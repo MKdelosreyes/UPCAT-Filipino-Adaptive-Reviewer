@@ -190,14 +190,6 @@ class ReadingComprehensionRequest(BaseModel):
             raise ValueError('target_difficulty must be easy, medium, or hard')
         return v
 
-    @field_validator('exercise_type')
-    @classmethod
-    def validate_exercise_type(cls, v):
-        if v is not None and v not in ['ordering', 'choose', 'complete']:
-            raise ValueError(
-                'exercise_type must be ordering, choose, or complete')
-        return v
-
 
 class ConfusablesRequest(BaseModel):
     """Request model for confusables endpoint."""
@@ -221,20 +213,20 @@ class SummaryCheckRequest(BaseModel):
     """Request model for summary checking endpoint."""
     passage_text: str
     user_summary: str
+    main_idea: Optional[str] = None
     passage_title: Optional[str] = "Reading Passage"
     difficulty: Optional[str] = "medium"
 
 
 class SummaryCheckResponse(BaseModel):
     """Response model for summary checking endpoint."""
-    overall_score: int  # 0-100
+    quality_level: str  # "needs-work", "developing", "good", "excellent"
     feedback: str
     strengths: List[str]
     improvements: List[str]
-    key_points_covered: int
-    key_points_total: int
-    # {coverage: X, accuracy: Y, clarity: Z, completeness: W}
-    detailed_scores: dict
+    coverage_feedback: str
+    clarity_feedback: str
+    completeness_feedback: str
 
 
 class HealthResponse(BaseModel):

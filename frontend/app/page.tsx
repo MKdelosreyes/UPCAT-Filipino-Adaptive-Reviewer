@@ -42,28 +42,28 @@ export default function Home() {
     {
       icon: BookOpen,
       title: "Comprehensive Modules",
-      description: "Master vocabulary, grammar, and sentence construction",
+      description: "Master vocabulary, grammar, sentence construction, and reading comprehension",
       color: "bg-yellow-50 text-yellow-600",
     },
   ];
 
   const stats = [
     { value: "200+", label: "Filipino Words" },
-    { value: "5", label: "Practice Exercises" },
-    { value: "3", label: "Core Modules" },
+    { value: "9", label: "Practice Exercises" },
+    { value: "4", label: "Core Modules" },
     { value: "AI", label: "Powered Learning" },
   ];
 
   if (!isClient) {
     return (
-      <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Hero Section */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <motion.div
@@ -93,7 +93,7 @@ export default function Home() {
             className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
           >
             Master Filipino Language with{" "}
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               Intelligent Adaptive Learning
             </span>
           </motion.h1>
@@ -106,8 +106,7 @@ export default function Home() {
             className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed"
           >
             Prepare for the University of the Philippines College Admission Test
-            with AI-powered personalized training in vocabulary, grammar, and
-            sentence construction.
+            with AI-powered personalized training in vocabulary, grammar, sentence construction, and reading comprehension.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -119,7 +118,7 @@ export default function Home() {
           >
             <Link
               href="/dashboard"
-              className="group flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              className="group flex items-center gap-2 bg-linear-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
             >
               Start Learning Now
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -144,7 +143,7 @@ export default function Home() {
                 key={index}
                 className="bg-white rounded-2xl p-6 shadow-md border border-gray-100"
               >
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                <div className="text-3xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                   {stat.value}
                 </div>
                 <div className="text-sm text-gray-600 font-medium">
@@ -216,19 +215,19 @@ export default function Home() {
             Comprehensive Learning Modules
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Three specialized modules designed to cover all aspects of UPCAT
+            Four specialized modules designed to cover all aspects of UPCAT
             Filipino
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {/* Vocabulary Module */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-8 shadow-lg border-2 border-yellow-200 hover:shadow-xl transition-all duration-300"
+            className="bg-linear-to-br from-yellow-50 to-yellow-100 rounded-2xl p-8 shadow-lg border-2 border-yellow-200 hover:shadow-xl transition-all duration-300 flex flex-col"
           >
             <div className="bg-yellow-200 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
               <BookOpen className="w-8 h-8 text-yellow-700" />
@@ -239,23 +238,23 @@ export default function Home() {
             <p className="text-gray-700 mb-4 leading-relaxed">
               Build and strengthen your Filipino vocabulary through:
             </p>
-            <ul className="space-y-2 mb-6">
+            <ul className="space-y-2 mb-6 grow">
               <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
                 <span>Interactive flashcards</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
                 <span>Closest meaning quizzes</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
                 <span>Antonym identification</span>
               </li>
             </ul>
             <Link
               href="/vocabulary"
-              className="inline-flex items-center gap-2 text-yellow-700 font-semibold hover:text-yellow-800 transition-colors"
+              className="inline-flex items-center gap-2 text-yellow-700 font-semibold hover:text-yellow-800 transition-colors mt-auto"
             >
               Explore Vocabulary <ArrowRight className="w-4 h-4" />
             </Link>
@@ -267,7 +266,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 shadow-lg border-2 border-green-200 hover:shadow-xl transition-all duration-300"
+            className="bg-linear-to-br from-green-50 to-green-100 rounded-2xl p-8 shadow-lg border-2 border-green-200 hover:shadow-xl transition-all duration-300 flex flex-col"
           >
             <div className="bg-green-200 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
               <Target className="w-8 h-8 text-green-700" />
@@ -278,23 +277,23 @@ export default function Home() {
             <p className="text-gray-700 mb-4 leading-relaxed">
               Master Filipino grammar rules through:
             </p>
-            <ul className="space-y-2 mb-6">
+            <ul className="space-y-2 mb-6 grow">
               <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                 <span>Structured lesson cards</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                 <span>Error identification exercises</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                 <span>Fill-in-the-blank practice</span>
               </li>
             </ul>
             <Link
               href="/grammar"
-              className="inline-flex items-center gap-2 text-green-700 font-semibold hover:text-green-800 transition-colors"
+              className="inline-flex items-center gap-2 text-green-700 font-semibold hover:text-green-800 transition-colors mt-auto"
             >
               Explore Grammar <ArrowRight className="w-4 h-4" />
             </Link>
@@ -302,11 +301,11 @@ export default function Home() {
 
           {/* Sentence Construction Module */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg border-2 border-blue-200 hover:shadow-xl transition-all duration-300"
+            className="bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg border-2 border-blue-200 hover:shadow-xl transition-all duration-300 flex flex-col"
           >
             <div className="bg-blue-200 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
               <Brain className="w-8 h-8 text-blue-700" />
@@ -317,25 +316,64 @@ export default function Home() {
             <p className="text-gray-700 mb-4 leading-relaxed">
               Develop sentence building skills through:
             </p>
-            <ul className="space-y-2 mb-6">
+            <ul className="space-y-2 mb-6 grow">
               <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <span>Drag-and-drop sentence ordering</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <span>AI-reviewed sentence writing</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <span>Real-time feedback</span>
               </li>
             </ul>
             <Link
               href="/sentence-construction"
-              className="inline-flex items-center gap-2 text-blue-700 font-semibold hover:text-blue-800 transition-colors"
+              className="inline-flex items-center gap-2 text-blue-700 font-semibold hover:text-blue-800 transition-colors mt-auto"
             >
               Explore Construction <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+
+          {/* Reading Comprehension Module */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="bg-linear-to-br from-purple-50 to-purple-100 rounded-2xl p-8 shadow-lg border-2 border-purple-200 hover:shadow-xl transition-all duration-300 flex flex-col"
+          >
+            <div className="bg-purple-200 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
+              <Sparkles className="w-8 h-8 text-purple-700" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              Reading Comprehension
+            </h3>
+            <p className="text-gray-700 mb-4 leading-relaxed">
+              Enhance reading analysis skills through:
+            </p>
+            <ul className="space-y-2 mb-6 grow">
+              <li className="flex items-start gap-2 text-sm text-gray-700">
+                <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                <span>Filipino passage analysis</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm text-gray-700">
+                <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                <span>Multiple-choice comprehension</span>
+              </li>
+              {/* <li className="flex items-start gap-2 text-sm text-gray-700">
+                <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                <span>Progressive difficulty levels</span>
+              </li> */}
+            </ul>
+            <Link
+              href="/reading-comprehension"
+              className="inline-flex items-center gap-2 text-purple-700 font-semibold hover:text-purple-800 transition-colors mt-auto"
+            >
+              Explore Reading <ArrowRight className="w-4 h-4" />
             </Link>
           </motion.div>
         </div>
@@ -348,7 +386,7 @@ export default function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-12 text-center shadow-2xl max-w-5xl mx-auto"
+          className="bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-12 text-center shadow-2xl max-w-5xl mx-auto"
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Ready to Master Filipino for UPCAT?

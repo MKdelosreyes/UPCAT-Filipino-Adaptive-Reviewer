@@ -24,13 +24,27 @@ interface Card {
 
 interface CardCarouselProps {
   skill_cards?: Card[];
+  onIndexChange?: (index: number) => void;
 }
 
-const CardCarousel = ({ skill_cards = [] }: CardCarouselProps) => {
+const CardCarousel = ({ skill_cards = [], onIndexChange }: CardCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const x = useMotionValue(0);
+
+  // Get colors based on current module
+  const getModuleColors = (moduleType: ModuleType) => {
+    const colorMap = {
+      vocabulary: { bg: 'bg-yellow-600', hover: 'hover:bg-yellow-700', active: 'bg-yellow-800', text: 'text-yellow-600', dot: 'bg-yellow-600' },
+      grammar: { bg: 'bg-green-600', hover: 'hover:bg-green-700', active: 'bg-green-800', text: 'text-green-600', dot: 'bg-green-600' },
+      'sentence-construction': { bg: 'bg-blue-600', hover: 'hover:bg-blue-700', active: 'bg-blue-800', text: 'text-blue-600', dot: 'bg-blue-600' },
+      'reading-comprehension': { bg: 'bg-purple-600', hover: 'hover:bg-purple-700', active: 'bg-purple-800', text: 'text-purple-600', dot: 'bg-purple-600' },
+    };
+    return colorMap[moduleType] || colorMap.vocabulary;
+  };
+
+  const currentColors = skill_cards.length > 0 ? getModuleColors(skill_cards[currentIndex].moduleType) : getModuleColors('vocabulary');
 
   // Detect mobile and container width
   useEffect(() => {
@@ -81,6 +95,15 @@ const CardCarousel = ({ skill_cards = [] }: CardCarouselProps) => {
     return () => controls.stop();
   }, [currentIndex, x, cardWidth, containerWidth]);
 
+  // Notify parent about current index so parent can react (e.g. change border color)
+  useEffect(() => {
+    try {
+      onIndexChange?.(currentIndex);
+    } catch (e) {
+      // noop
+    }
+  }, [currentIndex, onIndexChange]);
+
   // Swipe handlers with better mobile support
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => {
@@ -121,7 +144,7 @@ const CardCarousel = ({ skill_cards = [] }: CardCarouselProps) => {
       {/* Left Navigation */}
       <div className="absolute left-2 md:left-4 z-20">
         {currentIndex === 0 ? (
-          <div className="text-blue-600 text-xs md:text-sm font-medium opacity-50">
+          <div className={`${currentColors.text} text-xs md:text-sm font-medium opacity-50`}>
             First card
           </div>
         ) : (
@@ -135,7 +158,7 @@ const CardCarousel = ({ skill_cards = [] }: CardCarouselProps) => {
               e.stopPropagation();
               prevCard();
             }}
-            className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-blue-600 text-white rounded-full hover:bg-blue-700 active:bg-blue-800 transition-all duration-300 shadow-lg touch-manipulation"
+            className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 ${currentColors.bg} text-white rounded-full ${currentColors.hover} active:${currentColors.active} transition-all duration-300 shadow-lg touch-manipulation`}
             aria-label="Previous card"
           >
             <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
@@ -200,7 +223,7 @@ const CardCarousel = ({ skill_cards = [] }: CardCarouselProps) => {
       {/* Right Navigation */}
       <div className="absolute right-2 md:right-4 z-20">
         {currentIndex === skill_cards.length - 1 ? (
-          <div className="text-blue-600 text-xs md:text-sm font-medium opacity-50">
+          <div className={`${currentColors.text} text-xs md:text-sm font-medium opacity-50`}>
             Last card
           </div>
         ) : (
@@ -214,7 +237,7 @@ const CardCarousel = ({ skill_cards = [] }: CardCarouselProps) => {
               e.stopPropagation();
               nextCard();
             }}
-            className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-blue-600 text-white rounded-full hover:bg-blue-700 active:bg-blue-800 transition-all duration-300 shadow-lg touch-manipulation"
+            className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 ${currentColors.bg} text-white rounded-full ${currentColors.hover} active:${currentColors.active} transition-all duration-300 shadow-lg touch-manipulation`}
             aria-label="Next card"
           >
             <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -233,7 +256,7 @@ const CardCarousel = ({ skill_cards = [] }: CardCarouselProps) => {
             }}
             className={`w-2 h-2 rounded-full transition-all duration-300 touch-manipulation ${
               index === currentIndex
-                ? "bg-blue-600 w-6"
+                ? `${currentColors.dot} w-6`
                 : "bg-gray-300 hover:bg-gray-400"
             }`}
             aria-label={`Go to card ${index + 1}`}

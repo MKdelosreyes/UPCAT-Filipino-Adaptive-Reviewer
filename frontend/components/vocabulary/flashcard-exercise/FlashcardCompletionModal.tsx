@@ -57,8 +57,8 @@ export default function FlashcardCompletionModal({
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 space-y-6">
               {/* Icon */}
               <div className="flex justify-center">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                  <BookOpen className="w-12 h-12 text-blue-600" />
+                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <BookOpen className="w-12 h-12 text-yellow-600" />
                 </div>
               </div>
 
@@ -73,13 +73,13 @@ export default function FlashcardCompletionModal({
               </div>
 
               {/* Stats */}
-              <div className="space-y-3 bg-blue-50 rounded-2xl p-6">
+              <div className="space-y-3 bg-yellow-50 rounded-2xl p-6">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700 font-medium flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     Words Reviewed
                   </span>
-                  <span className="text-2xl font-bold text-blue-600">
+                  <span className="text-2xl font-bold text-yellow-600">
                     {totalCards}
                   </span>
                 </div>
@@ -104,8 +104,8 @@ export default function FlashcardCompletionModal({
               </div>
 
               {/* Performance Message */}
-              <div className="text-center p-4 bg-blue-50 rounded-xl">
-                <p className="text-sm text-blue-800 font-medium">
+              <div className="text-center p-4 bg-yellow-50 rounded-xl">
+                <p className="text-sm text-yellow-800 font-medium">
                   {completionRate >= 90
                     ? "🌟 Excellent review! You're ready for the quiz!"
                     : completionRate >= 70
@@ -131,14 +131,14 @@ export default function FlashcardCompletionModal({
                 {completionRate >= 70 ? (
                   <Link
                     href="/vocabulary/what-is-its-closest-meaning"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
+                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
                   >
                     Continue to Quiz →
                   </Link>
                 ) : (
                   <button
                     onClick={() => window.location.reload()}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
                   >
                     Review Again
                   </button>

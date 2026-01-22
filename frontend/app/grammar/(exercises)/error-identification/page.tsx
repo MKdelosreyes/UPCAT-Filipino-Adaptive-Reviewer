@@ -219,26 +219,26 @@ export default function ErrorIdentificationPage() {
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-red-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="h-screen bg-green-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
 
   if (srsLoading || errorQuestions.length === 0) {
     return (
-      <div className="h-screen bg-red-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-red-200">
+      <div className="h-screen bg-green-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
           <Link
             href="/grammar"
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold text-sm"
+            className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
 
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-red-900">
+            <h1 className="text-xl md:text-2xl font-bold text-green-900">
               Error Identification
             </h1>
           </div>
@@ -248,13 +248,13 @@ export default function ErrorIdentificationPage() {
 
         <div className="flex-1 flex items-center justify-center">
           {srsLoading ? (
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
           ) : (
             <div className="text-center">
-              <p className="text-lg text-red-900 mb-2">
+              <p className="text-lg text-green-900 mb-2">
                 🎉 No exercises due right now!
               </p>
-              <p className="text-sm text-red-600">
+              <p className="text-sm text-green-600">
                 Come back later for more practice.
               </p>
             </div>
@@ -374,19 +374,19 @@ export default function ErrorIdentificationPage() {
   };
 
   return (
-    <div className="h-screen bg-red-50 overflow-auto flex flex-col scrollbar-red scrollbar-purple">
+    <div className="h-screen bg-green-50 overflow-auto flex flex-col scrollbar-green scrollbar-green">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-red-200">
+      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
         <Link
           href="/grammar"
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold text-sm"
+          className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-red-900">
+          <h1 className="text-xl md:text-2xl font-bold text-green-900">
             Error Identification
           </h1>
           <p className="text-xs text-gray-500 mt-1">
@@ -446,14 +446,14 @@ export default function ErrorIdentificationPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleNext}
-              className="flex items-center mt-5 gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              className="flex items-center mt-5 gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
             >
               {isLastQuestion ? "Finish Exercise" : "Next Question"}
               <ChevronRight className="w-5 h-5" />
             </motion.button>
           </motion.div>
         ) : (
-          <div className="text-center text-xs text-red-600">
+          <div className="text-center text-xs text-green-600">
             🔍 Identify the part of the sentence that contains a grammatical
             error
           </div>

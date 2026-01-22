@@ -9,11 +9,12 @@ const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localho
 
 // Types
 export interface ExplainRequest {
-  mode: "quiz" | "antonym" | "error-identification" | "fill-blanks" | "complete-sentence" | "reading-comprehension";
+  mode: "quiz" | "antonym" | "error-identification" | "fill-blanks" | "complete-sentence" | "reading-comprehension" | "sentence-ordering" | "choose-sentence";
   word: string;
   correct: string;
   selected?: string;
-  sentence?: string
+  sentence?: string;
+  explanation?: string;
 }
 
 export interface ExplainResponse {
@@ -73,23 +74,19 @@ export interface ChatResponse {
 export interface SummaryCheckRequest {
   passage_text: string;
   user_summary: string;
+  main_idea: string;
   passage_title?: string;
   difficulty?: "easy" | "medium" | "hard";
 }
 
 export interface SummaryCheckResponse {
-  overall_score: number;
+  quality_level: 'needs-work' | 'developing' | 'good' | 'excellent';
   feedback: string;
   strengths: string[];
   improvements: string[];
-  key_points_covered: number;
-  key_points_total: number;
-  detailed_scores: {
-    coverage: number;
-    accuracy: number;
-    clarity: number;
-    completeness: number;
-  };
+  coverage_feedback: string;
+  clarity_feedback: string;
+  completeness_feedback: string;
 }
 
 export async function sendChatMessage(

@@ -152,11 +152,11 @@ export default function AntonymQuestion({
       <div className="text-center space-y-2">
         <h2 className="text-xs md:text-sm text-gray-600">
           Ano ang kasalungat ng salitang may{" "}
-          <u className="decoration-red-600 decoration-2">salungguhit</u>?
+          <u className="decoration-yellow-600 decoration-2">salungguhit</u>?
         </h2>
-        <div className="bg-red-100 rounded-xl py-6 border-2 border-red-300">
+        <div className="bg-yellow-100 rounded-xl py-6 border-2 border-yellow-300">
           <p
-            className="text-lg md:text-xl text-red-900 font-bold leading-relaxed"
+            className="text-lg md:text-xl text-yellow-600 font-bold leading-relaxed"
             dangerouslySetInnerHTML={{ __html: sentence }}
           />
         </div>
@@ -188,14 +188,14 @@ export default function AntonymQuestion({
                   whileTap={!showResult ? { scale: 0.98 } : {}}
                   onClick={() => !showResult && onSelectAnswer(option)}
                   disabled={showResult}
-                  className={`relative p-4 rounded-xl border-3 text-left transition-all duration-300 ${
+                  className={`relative p-4 rounded-xl border-3 border-yellow-200 text-left transition-all duration-300 ${
                     showCorrect
                       ? "bg-green-100 border-green-500"
                       : showWrong
-                      ? "bg-red-100 border-red-500"
+                      ? "bg-red-100 border-red-400"
                       : isSelected
-                      ? "bg-red-500 text-white"
-                      : "bg-red-100 text-red-700"
+                      ? "bg-yellow-500 text-white"
+                      : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -207,8 +207,8 @@ export default function AntonymQuestion({
                           : showWrong
                           ? "bg-red-500 text-white"
                           : isSelected
-                          ? "bg-orange-500 text-white"
-                          : "bg-orange-100 text-orange-700"
+                          ? "bg-yellow-600 text-white"
+                          : "bg-yellow-200 text-yellow-700"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}

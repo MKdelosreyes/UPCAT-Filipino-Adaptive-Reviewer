@@ -14,16 +14,16 @@ export default function GrammarPage() {
 
   const masteryColors = {
     beginner: "bg-gray-100 text-gray-700 border-gray-300",
-    developing: "bg-blue-100 text-blue-700 border-blue-300",
-    proficient: "bg-purple-100 text-purple-700 border-purple-300",
-    advanced: "bg-orange-100 text-orange-700 border-orange-300",
-    master: "bg-yellow-100 text-yellow-700 border-yellow-400",
+    developing: "bg-green-100 text-green-700 border-green-300",
+    proficient: "bg-green-100 text-green-700 border-green-300",
+    advanced: "bg-green-200 text-green-800 border-green-400",
+    master: "bg-green-300 text-green-900 border-green-500",
   };
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-red-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="h-screen bg-green-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
@@ -36,7 +36,7 @@ export default function GrammarPage() {
           {/* Back Button - Left */}
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors"
+            className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -70,7 +70,7 @@ export default function GrammarPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-green-700 mb-2 text-center">
             Grammar Activities
           </h1>
           <p className="text-center text-gray-600 mb-6">
@@ -82,11 +82,11 @@ export default function GrammarPage() {
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-7xl mx-auto">
           <GrammarCard
             name="Lesson Cards"
             description="Learn proper sentence structure through lessons"
-            imagePath="/art/grammar-icon1.png"
+            imagePath="/art/grammar-1.png"
             color="bg-purple-50"
             url="/grammar/lesson-cards"
             exerciseType="lesson-cards"
@@ -94,15 +94,15 @@ export default function GrammarPage() {
           <GrammarCard
             name="Error Identification"
             description="Identify grammatical errors in sentences"
-            imagePath="/art/grammar-icon1.png"
-            color="bg-red-50"
+            imagePath="/art/grammar-2.png"
+            color="bg-green-50"
             url="/grammar/error-identification"
             exerciseType="error-identification"
           />
           <GrammarCard
             name="Fill the Blank"
             description="Fill the blank with the correct word"
-            imagePath="/art/grammar-icon1.png"
+            imagePath="/art/grammar-3.png"
             color="bg-green-50"
             url="/grammar/fill-blanks"
             exerciseType="fill-blanks"

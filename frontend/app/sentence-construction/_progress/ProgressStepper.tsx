@@ -8,9 +8,8 @@ import type {
 } from "@/contexts/LearningProgressContext";
 
 const steps: Array<{ id: SentenceExercise; label: string; number: number }> = [
-  { id: "complete-sentence", label: "Complete Sentence", number: 1 },
-  { id: "sentence-ordering", label: "Sentence Ordering", number: 2 },
-  { id: "choose-sentence", label: "Choose the Best Sentence", number: 3 },
+  { id: "sentence-ordering", label: "Sentence Ordering", number: 1 },
+  { id: "choose-sentence", label: "Choose the Best Sentence", number: 2 },
 ];
 
 export default function SentenceConstructionProgressStepper() {
@@ -21,12 +20,12 @@ export default function SentenceConstructionProgressStepper() {
   ).length;
 
   return (
-    <div className="w-full max-w-3xl mx-auto mb-8">
-      <div className="flex items-center justify-between relative">
+    <div className="w-full max-w-4xl mx-auto mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 relative">
         {/* Progress Line */}
-        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
+        <div className="absolute top-5 left-1/4 right-1/4 h-1 bg-gray-200 -z-10 hidden md:block">
           <div
-            className="h-full bg-orange-600 transition-all duration-500"
+            className="h-full bg-blue-600 transition-all duration-500"
             style={{
               width: `${(completedExercises / steps.length) * 100}%`,
             }}
@@ -41,13 +40,13 @@ export default function SentenceConstructionProgressStepper() {
             : null;
 
           return (
-            <div key={step.id} className="flex flex-col items-center relative">
+            <div key={step.id} className="flex flex-col items-center w-full relative">
               {/* Circle */}
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 ${
                   hasStarted
-                    ? "bg-orange-600 text-white"
-                    : "bg-orange-100 text-orange-600 border-2 border-orange-300"
+                    ? "bg-blue-600 text-white"
+                    : "bg-blue-100 text-blue-600 border-2 border-blue-300"
                 }`}
               >
                 {hasStarted && mastery ? (
@@ -59,8 +58,8 @@ export default function SentenceConstructionProgressStepper() {
 
               {/* Label */}
               <span
-                className={`mt-2 text-xs md:text-sm font-medium text-center max-w-[80px] ${
-                  hasStarted ? "text-orange-900" : "text-gray-600"
+                className={`mt-2 text-xs md:text-sm font-medium text-center w-full ${
+                  hasStarted ? "text-blue-900" : "text-gray-600"
                 }`}
               >
                 {step.label}
@@ -69,10 +68,10 @@ export default function SentenceConstructionProgressStepper() {
               {/* Mastery Badge */}
               {hasStarted && mastery && (
                 <div className="mt-1 flex flex-col items-center gap-1">
-                  <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold capitalize">
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold capitalize">
                     {mastery.level}
                   </span>
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold capitalize">
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold capitalize">
                     {mastery.difficulty}
                   </span>
                 </div>
