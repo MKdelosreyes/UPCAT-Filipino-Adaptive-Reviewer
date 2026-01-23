@@ -45,39 +45,79 @@ function extractPhrasesFromSentence(
   correctAnswer: string
 ): string[] {
   const cleanSentence = sentence.replace(/<[^>]*>/g, "");
-  const words = cleanSentence.split(/\s+/).filter((w) => w.length > 0);
+  const words = cleanSentence
+    .split(/\s+/)
+    .map((w) => w.replace(/[.,;:!?'"()]/g, ""))
+    .filter((w) => w.length > 0);
+
   const phrases: string[] = [];
+  const correctLower = correctAnswer.toLowerCase().trim();
+  const correctWords = correctLower.split(/\s+/);
 
+  // Helper to check if phrase overlaps with correct answer
+  const overlapsWithCorrect = (phrase: string): boolean => {
+    const phraseLower = phrase.toLowerCase().trim();
+    const phraseWords = phraseLower.split(/\s+/);
+
+    // Check if ANY word from phrase exists in correct answer
+    return phraseWords.some((pw) => correctWords.includes(pw));
+  };
+
+  // Helper to check if two phrases share any words
+  const phrasesShareWords = (phrase1: string, phrase2: string): boolean => {
+    const words1 = phrase1.toLowerCase().split(/\s+/);
+    const words2 = phrase2.toLowerCase().split(/\s+/);
+
+    return words1.some((w) => words2.includes(w));
+  };
+
+  // Extract 1-word phrases (only if word length > 2)
   for (let i = 0; i < words.length; i++) {
-    const word1 = words[i].replace(/[.,;:!?'"()]/g, "");
-    if (word1.length > 2) {
-      phrases.push(word1);
-    }
-
-    if (i < words.length - 1) {
-      const word2 = words[i + 1].replace(/[.,;:!?'"()]/g, "");
-      phrases.push(`${word1} ${word2}`);
-    }
-
-    if (i < words.length - 2) {
-      const word2 = words[i + 1].replace(/[.,;:!?'"()]/g, "");
-      const word3 = words[i + 2].replace(/[.,;:!?'"()]/g, "");
-      phrases.push(`${word1} ${word2} ${word3}`);
+    const word = words[i];
+    if (word.length > 2 && !overlapsWithCorrect(word)) {
+      phrases.push(word);
     }
   }
 
-  const filtered = phrases.filter((phrase) => {
-    const lowerPhrase = phrase.toLowerCase();
-    const lowerCorrect = correctAnswer.toLowerCase();
+  // Extract 2-word phrases
+  for (let i = 0; i < words.length - 1; i++) {
+    const phrase = `${words[i]} ${words[i + 1]}`;
+    if (!overlapsWithCorrect(phrase)) {
+      phrases.push(phrase);
+    }
+  }
 
-    return (
-      lowerPhrase !== lowerCorrect &&
-      !lowerPhrase.includes(lowerCorrect) &&
-      !lowerCorrect.includes(lowerPhrase)
-    );
-  });
+  // Extract 3-word phrases
+  for (let i = 0; i < words.length - 2; i++) {
+    const phrase = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
+    if (!overlapsWithCorrect(phrase)) {
+      phrases.push(phrase);
+    }
+  }
 
-  return Array.from(new Set(filtered));
+  // Extract 4-word phrases (for longer sentences)
+  for (let i = 0; i < words.length - 3; i++) {
+    const phrase = `${words[i]} ${words[i + 1]} ${words[i + 2]} ${
+      words[i + 3]
+    }`;
+    if (!overlapsWithCorrect(phrase)) {
+      phrases.push(phrase);
+    }
+  }
+
+  // Remove duplicates (case-insensitive)
+  const uniquePhrases: string[] = [];
+  const seenLower = new Set<string>();
+
+  for (const phrase of phrases) {
+    const phraseLower = phrase.toLowerCase();
+    if (!seenLower.has(phraseLower)) {
+      uniquePhrases.push(phrase);
+      seenLower.add(phraseLower);
+    }
+  }
+
+  return uniquePhrases;
 }
 
 // Convert grammar items to error identification format
@@ -96,16 +136,59 @@ function convertToErrorFormat(
     let choices: string[];
 
     if (isNoError) {
+      // For "No Error" cases: pick 3 distinct, non-overlapping distractors
       const shuffledPhrases = allPhrases.sort(() => Math.random() - 0.5);
-      let distractors = shuffledPhrases.slice(0, 3);
+      const distractors: string[] = [];
 
+      // Helper to check word overlap
+      const phrasesShareWords = (phrase1: string, phrase2: string): boolean => {
+        const words1 = phrase1.toLowerCase().split(/\s+/);
+        const words2 = phrase2.toLowerCase().split(/\s+/);
+        return words1.some((w) => words2.includes(w));
+      };
+
+      // Select non-overlapping phrases (prioritize multi-word phrases)
+      // First pass: try to get multi-word phrases
+      for (const phrase of shuffledPhrases) {
+        if (distractors.length >= 3) break;
+
+        const wordCount = phrase.split(/\s+/).length;
+
+        // Skip if it overlaps with any selected distractor
+        const overlaps = distractors.some((existing) =>
+          phrasesShareWords(phrase, existing)
+        );
+
+        if (!overlaps && wordCount >= 2) {
+          distractors.push(phrase);
+        }
+      }
+
+      // Second pass: fill remaining slots with any non-overlapping phrases
+      if (distractors.length < 3) {
+        for (const phrase of shuffledPhrases) {
+          if (distractors.length >= 3) break;
+
+          const overlaps = distractors.some((existing) =>
+            phrasesShareWords(phrase, existing)
+          );
+
+          if (!overlaps && !distractors.includes(phrase)) {
+            distractors.push(phrase);
+          }
+        }
+      }
+
+      // Fallback options if not enough phrases
       const fallbackOptions = [
         "Hindi Malinaw",
         "Kulang ang Impormasyon",
         "Labis ang Salita",
+        "Mali ang Baybay",
+        "Kulang ang Bantas",
       ];
-      let fallbackIndex = 0;
 
+      let fallbackIndex = 0;
       while (distractors.length < 3 && fallbackIndex < fallbackOptions.length) {
         const fallback = fallbackOptions[fallbackIndex];
         if (!distractors.includes(fallback)) {
@@ -114,15 +197,60 @@ function convertToErrorFormat(
         fallbackIndex++;
       }
 
-      distractors = distractors.sort(() => Math.random() - 0.5);
-      choices = [...distractors, "Walang Mali"];
+      // Shuffle distractors and add "Walang Mali"
+      choices = [...distractors.sort(() => Math.random() - 0.5), "Walang Mali"];
     } else {
+      // For error cases: pick 2 distinct, non-overlapping distractors
       const shuffledPhrases = allPhrases.sort(() => Math.random() - 0.5);
-      let distractors = shuffledPhrases.slice(0, 2);
+      const distractors: string[] = [];
 
-      const fallbackOptions = ["Hindi Malinaw", "Kulang ang Impormasyon"];
+      // Helper to check word overlap
+      const phrasesShareWords = (phrase1: string, phrase2: string): boolean => {
+        const words1 = phrase1.toLowerCase().split(/\s+/);
+        const words2 = phrase2.toLowerCase().split(/\s+/);
+        return words1.some((w) => words2.includes(w));
+      };
+
+      // First pass: prioritize multi-word phrases
+      for (const phrase of shuffledPhrases) {
+        if (distractors.length >= 2) break;
+
+        const wordCount = phrase.split(/\s+/).length;
+
+        const overlaps = distractors.some((existing) =>
+          phrasesShareWords(phrase, existing)
+        );
+
+        if (!overlaps && wordCount >= 2) {
+          distractors.push(phrase);
+        }
+      }
+
+      // Second pass: fill remaining slots
+      if (distractors.length < 2) {
+        for (const phrase of shuffledPhrases) {
+          if (distractors.length >= 2) break;
+
+          const overlaps = distractors.some((existing) =>
+            phrasesShareWords(phrase, existing)
+          );
+
+          if (!overlaps && !distractors.includes(phrase)) {
+            distractors.push(phrase);
+          }
+        }
+      }
+
+      // Fallback options
+      const fallbackOptions = [
+        "Hindi Malinaw",
+        "Kulang ang Impormasyon",
+        "Mali ang Baybay",
+        "Kulang ang Bantas",
+        "Labis ang Salita",
+      ];
+
       let fallbackIndex = 0;
-
       while (distractors.length < 2 && fallbackIndex < fallbackOptions.length) {
         const fallback = fallbackOptions[fallbackIndex];
         if (!distractors.includes(fallback)) {
@@ -131,6 +259,7 @@ function convertToErrorFormat(
         fallbackIndex++;
       }
 
+      // Combine correct answer + distractors, then shuffle first 3 choices
       const firstThreeChoices = [correctAnswer, ...distractors].sort(
         () => Math.random() - 0.5
       );
