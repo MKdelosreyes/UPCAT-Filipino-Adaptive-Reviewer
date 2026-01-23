@@ -27,7 +27,10 @@ interface CardCarouselProps {
   onIndexChange?: (index: number) => void;
 }
 
-const CardCarousel = ({ skill_cards = [], onIndexChange }: CardCarouselProps) => {
+const CardCarousel = ({
+  skill_cards = [],
+  onIndexChange,
+}: CardCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -36,15 +39,42 @@ const CardCarousel = ({ skill_cards = [], onIndexChange }: CardCarouselProps) =>
   // Get colors based on current module
   const getModuleColors = (moduleType: ModuleType) => {
     const colorMap = {
-      vocabulary: { bg: 'bg-yellow-600', hover: 'hover:bg-yellow-700', active: 'bg-yellow-800', text: 'text-yellow-600', dot: 'bg-yellow-600' },
-      grammar: { bg: 'bg-green-600', hover: 'hover:bg-green-700', active: 'bg-green-800', text: 'text-green-600', dot: 'bg-green-600' },
-      'sentence-construction': { bg: 'bg-blue-600', hover: 'hover:bg-blue-700', active: 'bg-blue-800', text: 'text-blue-600', dot: 'bg-blue-600' },
-      'reading-comprehension': { bg: 'bg-purple-600', hover: 'hover:bg-purple-700', active: 'bg-purple-800', text: 'text-purple-600', dot: 'bg-purple-600' },
+      vocabulary: {
+        bg: "bg-yellow-600",
+        hover: "hover:bg-yellow-700",
+        active: "bg-yellow-800",
+        text: "text-yellow-600",
+        dot: "bg-yellow-600",
+      },
+      grammar: {
+        bg: "bg-green-600",
+        hover: "hover:bg-green-700",
+        active: "bg-green-800",
+        text: "text-green-600",
+        dot: "bg-green-600",
+      },
+      "sentence-construction": {
+        bg: "bg-blue-600",
+        hover: "hover:bg-blue-700",
+        active: "bg-blue-800",
+        text: "text-blue-600",
+        dot: "bg-blue-600",
+      },
+      "reading-comprehension": {
+        bg: "bg-purple-600",
+        hover: "hover:bg-purple-700",
+        active: "bg-purple-800",
+        text: "text-purple-600",
+        dot: "bg-purple-600",
+      },
     };
     return colorMap[moduleType] || colorMap.vocabulary;
   };
 
-  const currentColors = skill_cards.length > 0 ? getModuleColors(skill_cards[currentIndex].moduleType) : getModuleColors('vocabulary');
+  const currentColors =
+    skill_cards.length > 0
+      ? getModuleColors(skill_cards[currentIndex].moduleType)
+      : getModuleColors("vocabulary");
 
   // Detect mobile and container width
   useEffect(() => {
@@ -144,7 +174,9 @@ const CardCarousel = ({ skill_cards = [], onIndexChange }: CardCarouselProps) =>
       {/* Left Navigation */}
       <div className="absolute left-2 md:left-4 z-20">
         {currentIndex === 0 ? (
-          <div className={`${currentColors.text} text-xs md:text-sm font-medium opacity-50`}>
+          <div
+            className={`${currentColors.text} text-xs md:text-sm font-medium opacity-50`}
+          >
             First card
           </div>
         ) : (
@@ -213,6 +245,7 @@ const CardCarousel = ({ skill_cards = [], onIndexChange }: CardCarouselProps) =>
                   color={card.color}
                   url={card.url}
                   moduleType={card.moduleType}
+                  isFocused={isActive}
                 />
               </motion.div>
             );
@@ -223,7 +256,9 @@ const CardCarousel = ({ skill_cards = [], onIndexChange }: CardCarouselProps) =>
       {/* Right Navigation */}
       <div className="absolute right-2 md:right-4 z-20">
         {currentIndex === skill_cards.length - 1 ? (
-          <div className={`${currentColors.text} text-xs md:text-sm font-medium opacity-50`}>
+          <div
+            className={`${currentColors.text} text-xs md:text-sm font-medium opacity-50`}
+          >
             Last card
           </div>
         ) : (

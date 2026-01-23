@@ -16,9 +16,8 @@ export type GrammarQuizExercise = "error-identification" | "fill-blanks";
 export type GrammarExercise = GrammarLessonExercise | GrammarQuizExercise;
 
 export type SentenceExercise =
-  | "complete-sentence"
-  | "sentence-ordering"
-  | "choose-sentence";
+  // | "complete-sentence"
+  "sentence-ordering" | "choose-sentence";
 export type ReadingExercise = "passage-questions" | "summary-exercise";
 
 export type ExerciseType =
@@ -78,7 +77,7 @@ export interface GrammarProgress {
 }
 
 export interface SentenceProgress {
-  "complete-sentence": QuizProgress;
+  // "complete-sentence": QuizProgress;
   "sentence-ordering": QuizProgress;
   "choose-sentence": QuizProgress;
   lastAccessedAt: string | null;
@@ -195,7 +194,7 @@ const createDefaultGrammarProgress = (): GrammarProgress => ({
 });
 
 const createDefaultSentenceProgress = (): SentenceProgress => ({
-  "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
+  // "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
   "sentence-ordering": { ...defaultQuizProgress, status: "not-started" },
   "choose-sentence": { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
@@ -271,7 +270,7 @@ export function LearningProgressProvider({
     } else if (module === "sentence-construction") {
       const sentenceData = moduleData as SentenceProgress;
       if (
-        exercise === "complete-sentence" ||
+        // exercise === "complete-sentence" ||
         exercise === "sentence-ordering" ||
         exercise === "choose-sentence"
       ) {
@@ -377,10 +376,9 @@ export function LearningProgressProvider({
           [module]: moduleProgress,
         };
       } else if (
-        module === "sentence-construction" &&
-        (exercise === "complete-sentence" ||
-          exercise === "sentence-ordering" ||
-          exercise === "choose-sentence")
+        module ===
+          "sentence-construction" /*exercise === "complete-sentence" ||*/ &&
+        (exercise === "sentence-ordering" || exercise === "choose-sentence")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
 
@@ -451,20 +449,27 @@ export function LearningProgressProvider({
               cardsReviewed: exercise.cards_reviewed || undefined,
             };
           } else if (exType === "quiz" || exType === "antonym") {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })
+            );
+
             vocabProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -488,20 +493,27 @@ export function LearningProgressProvider({
             exType === "error-identification" ||
             exType === "fill-blanks"
           ) {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })
+            );
+
             grammarProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -514,25 +526,28 @@ export function LearningProgressProvider({
         module.exercises.forEach((exercise) => {
           const exType = exercise.exercise_type;
 
-          if (
-            exType === "complete-sentence" ||
-            exType === "sentence-ordering" ||
-            exType === "choose-sentence"
-          ) {
+          if (exType === "sentence-ordering" || exType === "choose-sentence") {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })
+            );
+
             sentenceProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -546,20 +561,27 @@ export function LearningProgressProvider({
           const exType = exercise.exercise_type;
 
           if (exType === "passage-questions" || exType === "summary-exercise") {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })
+            );
+
             readingProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -658,7 +680,7 @@ export function LearningProgressProvider({
       case "grammar":
         return ["lesson-cards", "error-identification", "fill-blanks"];
       case "sentence-construction":
-        return ["complete-sentence", "sentence-ordering", "choose-sentence"];
+        return ["sentence-ordering", "choose-sentence"];
       case "reading-comprehension":
         return ["passage-questions", "summary-exercise"];
       default:
@@ -670,7 +692,7 @@ export function LearningProgressProvider({
     const exercises = getModuleExercises(module);
 
     let totalMasteryScore = 0;
-    const maxMasteryPerExercise = 5; // master = 5, advanced = 4, etc.
+    const maxMasteryPerExercise = 5;
 
     exercises.forEach((ex) => {
       const exerciseProgress = getExerciseProgressTyped(module, ex);
@@ -678,14 +700,21 @@ export function LearningProgressProvider({
       if (!exerciseProgress) return;
 
       if (isLessonExercise(module, ex)) {
-        // Lessons: score based on time spent
+        // Lessons use completion metrics, not scores
         const lesson = exerciseProgress as LessonProgress;
-        if (lesson.timeSpent >= 600) totalMasteryScore += 5; // 10+ min = max
-        else if (lesson.timeSpent >= 300)
-          totalMasteryScore += 3; // 5+ min = mid
-        else if (lesson.timeSpent > 0) totalMasteryScore += 1; // started
+
+        if (ex === "flashcards" && lesson.cardsReviewed) {
+          const reviewRate = Math.min(1, lesson.cardsReviewed / 50);
+          const timeRate = Math.min(1, lesson.timeSpent / 600);
+          totalMasteryScore += (reviewRate + timeRate) * 2.5;
+        } else if (ex === "lesson-cards" && lesson.lessonsViewed) {
+          const viewRate = Math.min(1, lesson.lessonsViewed / 15); // 15 lessons = full mastery
+          const timeRate = Math.min(1, lesson.timeSpent / 600);
+          totalMasteryScore += (viewRate + timeRate) * 2.5;
+        } else if (lesson.timeSpent >= 600) totalMasteryScore += 5;
+        else if (lesson.timeSpent >= 300) totalMasteryScore += 3;
+        else if (lesson.timeSpent > 0) totalMasteryScore += 1;
       } else {
-        // Quizzes: score based on mastery level
         const quiz = exerciseProgress as QuizProgress;
         if (quiz.performanceHistory.length === 0) return;
 
@@ -694,14 +723,13 @@ export function LearningProgressProvider({
           quiz.performanceHistory.length;
         const difficulty = quiz.lastDifficulty;
 
-        if (difficulty === "hard" && avgScore >= 90)
-          totalMasteryScore += 5; // master
+        if (difficulty === "hard" && avgScore >= 90) totalMasteryScore += 5;
         else if (difficulty === "hard" && avgScore >= 75)
-          totalMasteryScore += 4; // advanced
+          totalMasteryScore += 4;
         else if (difficulty === "medium" && avgScore >= 75)
-          totalMasteryScore += 3; // proficient
-        else if (avgScore >= 60) totalMasteryScore += 2; // developing
-        else totalMasteryScore += 1; // beginner
+          totalMasteryScore += 3;
+        else if (avgScore >= 60) totalMasteryScore += 2;
+        else totalMasteryScore += 1;
       }
     });
 
@@ -758,11 +786,60 @@ export function LearningProgressProvider({
   };
 
   const isModuleCompleted = (module: ModuleType): boolean => {
-    return getModuleProgress(module) >= 90; // 90%+ mastery = "completed"
+    return getModuleProgress(module) >= 90;
   };
 
   const getRecommendedModule = (): ModuleType => {
-    return progress.recommendedModule;
+    const modules: ModuleType[] = [
+      "vocabulary",
+      "grammar",
+      "sentence-construction",
+      "reading-comprehension",
+    ];
+
+    // 1. Check if user just started - recommend vocabulary first
+    const allProgress = modules.map((m) => getModuleProgress(m));
+    const hasAnyProgress = allProgress.some((p) => p > 0);
+
+    if (!hasAnyProgress) {
+      return "vocabulary"; // Default: start with vocabulary
+    }
+
+    // 2. Find module with lowest progress (needs most work)
+    let lowestProgress = 100;
+    let recommendedModule: ModuleType = "vocabulary";
+
+    modules.forEach((module) => {
+      const moduleProgress = getModuleProgress(module);
+
+      // Skip completed modules
+      if (moduleProgress >= 90) return;
+
+      if (moduleProgress < lowestProgress) {
+        lowestProgress = moduleProgress;
+        recommendedModule = module;
+      }
+    });
+
+    // 3. If all modules are completed, recommend most recently accessed
+    if (lowestProgress >= 90) {
+      let mostRecent: ModuleType = "vocabulary";
+      let mostRecentDate = "";
+
+      modules.forEach((module) => {
+        const moduleData = progress[module];
+        const lastAccessed = moduleData.lastAccessedAt || "";
+
+        if (lastAccessed > mostRecentDate) {
+          mostRecentDate = lastAccessed;
+          mostRecent = module;
+        }
+      });
+
+      return mostRecent;
+    }
+
+    return recommendedModule;
   };
 
   const markModuleAccessed = (module: ModuleType) => {
@@ -835,10 +912,9 @@ export function LearningProgressProvider({
           [module]: moduleProgress,
         };
       } else if (
-        module === "sentence-construction" &&
-        (exercise === "complete-sentence" ||
-          exercise === "sentence-ordering" ||
-          exercise === "choose-sentence")
+        module ===
+          "sentence-construction" /*exercise === "complete-sentence" ||*/ &&
+        (exercise === "sentence-ordering" || exercise === "choose-sentence")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
         const quizProgress = moduleProgress[exercise];

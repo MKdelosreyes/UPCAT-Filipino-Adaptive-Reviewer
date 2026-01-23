@@ -41,7 +41,7 @@ export function useSentenceConstructionProgress() {
     const sentenceConstruction = progress["sentence-construction"];
 
     const allHistory = [
-      ...sentenceConstruction["complete-sentence"].performanceHistory,
+      // ...sentenceConstruction["complete-sentence"].performanceHistory,
       ...sentenceConstruction["sentence-ordering"].performanceHistory,
       ...sentenceConstruction["choose-sentence"].performanceHistory,
     ];
@@ -57,7 +57,7 @@ export function useSentenceConstructionProgress() {
 
     // Get current difficulty (highest across exercises)
     const difficulties = [
-      sentenceConstruction["complete-sentence"].lastDifficulty,
+      // sentenceConstruction["complete-sentence"].lastDifficulty,
       sentenceConstruction["sentence-ordering"].lastDifficulty,
       sentenceConstruction["choose-sentence"].lastDifficulty,
     ];

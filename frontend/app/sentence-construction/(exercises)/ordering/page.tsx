@@ -242,9 +242,9 @@ export default function SentenceOrderingPage() {
           <h1 className="text-xl md:text-2xl font-bold text-blue-900">
             Sentence Ordering
           </h1>
-          <p className="text-xs text-blue-600 mt-1">
+          {/* <p className="text-xs text-blue-600 mt-1">
             {dueExercises.length} exercises due for review
-          </p>
+          </p> */}
         </div>
 
         <button
@@ -257,7 +257,7 @@ export default function SentenceOrderingPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
+      <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-5 max-w-7xl mx-auto w-full">
         <OrderingProgress
           currentQuestion={currentQuestion}
           totalQuestions={dueExercises.length}

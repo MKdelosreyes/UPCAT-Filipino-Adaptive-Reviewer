@@ -179,27 +179,27 @@ export default function Flashcard({
             transform: "rotateY(180deg)",
           }}
         >
-          <div className="w-full h-full bg-yellow-100 rounded-3xl shadow-xl p-4 md:p-8 flex flex-col items-center justify-between border-4 border-yellow-300 overflow-y-auto">
+          <div className="w-full h-full bg-yellow-100 rounded-3xl shadow-xl p-4 md:p-8 flex flex-col items-center justify-between border-4 border-yellow-300 overflow-y-auto scrollbar-thin scrollbar-yellow">
             <div className="text-center space-y-3 md:space-y-4 max-w-xl flex-1 flex flex-col items-center justify-center w-full">
               {enhancedContent ? (
                 <div className="w-full flex flex-col items-center">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="w-5 h-5 text-yellow-600" />
-                      <span className="text-sm md:text-base text-yellow-600 font-semibold">
-                        Enhanced Definition
-                      </span>
-                    </div>
-                    <div className="bg-yellow-50 rounded-xl p-3 md:p-4 border-2 border-yellow-200 text-center space-y-3 md:space-y-4">
-                      {enhancedContent.easyDefinition && (
-                        <div>
-                          <h4 className="text-xs md:text-sm font-bold text-yellow-700 mb-1">
-                            Simple Definition:
-                          </h4>
-                          <p className="text-yellow-900 text-base md:text-base italic">
-                            {enhancedContent.easyDefinition}
-                          </p>
-                        </div>
-                      )}
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5 text-yellow-600" />
+                    <span className="text-sm md:text-base text-yellow-600 font-semibold">
+                      Enhanced Definition
+                    </span>
+                  </div>
+                  <div className="bg-yellow-50 rounded-xl p-3 md:p-4 border-2 border-yellow-200 text-center space-y-3 md:space-y-4">
+                    {enhancedContent.easyDefinition && (
+                      <div>
+                        <h4 className="text-xs md:text-sm font-bold text-yellow-700 mb-1">
+                          Simple Definition:
+                        </h4>
+                        <p className="text-yellow-900 text-base md:text-base italic">
+                          {enhancedContent.easyDefinition}
+                        </p>
+                      </div>
+                    )}
 
                     {enhancedContent.formalDefinition && (
                       <div>
@@ -226,7 +226,7 @@ export default function Flashcard({
                   <p className="text-yellow-600 text-sm md:text-base font-semibold">
                     Kahulugan / Meaning
                   </p>
-                  <h3 className="text-xl md:text-3xl lg:text-4xl font-bold text-yellow-900">
+                  <h3 className="text-xl md:text-3xl lg:text-3xl font-bold text-yellow-900">
                     {meaning}
                   </h3>
 

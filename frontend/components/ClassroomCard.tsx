@@ -18,6 +18,7 @@ interface ClassroomCardProps {
   color: string;
   url: string;
   moduleType: ModuleType;
+  isFocused?: boolean;
 }
 
 const ClassroomCard = ({
@@ -28,6 +29,7 @@ const ClassroomCard = ({
   color,
   url,
   moduleType,
+  isFocused = false,
 }: ClassroomCardProps) => {
   const { isModuleCompleted, getRecommendedModule, markModuleAccessed } =
     useLearningProgress();
@@ -41,37 +43,37 @@ const ClassroomCard = ({
   // Get colors based on module type
   const getModuleColors = () => {
     const colorMap = {
-      vocabulary: { 
-        ring: 'ring-yellow-500', 
-        shadow: 'shadow-yellow-500/70',
-        badge: 'from-yellow-700 to-yellow-600',
-        gradient: 'from-yellow-900/60 via-yellow-800/40',
-        text: 'text-yellow-200',
-        textHover: 'group-hover:text-yellow-100'
+      vocabulary: {
+        ring: "ring-yellow-500",
+        shadow: "shadow-yellow-500/70",
+        badge: "from-yellow-700 to-yellow-600",
+        gradient: "from-yellow-900/60 via-yellow-800/40",
+        text: "text-yellow-200",
+        textHover: "group-hover:text-yellow-100",
       },
-      grammar: { 
-        ring: 'ring-green-500', 
-        shadow: 'shadow-green-500/70',
-        badge: 'from-green-700 to-green-600',
-        gradient: 'from-green-900/60 via-green-800/40',
-        text: 'text-green-200',
-        textHover: 'group-hover:text-green-100'
+      grammar: {
+        ring: "ring-green-500",
+        shadow: "shadow-green-500/70",
+        badge: "from-green-700 to-green-600",
+        gradient: "from-green-900/60 via-green-800/40",
+        text: "text-green-200",
+        textHover: "group-hover:text-green-100",
       },
-      'sentence-construction': { 
-        ring: 'ring-blue-500', 
-        shadow: 'shadow-blue-500/70',
-        badge: 'from-blue-700 to-blue-600',
-        gradient: 'from-blue-900/60 via-blue-800/40',
-        text: 'text-blue-200',
-        textHover: 'group-hover:text-blue-100'
+      "sentence-construction": {
+        ring: "ring-blue-500",
+        shadow: "shadow-blue-500/70",
+        badge: "from-blue-700 to-blue-600",
+        gradient: "from-blue-900/60 via-blue-800/40",
+        text: "text-blue-200",
+        textHover: "group-hover:text-blue-100",
       },
-      'reading-comprehension': { 
-        ring: 'ring-purple-500', 
-        shadow: 'shadow-purple-500/70',
-        badge: 'from-purple-700 to-purple-600',
-        gradient: 'from-purple-900/60 via-purple-800/40',
-        text: 'text-purple-200',
-        textHover: 'group-hover:text-purple-100'
+      "reading-comprehension": {
+        ring: "ring-purple-500",
+        shadow: "shadow-purple-500/70",
+        badge: "from-purple-700 to-purple-600",
+        gradient: "from-purple-900/60 via-purple-800/40",
+        text: "text-purple-200",
+        textHover: "group-hover:text-purple-100",
       },
     };
     return colorMap[moduleType] || colorMap.vocabulary;
@@ -86,12 +88,12 @@ const ClassroomCard = ({
     }
     if (isRecommended) {
       if (mastery.level === "beginner") {
-        return "📌 Recommended: Start here";
+        return "Recommended: Start here";
       }
       return `Recommended: Continue (${mastery.level})`;
     }
     if (mastery.level !== "beginner") {
-      return `In Progress: ${mastery.icon} ${mastery.level}`;
+      return `In Progress: ${mastery.level}`;
     }
     return "Available";
   };
@@ -113,14 +115,16 @@ const ClassroomCard = ({
         color={color}
         moduleType={moduleType}
         className={`p-0 overflow-hidden relative justify-end w-full h-48 md:h-52 transition-all duration-300 ${
-          isRecommended && !completed
+          isFocused
             ? `ring-2 md:ring-4 ${moduleColors.ring} ring-offset-2 md:ring-offset-4 ring-offset-white shadow-xl md:shadow-2xl ${moduleColors.shadow} scale-[1.02] md:scale-105`
             : ""
         }`}
       >
-        {/* Recommended Badge (Top-Left) */}
+        {/* Recommended Badge */}
         {isRecommended && !completed && (
-          <div className={`absolute top-2 left-2 md:top-3 md:left-3 z-30 flex items-center gap-1 bg-gradient-to-r ${moduleColors.badge} text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold shadow-xl md:shadow-2xl animate-pulse border border-white md:border-2`}>
+          <div
+            className={`absolute top-2 left-2 md:top-3 md:left-3 z-30 flex items-center gap-1 bg-gradient-to-r ${moduleColors.badge} text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold shadow-xl md:shadow-2xl animate-pulse border border-white md:border-2`}
+          >
             <Sparkles size={14} className="animate-spin" />
             <span className="hidden xs:inline">RECOMMENDED</span>
             <span className="xs:hidden">NEXT</span>
@@ -138,7 +142,7 @@ const ClassroomCard = ({
         />
         <div
           className={`absolute inset-0 bg-gradient-to-t ${
-            isRecommended && !completed
+            isFocused
               ? `${moduleColors.gradient} to-transparent`
               : "from-black/30 via-black/10 to-transparent"
           }`}
@@ -146,7 +150,9 @@ const ClassroomCard = ({
 
         {/* Recommendation/Mastery Text (Bottom) */}
         <div className="relative z-10 p-2 md:p-0">
-          <p className={`text-xs md:text-sm ${moduleColors.text} mt-1 md:mt-2 ${moduleColors.textHover} transition-colors font-medium`}>
+          <p
+            className={`text-xs md:text-sm ${moduleColors.text} mt-1 md:mt-2 ${moduleColors.textHover} transition-colors font-medium`}
+          >
             {getRecommendationText()}
           </p>
         </div>

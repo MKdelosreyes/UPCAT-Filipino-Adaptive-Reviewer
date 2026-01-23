@@ -44,15 +44,12 @@ export default function VocabularyCard({
 
   // Calculate last attempted date
   const getLastAttempted = (): string | null => {
-    if (isLesson) {
-      return null; // Lessons don't track timestamps per attempt
-    }
+    if (isLesson) return null;
     const quiz = exerciseProgress as QuizProgress;
-    if (quiz.performanceHistory.length === 0) return null;
 
-    const lastTimestamp =
-      quiz.performanceHistory[quiz.performanceHistory.length - 1].timestamp;
-    const date = new Date(lastTimestamp);
+    if (!quiz.completedAt) return null;
+
+    const date = new Date(quiz.completedAt);
     const now = new Date();
     const diffDays = Math.floor(
       (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)

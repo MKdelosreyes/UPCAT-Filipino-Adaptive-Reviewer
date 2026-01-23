@@ -352,13 +352,13 @@ export default function GrammarFillBlanksPage() {
           <h1 className="text-xl md:text-2xl font-bold text-green-900">
             Complete the Sentence
           </h1>
-          <p className="text-xs text-green-600 mt-1">
+          {/* <p className="text-xs text-green-600 mt-1">
             Difficulty:{" "}
             <span className="font-semibold capitalize">
               {currentDifficulty}
             </span>{" "}
             | {fillBlanksQuestions.length} exercises due
-          </p>
+          </p> */}
         </div>
 
         <button
