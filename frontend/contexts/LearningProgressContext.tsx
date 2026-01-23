@@ -786,11 +786,60 @@ export function LearningProgressProvider({
   };
 
   const isModuleCompleted = (module: ModuleType): boolean => {
-    return getModuleProgress(module) >= 90; // 90%+ mastery = "completed"
+    return getModuleProgress(module) >= 90;
   };
 
   const getRecommendedModule = (): ModuleType => {
-    return progress.recommendedModule;
+    const modules: ModuleType[] = [
+      "vocabulary",
+      "grammar",
+      "sentence-construction",
+      "reading-comprehension",
+    ];
+
+    // 1. Check if user just started - recommend vocabulary first
+    const allProgress = modules.map((m) => getModuleProgress(m));
+    const hasAnyProgress = allProgress.some((p) => p > 0);
+
+    if (!hasAnyProgress) {
+      return "vocabulary"; // Default: start with vocabulary
+    }
+
+    // 2. Find module with lowest progress (needs most work)
+    let lowestProgress = 100;
+    let recommendedModule: ModuleType = "vocabulary";
+
+    modules.forEach((module) => {
+      const moduleProgress = getModuleProgress(module);
+
+      // Skip completed modules
+      if (moduleProgress >= 90) return;
+
+      if (moduleProgress < lowestProgress) {
+        lowestProgress = moduleProgress;
+        recommendedModule = module;
+      }
+    });
+
+    // 3. If all modules are completed, recommend most recently accessed
+    if (lowestProgress >= 90) {
+      let mostRecent: ModuleType = "vocabulary";
+      let mostRecentDate = "";
+
+      modules.forEach((module) => {
+        const moduleData = progress[module];
+        const lastAccessed = moduleData.lastAccessedAt || "";
+
+        if (lastAccessed > mostRecentDate) {
+          mostRecentDate = lastAccessed;
+          mostRecent = module;
+        }
+      });
+
+      return mostRecent;
+    }
+
+    return recommendedModule;
   };
 
   const markModuleAccessed = (module: ModuleType) => {
