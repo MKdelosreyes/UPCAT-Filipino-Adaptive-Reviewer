@@ -305,12 +305,12 @@ export default function AntonymExercisePage() {
             <h1 className="text-xl md:text-2xl font-bold text-red-900">
               Antonym Exercise
             </h1>
-            <p className="text-xs text-gray-500 mt-1">
+            {/* <p className="text-xs text-gray-500 mt-1">
               Difficulty:{" "}
               <span className="font-semibold capitalize">
                 {currentDifficulty}
               </span>
-            </p>
+            </p> */}
           </div>
 
           <div className="w-20"></div>

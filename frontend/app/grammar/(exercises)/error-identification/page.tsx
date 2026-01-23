@@ -518,13 +518,13 @@ export default function ErrorIdentificationPage() {
           <h1 className="text-xl md:text-2xl font-bold text-green-900">
             Error Identification
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          {/* <p className="text-xs text-gray-500 mt-1">
             Difficulty:{" "}
             <span className="font-semibold capitalize">
               {currentDifficulty}
             </span>{" "}
             | {errorQuestions.length} exercises due
-          </p>
+          </p> */}
         </div>
 
         <button

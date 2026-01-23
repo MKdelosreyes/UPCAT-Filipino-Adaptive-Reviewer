@@ -521,12 +521,12 @@ export default function ClosestMeaningQuizPage() {
           <h1 className="text-xl md:text-2xl font-bold text-yellow-700">
             What is its Closest Meaning
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          {/* <p className="text-xs text-gray-500 mt-1">
             Difficulty:{" "}
             <span className="font-semibold capitalize">
               {currentDifficulty}
             </span>
-          </p>
+          </p> */}
         </div>
 
         <button

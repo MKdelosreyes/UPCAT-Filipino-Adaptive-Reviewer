@@ -66,7 +66,9 @@ export default function ChooseSentencePage() {
   // Compute choices early (unconditionally) so hooks order doesn't change
   const choices = useMemo(() => {
     if (dueExercises.length === 0) return [];
-    const currentExercise = dueExercises[currentQuestion] as SentenceConstructionExerciseItem;
+    const currentExercise = dueExercises[
+      currentQuestion
+    ] as SentenceConstructionExerciseItem;
     const allChoices = [
       currentExercise.chooseCorrectSentence,
       ...currentExercise.distractors,
@@ -241,9 +243,9 @@ export default function ChooseSentencePage() {
           <h1 className="text-xl md:text-2xl font-bold text-blue-900">
             Choose the Best Sentence
           </h1>
-          <p className="text-xs text-blue-600 mt-1">
+          {/* <p className="text-xs text-blue-600 mt-1">
             {dueExercises.length} exercises due for review
-          </p>
+          </p> */}
         </div>
 
         <button

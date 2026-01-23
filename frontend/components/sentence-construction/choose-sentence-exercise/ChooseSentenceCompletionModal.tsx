@@ -212,10 +212,10 @@ export default function ChooseSentenceCompletionModal({
                   {/* Action Buttons */}
                   <div className="flex flex-col gap-3 mt-auto">
                     <Link
-                      href="/sentence-construction/create"
+                      href="/sentence-construction"
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
                     >
-                      Continue to Create a Sentence →
+                      Back to Sentence Construction →
                     </Link>
                     <button
                       onClick={handleRetake}
