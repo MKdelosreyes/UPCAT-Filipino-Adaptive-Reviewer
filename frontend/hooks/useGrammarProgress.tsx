@@ -44,7 +44,6 @@ export function useGrammarProgress() {
   const getGrammarMastery = (): GrammarMastery => {
     const grammar = progress.grammar as GrammarProgress;
 
-    // ✅ Only use quiz exercises for mastery calculation
     const allHistory = [
       ...grammar["error-identification"].performanceHistory,
       ...grammar["fill-blanks"].performanceHistory,
@@ -127,9 +126,7 @@ export function useGrammarProgress() {
     };
   };
 
-  // ✅ FIX: Only accepts QuizProgress now
   const getExerciseMastery = (exercise: QuizProgress): ExerciseMastery => {
-    // ✅ Safety check for performanceHistory
     if (
       !exercise.performanceHistory ||
       exercise.performanceHistory.length === 0

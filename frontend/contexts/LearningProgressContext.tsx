@@ -449,20 +449,27 @@ export function LearningProgressProvider({
               cardsReviewed: exercise.cards_reviewed || undefined,
             };
           } else if (exType === "quiz" || exType === "antonym") {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })
+            );
+
             vocabProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -486,20 +493,27 @@ export function LearningProgressProvider({
             exType === "error-identification" ||
             exType === "fill-blanks"
           ) {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })
+            );
+
             grammarProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -512,25 +526,28 @@ export function LearningProgressProvider({
         module.exercises.forEach((exercise) => {
           const exType = exercise.exercise_type;
 
-          if (
-            // exType === "complete-sentence" ||
-            exType === "sentence-ordering" ||
-            exType === "choose-sentence"
-          ) {
+          if (exType === "sentence-ordering" || exType === "choose-sentence") {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })
+            );
+
             sentenceProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -544,20 +561,27 @@ export function LearningProgressProvider({
           const exType = exercise.exercise_type;
 
           if (exType === "passage-questions" || exType === "summary-exercise") {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              })
+            );
+
             readingProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
