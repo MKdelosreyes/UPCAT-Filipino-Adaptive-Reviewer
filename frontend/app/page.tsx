@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -11,14 +12,96 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
   const [isClient, setIsClient] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleStartLearning = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    // Show loading state
+    setIsCheckingAuth(true);
+
+    // Small delay to ensure auth state is loaded
+    setTimeout(() => {
+      if (user) {
+        router.push("/dashboard");
+      } else {
+        router.push("/login");
+      }
+      setIsCheckingAuth(false);
+    }, 100);
+  };
+
+  const handleStartVocabulary = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    setIsCheckingAuth(true);
+
+    setTimeout(() => {
+      if (user) {
+        router.push("/vocabulary");
+      } else {
+        router.push("/login");
+      }
+      setIsCheckingAuth(false);
+    }, 100);
+  };
+
+  const handleStartGrammar = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    setIsCheckingAuth(true);
+
+    setTimeout(() => {
+      if (user) {
+        router.push("/grammar");
+      } else {
+        router.push("/login");
+      }
+      setIsCheckingAuth(false);
+    }, 100);
+  };
+
+  const handleStartSentenceConstruct = (
+    e: React.MouseEvent<HTMLAnchorElement>
+  ) => {
+    e.preventDefault();
+
+    setIsCheckingAuth(true);
+
+    setTimeout(() => {
+      if (user) {
+        router.push("/sentence-construction");
+      } else {
+        router.push("/login");
+      }
+      setIsCheckingAuth(false);
+    }, 100);
+  };
+
+  const handleStartReadingComp = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    setIsCheckingAuth(true);
+
+    setTimeout(() => {
+      if (user) {
+        router.push("/reading-comprehension");
+      } else {
+        router.push("/login");
+      }
+      setIsCheckingAuth(false);
+    }, 100);
+  };
 
   const features = [
     {
@@ -42,7 +125,8 @@ export default function Home() {
     {
       icon: BookOpen,
       title: "Comprehensive Modules",
-      description: "Master vocabulary, grammar, sentence construction, and reading comprehension",
+      description:
+        "Master vocabulary, grammar, sentence construction, and reading comprehension",
       color: "bg-yellow-50 text-yellow-600",
     },
   ];
@@ -56,14 +140,14 @@ export default function Home() {
 
   if (!isClient) {
     return (
-      <div className="h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Hero Section */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <motion.div
@@ -93,7 +177,7 @@ export default function Home() {
             className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
           >
             Master Filipino Language with{" "}
-            <span className="bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               Intelligent Adaptive Learning
             </span>
           </motion.h1>
@@ -106,7 +190,8 @@ export default function Home() {
             className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed"
           >
             Prepare for the University of the Philippines College Admission Test
-            with AI-powered personalized training in vocabulary, grammar, sentence construction, and reading comprehension.
+            with AI-powered personalized training in vocabulary, grammar,
+            sentence construction, and reading comprehension.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -116,13 +201,25 @@ export default function Home() {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
           >
-            <Link
-              href="/dashboard"
-              className="group flex items-center gap-2 bg-linear-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            <a
+              href="#"
+              onClick={handleStartLearning}
+              className={`group flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ${
+                isCheckingAuth || authLoading ? "opacity-70 cursor-wait" : ""
+              }`}
             >
-              Start Learning Now
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+              {isCheckingAuth || authLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Loading...</span>
+                </>
+              ) : (
+                <>
+                  <span>Start Learning Now</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </a>
             <Link
               href="#features"
               className="flex items-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-full font-semibold text-lg shadow-md hover:shadow-lg border-2 border-gray-200 hover:border-gray-300 transition-all duration-200"
@@ -143,7 +240,7 @@ export default function Home() {
                 key={index}
                 className="bg-white rounded-2xl p-6 shadow-md border border-gray-100"
               >
-                <div className="text-3xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                   {stat.value}
                 </div>
                 <div className="text-sm text-gray-600 font-medium">
@@ -227,7 +324,7 @@ export default function Home() {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="bg-linear-to-br from-yellow-50 to-yellow-100 rounded-2xl p-8 shadow-lg border-2 border-yellow-200 hover:shadow-xl transition-all duration-300 flex flex-col"
+            className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-8 shadow-lg border-2 border-yellow-200 hover:shadow-xl transition-all duration-300 flex flex-col"
           >
             <div className="bg-yellow-200 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
               <BookOpen className="w-8 h-8 text-yellow-700" />
@@ -252,12 +349,27 @@ export default function Home() {
                 <span>Antonym identification</span>
               </li>
             </ul>
-            <Link
+            {/* <Link
               href="/vocabulary"
               className="inline-flex items-center gap-2 text-yellow-700 font-semibold hover:text-yellow-800 transition-colors mt-auto"
             >
               Explore Vocabulary <ArrowRight className="w-4 h-4" />
-            </Link>
+            </Link> */}
+            <a
+              href="#"
+              onClick={handleStartVocabulary}
+              className={`inline-flex items-center gap-2 text-yellow-700 font-semibold hover:text-yellow-800 transition-colors mt-auto ${
+                isCheckingAuth || authLoading ? "opacity-70 cursor-wait" : ""
+              }`}
+            >
+              {isCheckingAuth || authLoading ? (
+                <>Loading...</>
+              ) : (
+                <>
+                  Explore Vocabulary <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </a>
           </motion.div>
 
           {/* Grammar Module */}
@@ -266,7 +378,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
-            className="bg-linear-to-br from-green-50 to-green-100 rounded-2xl p-8 shadow-lg border-2 border-green-200 hover:shadow-xl transition-all duration-300 flex flex-col"
+            className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 shadow-lg border-2 border-green-200 hover:shadow-xl transition-all duration-300 flex flex-col"
           >
             <div className="bg-green-200 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
               <Target className="w-8 h-8 text-green-700" />
@@ -291,12 +403,21 @@ export default function Home() {
                 <span>Fill-in-the-blank practice</span>
               </li>
             </ul>
-            <Link
-              href="/grammar"
-              className="inline-flex items-center gap-2 text-green-700 font-semibold hover:text-green-800 transition-colors mt-auto"
+            <a
+              href="#"
+              onClick={handleStartGrammar}
+              className={`inline-flex items-center gap-2 text-green-700 font-semibold hover:text-green-800 transition-colors mt-auto ${
+                isCheckingAuth || authLoading ? "opacity-70 cursor-wait" : ""
+              }`}
             >
-              Explore Grammar <ArrowRight className="w-4 h-4" />
-            </Link>
+              {isCheckingAuth || authLoading ? (
+                <>Loading...</>
+              ) : (
+                <>
+                  Explore Grammar <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </a>
           </motion.div>
 
           {/* Sentence Construction Module */}
@@ -305,7 +426,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
-            className="bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg border-2 border-blue-200 hover:shadow-xl transition-all duration-300 flex flex-col"
+            className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg border-2 border-blue-200 hover:shadow-xl transition-all duration-300 flex flex-col"
           >
             <div className="bg-blue-200 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
               <Brain className="w-8 h-8 text-blue-700" />
@@ -330,12 +451,21 @@ export default function Home() {
                 <span>Real-time feedback</span>
               </li>
             </ul>
-            <Link
-              href="/sentence-construction"
-              className="inline-flex items-center gap-2 text-blue-700 font-semibold hover:text-blue-800 transition-colors mt-auto"
+            <a
+              href="#"
+              onClick={handleStartSentenceConstruct}
+              className={`inline-flex items-center gap-2 text-blue-700 font-semibold hover:text-blue-800 transition-colors mt-auto ${
+                isCheckingAuth || authLoading ? "opacity-70 cursor-wait" : ""
+              }`}
             >
-              Explore Construction <ArrowRight className="w-4 h-4" />
-            </Link>
+              {isCheckingAuth || authLoading ? (
+                <>Loading...</>
+              ) : (
+                <>
+                  Explore Construction <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </a>
           </motion.div>
 
           {/* Reading Comprehension Module */}
@@ -344,7 +474,7 @@ export default function Home() {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
-            className="bg-linear-to-br from-purple-50 to-purple-100 rounded-2xl p-8 shadow-lg border-2 border-purple-200 hover:shadow-xl transition-all duration-300 flex flex-col"
+            className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8 shadow-lg border-2 border-purple-200 hover:shadow-xl transition-all duration-300 flex flex-col"
           >
             <div className="bg-purple-200 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
               <Sparkles className="w-8 h-8 text-purple-700" />
@@ -364,17 +494,22 @@ export default function Home() {
                 <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
                 <span>Multiple-choice comprehension</span>
               </li>
-              {/* <li className="flex items-start gap-2 text-sm text-gray-700">
-                <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                <span>Progressive difficulty levels</span>
-              </li> */}
             </ul>
-            <Link
-              href="/reading-comprehension"
-              className="inline-flex items-center gap-2 text-purple-700 font-semibold hover:text-purple-800 transition-colors mt-auto"
+            <a
+              href="#"
+              onClick={handleStartReadingComp}
+              className={`inline-flex items-center gap-2 text-purple-700 font-semibold hover:text-purple-800 transition-colors mt-auto ${
+                isCheckingAuth || authLoading ? "opacity-70 cursor-wait" : ""
+              }`}
             >
-              Explore Reading <ArrowRight className="w-4 h-4" />
-            </Link>
+              {isCheckingAuth || authLoading ? (
+                <>Loading...</>
+              ) : (
+                <>
+                  Explore Reading <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </a>
           </motion.div>
         </div>
       </div>
@@ -386,7 +521,7 @@ export default function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-12 text-center shadow-2xl max-w-5xl mx-auto"
+          className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-12 text-center shadow-2xl max-w-5xl mx-auto"
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Ready to Master Filipino for UPCAT?
@@ -395,13 +530,25 @@ export default function Home() {
             Start your personalized learning journey today with AI-powered
             adaptive training
           </p>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 bg-white text-purple-600 px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+          <a
+            href="#"
+            onClick={handleStartLearning}
+            className={`inline-flex items-center gap-2 bg-white text-purple-600 px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ${
+              isCheckingAuth || authLoading ? "opacity-70 cursor-wait" : ""
+            }`}
           >
-            Begin Your Journey
-            <ArrowRight className="w-5 h-5" />
-          </Link>
+            {isCheckingAuth || authLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                <span>Loading...</span>
+              </>
+            ) : (
+              <>
+                <span>Begin Your Journey</span>
+                <ArrowRight className="w-5 h-5" />
+              </>
+            )}
+          </a>
         </motion.div>
       </div>
 
