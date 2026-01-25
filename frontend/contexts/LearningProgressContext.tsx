@@ -137,16 +137,6 @@ interface LearningProgressContextType {
     data: Partial<QuizProgress>
   ) => Promise<void>;
 
-  submitQuizAttempt: (
-    module: ModuleType,
-    exercise: Exclude<
-      ExerciseType,
-      VocabularyLessonExercise | GrammarLessonExercise
-    >,
-    metrics: PerformanceMetrics,
-    completedAt?: string
-  ) => Promise<void>;
-
   resetProgress: (module?: ModuleType) => Promise<void>;
   syncProgress: () => Promise<void>;
   getModuleProgress: (module: ModuleType) => number;
@@ -954,41 +944,6 @@ export function LearningProgressProvider({
     return [];
   };
 
-  const submitQuizAttempt = async (
-    module: ModuleType,
-    exercise: Exclude<
-      ExerciseType,
-      VocabularyLessonExercise | GrammarLessonExercise
-    >,
-    metrics: PerformanceMetrics,
-    completedAt?: string
-  ) => {
-    if (!user || !tokens) {
-      // fallback offline/local behavior (no attempt math; just append local history)
-      await addPerformanceMetrics(module, exercise, metrics);
-      return;
-    }
-
-    try {
-      await ProgressAPI.submitQuizAttempt(
-        module,
-        exercise,
-        {
-          difficulty: metrics.difficulty,
-          score: metrics.score,
-          missedLowFreq: metrics.missedLowFreq,
-          similarChoiceErrors: metrics.similarChoiceErrors,
-          errorTags: metrics ? [] : [],
-        },
-        completedAt
-      );
-
-      await syncProgress();
-    } catch (err) {
-      console.error("Failed to submit quiz attempt:", err);
-    }
-  };
-
   return (
     <LearningProgressContext.Provider
       value={{
@@ -1003,7 +958,6 @@ export function LearningProgressProvider({
         getModuleProgress,
         getOverallProgress,
         getNextRecommended,
-        submitQuizAttempt,
         canAccessExercise,
         isModuleCompleted,
         getRecommendedModule,
