@@ -13,6 +13,7 @@ import { useSRSWithExercises } from "@/hooks/useSRS";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import type { SentenceConstructionExerciseItem } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { SRS_GRADES } from "@/utils/srs";
 
 interface OrderingAnswer {
@@ -33,8 +34,7 @@ function shuffleArray<T>(array: T[]): T[] {
 
 export default function SentenceOrderingPage() {
   const { updateProgress } = useSentenceConstructionProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { getPerformanceHistory } = useLearningProgress();
 
   const {
     dueExercises,
@@ -128,15 +128,19 @@ export default function SentenceOrderingPage() {
       },
     ]);
 
-    await reportLexicalItemPerformance({
-      module: "sentence-construction",
-      exerciseType: "flashcards", // Mapped to ordering
-      lemmaId: currentExercise.lemma_id,
-      correctAnswer: currentExercise.orderingCorrectSentence,
-      userAnswer: userSentence,
-      difficultyShown: "medium",
-      score: correct ? 100 : 0,
-    });
+    try {
+      await reportLexicalItemPerformance({
+        module: "sentence-construction",
+        exerciseType: "sentence-ordering",
+        lemmaId: currentExercise.lemma_id,
+        correctAnswer: currentExercise.orderingCorrectSentence,
+        userAnswer: userSentence,
+        difficultyShown: "medium",
+        score: correct ? 100 : 0,
+      });
+    } catch (e) {
+      console.error("Failed to record lexical performance", e);
+    }
 
     const srsGrade = correct ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentExercise.lemma_id, srsGrade);
@@ -144,7 +148,7 @@ export default function SentenceOrderingPage() {
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setShowResult(false);
@@ -174,8 +178,7 @@ export default function SentenceOrderingPage() {
     const currentDifficulty =
       history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
-    // Create performance metrics
-    const metrics = {
+    const thisSession = {
       difficulty: currentDifficulty,
       score,
       missedLowFreq,
@@ -183,18 +186,21 @@ export default function SentenceOrderingPage() {
       timestamp: new Date().toISOString(),
     };
 
-    console.log("📊 Sentence Ordering Session Completed - Metrics:", metrics);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    // Add to performance history
-    await addPerformanceMetrics(
-      "sentence-construction",
-      "sentence-ordering",
-      metrics
-    );
-
-    // Evaluate and get next difficulty + tags
-    const allHistory = [...history, metrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    await updateExerciseProgress("sentence-construction", "sentence-ordering", {
+      status: "in-progress",
+      score,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
 
     console.log(
       "🎯 Next Sentence Ordering Difficulty:",
@@ -208,7 +214,6 @@ export default function SentenceOrderingPage() {
       status: "in-progress",
       score,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });

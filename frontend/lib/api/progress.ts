@@ -240,7 +240,7 @@ export async function clearReviewDeck(): Promise<{
 }
 
 export type ModuleSlug = "vocabulary" | "grammar" | "sentence-construction" | "reading-comprehension";
-export type ExerciseType = "flashcards" | "quiz" | "antonym" | "lesson-cards" | "error-identification" | "fill-blanks" | "passage-questions" | "summary-exercise";
+export type ExerciseType = "flashcards" | "quiz" | "antonym" | "lesson-cards" | "error-identification" | "fill-blanks" | "sentence-ordering" | "choose-sentence" | "passage-questions" | "summary-exercise";
 
 // This matches LexicalPerformanceEventSerializer on the backend
 export interface LexicalPerformanceEvent {
@@ -271,4 +271,33 @@ export async function recordLexicalPerformance(
     console.error("❌ Error status:", error.response?.status);
     throw error;
   }
+}
+
+export async function submitQuizAttempt(
+  module: string,
+  exercise: string,
+  metrics: {
+    difficulty: "easy" | "medium" | "hard";
+    score: number;
+    missedLowFreq?: number;
+    similarChoiceErrors?: number;
+    errorTags?: string[];
+  },
+  completedAt?: string
+): Promise<ExerciseProgress> {
+  const response = await apiClient.post(`/progress/${module}/${exercise}/update/`, {
+    status: "in-progress",
+    score: metrics.score,
+    lastDifficulty: metrics.difficulty,
+    completedAt: completedAt ?? new Date().toISOString(),
+    performanceMetrics: {
+      difficulty: metrics.difficulty,
+      score: metrics.score,
+      missedLowFreq: metrics.missedLowFreq ?? 0,
+      similarChoiceErrors: metrics.similarChoiceErrors ?? 0,
+      errorTags: metrics.errorTags ?? [],
+    },
+  });
+
+  return response.data;
 }

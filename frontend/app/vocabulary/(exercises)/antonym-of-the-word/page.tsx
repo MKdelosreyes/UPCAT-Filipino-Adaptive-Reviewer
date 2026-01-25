@@ -10,6 +10,10 @@ import AntonymCompletionModal from "@/components/vocabulary/antonym-exercise/Ant
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type { QuizProgress } from "@/contexts/LearningProgressContext";
+import {
+  underlineWordInSentence,
+  sentenceContainsWord,
+} from "@/utils/textFormatting";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getVocabularyExercisesAdaptive,
@@ -17,6 +21,7 @@ import {
   type VocabularyExerciseItem,
   type LexiconItem,
 } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import {
   isLowFrequencyWord,
   areSimilarWords,
@@ -41,19 +46,6 @@ interface AntonymAnswer {
   selectedAnswer: string;
   correctAnswer: string;
   word: string;
-}
-
-// Helper function to underline a word in a sentence
-function underlineWordInSentence(
-  sentence: string,
-  wordToUnderline: string
-): string {
-  const escapedWord = wordToUnderline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(
-    `(?<=\\s|^)(${escapedWord})(?=\\s|$|[.,!?;:])`,
-    "gi"
-  );
-  return sentence.replace(regex, "<u>$1</u>");
 }
 
 // Generate antonym questions from AI service data
@@ -100,10 +92,7 @@ async function generateAntonymQuestionsFromService(
 
       let underlinedWord = lexiconEntry.lemma;
       for (const word of wordsToConsider) {
-        const lowerSentence = sentence.toLowerCase();
-        const lowerWord = word.toLowerCase();
-        const wordRegex = new RegExp(`\\b${lowerWord}\\b`, "i");
-        if (wordRegex.test(lowerSentence)) {
+        if (sentenceContainsWord(sentence, word)) {
           underlinedWord = word;
           break;
         }
@@ -177,8 +166,7 @@ async function generateAntonymQuestionsFromService(
 
 export default function AntonymExercisePage() {
   const { updateProgress, getExerciseProgress } = useVocabularyProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { getPerformanceHistory } = useLearningProgress();
   const { user } = useAuth();
 
   const { grade: gradeSRS } = useSRSWithExercises({
@@ -407,20 +395,11 @@ export default function AntonymExercisePage() {
 
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentAntonym.lemma_id, srsGrade);
-
-    // Update metrics with CURRENT difficulty
-    addPerformanceMetrics("vocabulary", "antonym", {
-      score,
-      difficulty: currentDifficulty,
-      missedLowFreq: !isCorrect && lowFreq ? 1 : 0,
-      similarChoiceErrors: !isCorrect ? 1 : 0,
-      timestamp: new Date().toISOString(),
-    });
   };
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -428,7 +407,7 @@ export default function AntonymExercisePage() {
     }
   };
 
-  const completeExercise = () => {
+  const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
     const sessionScore = Math.round((correctCount / questions.length) * 100);
 
@@ -444,7 +423,8 @@ export default function AntonymExercisePage() {
       }
     });
 
-    const finalMetrics = {
+    const history = getPerformanceHistory("vocabulary", "antonym");
+    const thisSession = {
       difficulty: currentDifficulty,
       score: sessionScore,
       missedLowFreq,
@@ -452,13 +432,7 @@ export default function AntonymExercisePage() {
       timestamp: new Date().toISOString(),
     };
 
-    console.log("📊 Antonym Session Completed - Metrics:", finalMetrics);
-
-    addPerformanceMetrics("vocabulary", "antonym", finalMetrics);
-
-    const history = getPerformanceHistory("vocabulary", "antonym");
-    const allHistory = [...history, finalMetrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
     console.log(
       "🎯 Next Antonym Difficulty:",
@@ -467,11 +441,24 @@ export default function AntonymExercisePage() {
       evaluation.tags
     );
 
+    await updateExerciseProgress("vocabulary", "antonym", {
+      status: "in-progress",
+      score: sessionScore,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score: sessionScore,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
+
     updateProgress("antonym", {
       status: "in-progress",
       score: sessionScore,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });

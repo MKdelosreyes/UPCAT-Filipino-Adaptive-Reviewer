@@ -17,6 +17,7 @@ import {
   getGrammarExercisesAdaptive,
   GrammarExerciseItem,
 } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import type { QuizProgress } from "@/contexts/LearningProgressContext";
@@ -280,8 +281,7 @@ function convertToErrorFormat(
 
 export default function ErrorIdentificationPage() {
   const { updateProgress, getExerciseProgress } = useGrammarProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { getPerformanceHistory } = useLearningProgress();
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
@@ -434,19 +434,11 @@ export default function ErrorIdentificationPage() {
 
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentError.lemma_id, srsGrade);
-
-    addPerformanceMetrics("grammar", "error-identification", {
-      score,
-      difficulty: currentDifficulty,
-      missedLowFreq: 0,
-      similarChoiceErrors: !isCorrect ? 1 : 0,
-      timestamp: new Date().toISOString(),
-    });
   };
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -454,7 +446,7 @@ export default function ErrorIdentificationPage() {
     }
   };
 
-  const completeExercise = () => {
+  const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
     const sessionScore = Math.round(
       (correctCount / errorQuestions.length) * 100
@@ -464,7 +456,8 @@ export default function ErrorIdentificationPage() {
       (a) => !a.isCorrect
     ).length;
 
-    const finalMetrics = {
+    const history = getPerformanceHistory("grammar", "error-identification");
+    const thisSession = {
       difficulty: currentDifficulty,
       score: sessionScore,
       missedLowFreq: 0,
@@ -472,13 +465,7 @@ export default function ErrorIdentificationPage() {
       timestamp: new Date().toISOString(),
     };
 
-    console.log("📊 Error ID Session Completed - Metrics:", finalMetrics);
-
-    addPerformanceMetrics("grammar", "error-identification", finalMetrics);
-
-    const history = getPerformanceHistory("grammar", "error-identification");
-    const allHistory = [...history, finalMetrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
     console.log(
       "🎯 Next Error ID Difficulty:",
@@ -486,6 +473,20 @@ export default function ErrorIdentificationPage() {
       "| Error Tags:",
       evaluation.tags
     );
+
+    await updateExerciseProgress("grammar", "error-identification", {
+      status: "in-progress",
+      score: sessionScore,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score: sessionScore,
+        missedLowFreq: 0,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
 
     updateProgress("error-identification", {
       status: "in-progress",

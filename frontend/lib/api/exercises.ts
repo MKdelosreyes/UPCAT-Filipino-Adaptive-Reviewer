@@ -49,7 +49,6 @@ export interface SentenceConstructionExerciseItem {
   sampleCompletions: string;
 }
 
-// ✅ ADD EXERCISE TYPE EXPORT
 export type ExerciseType = 
   | "error_identification" 
   | "fill-blanks" 

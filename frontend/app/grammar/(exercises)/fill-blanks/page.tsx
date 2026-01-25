@@ -19,6 +19,7 @@ import {
   GrammarExerciseItem,
   LexiconItem,
 } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 
@@ -115,8 +116,7 @@ function convertToFillBlanksFormat(
 
 export default function GrammarFillBlanksPage() {
   const { updateProgress } = useGrammarProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { getPerformanceHistory } = useLearningProgress();
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
@@ -281,7 +281,7 @@ export default function GrammarFillBlanksPage() {
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
       return;
     } else {
       setCurrentQuestion((prev) => prev + 1);
@@ -290,7 +290,7 @@ export default function GrammarFillBlanksPage() {
     }
   };
 
-  const completeExercise = () => {
+  const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
     const score = Math.round((correctCount / fillBlanksQuestions.length) * 100);
 
@@ -306,25 +306,35 @@ export default function GrammarFillBlanksPage() {
       }
     });
 
-    const metrics = {
+    const history = getPerformanceHistory("grammar", "fill-blanks");
+    const thisSession = {
       difficulty: currentDifficulty,
-      score,
+      score: score,
       missedLowFreq,
       similarChoiceErrors,
       timestamp: new Date().toISOString(),
     };
 
-    addPerformanceMetrics("grammar", "fill-blanks", metrics);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    const history = getPerformanceHistory("grammar", "fill-blanks");
-    const allHistory = [...history, metrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    await updateExerciseProgress("grammar", "fill-blanks", {
+      status: "in-progress",
+      score: score,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score: score,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
 
     updateProgress("fill-blanks", {
       status: "in-progress",
       score,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });

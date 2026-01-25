@@ -13,6 +13,7 @@ import { useSRSWithExercises } from "@/hooks/useSRS";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import type { SentenceConstructionExerciseItem } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { SRS_GRADES } from "@/utils/srs";
 
 interface ChooseSentenceAnswer {
@@ -34,8 +35,7 @@ function shuffleArray<T>(array: T[]): T[] {
 
 export default function ChooseSentencePage() {
   const { updateProgress } = useSentenceConstructionProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { getPerformanceHistory } = useLearningProgress();
 
   const {
     dueExercises,
@@ -144,7 +144,7 @@ export default function ChooseSentencePage() {
 
     await reportLexicalItemPerformance({
       module: "sentence-construction",
-      exerciseType: "quiz",
+      exerciseType: "choose-sentence",
       lemmaId: currentExercise.lemma_id,
       correctAnswer,
       userAnswer: answer,
@@ -158,7 +158,7 @@ export default function ChooseSentencePage() {
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -186,7 +186,7 @@ export default function ChooseSentencePage() {
     const currentDifficulty =
       history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
-    const metrics = {
+    const thisSession = {
       difficulty: currentDifficulty,
       score,
       missedLowFreq,
@@ -194,16 +194,7 @@ export default function ChooseSentencePage() {
       timestamp: new Date().toISOString(),
     };
 
-    console.log("📊 Choose Sentence Session Completed - Metrics:", metrics);
-
-    await addPerformanceMetrics(
-      "sentence-construction",
-      "choose-sentence",
-      metrics
-    );
-
-    const allHistory = [...history, metrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
     console.log(
       "🎯 Next Choose Sentence Difficulty:",
@@ -212,11 +203,24 @@ export default function ChooseSentencePage() {
       evaluation.tags
     );
 
+    await updateExerciseProgress("sentence-construction", "choose-sentence", {
+      status: "in-progress",
+      score,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
+
     await updateProgress("choose-sentence", {
       status: "in-progress",
       score,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });

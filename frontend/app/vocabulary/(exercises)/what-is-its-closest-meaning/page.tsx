@@ -10,6 +10,10 @@ import QuizCompletionModal from "@/components/vocabulary/closest-meaning-exercis
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type { QuizProgress as QuizProgressType } from "@/contexts/LearningProgressContext";
+import {
+  underlineWordInSentence,
+  sentenceContainsWord,
+} from "@/utils/textFormatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSRSWithExercises } from "@/hooks/useSRS";
@@ -20,6 +24,7 @@ import {
   type VocabularyExerciseItem,
   type LexiconItem,
 } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import {
   isLowFrequencyWord,
   areSimilarWords,
@@ -41,19 +46,6 @@ interface QuizAnswer {
   selectedAnswer: string;
   correctAnswer: string;
   word: string;
-}
-
-// Helper function to underline a word in a sentence
-function underlineWordInSentence(
-  sentence: string,
-  wordToUnderline: string
-): string {
-  const escapedWord = wordToUnderline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(
-    `(?<=\\s|^)(${escapedWord})(?=\\s|$|[.,!?;:])`,
-    "gi"
-  );
-  return sentence.replace(regex, "<u>$1</u>");
 }
 
 // Generate quiz questions from AI service data
@@ -90,10 +82,7 @@ async function generateQuizQuestionsFromService(
 
       let underlinedWord = lexiconEntry.lemma;
       for (const word of wordsToConsider) {
-        const lowerSentence = sentence.toLowerCase();
-        const lowerWord = word.toLowerCase();
-        const wordRegex = new RegExp(`\\b${lowerWord}\\b`, "i");
-        if (wordRegex.test(lowerSentence)) {
+        if (sentenceContainsWord(sentence, word)) {
           underlinedWord = word;
           break;
         }
@@ -171,8 +160,7 @@ async function generateQuizQuestionsFromService(
 
 export default function ClosestMeaningQuizPage() {
   const { updateProgress, getExerciseProgress } = useVocabularyProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { getPerformanceHistory } = useLearningProgress();
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
@@ -405,19 +393,18 @@ export default function ClosestMeaningQuizPage() {
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentQuiz.lemma_id, srsGrade);
 
-    // Update metrics with CURRENT difficulty
-    addPerformanceMetrics("vocabulary", "quiz", {
-      score,
-      difficulty: currentDifficulty,
-      missedLowFreq: !isCorrect && lowFreq ? 1 : 0,
-      similarChoiceErrors: similarChoiceError ? 1 : 0,
-      timestamp: new Date().toISOString(),
-    });
+    // addPerformanceMetrics("vocabulary", "quiz", {
+    //   score,
+    //   difficulty: currentDifficulty,
+    //   missedLowFreq: !isCorrect && lowFreq ? 1 : 0,
+    //   similarChoiceErrors: similarChoiceError ? 1 : 0,
+    //   timestamp: new Date().toISOString(),
+    // });
   };
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeQuiz();
+      void completeQuiz();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -425,7 +412,7 @@ export default function ClosestMeaningQuizPage() {
     }
   };
 
-  const completeQuiz = () => {
+  const completeQuiz = async () => {
     const correctCount = answers.filter((a) => a === true).length;
     const sessionScore = Math.round((correctCount / questions.length) * 100);
 
@@ -441,7 +428,8 @@ export default function ClosestMeaningQuizPage() {
       }
     });
 
-    const finalMetrics = {
+    const history = getPerformanceHistory("vocabulary", "quiz");
+    const thisSession = {
       difficulty: currentDifficulty,
       score: sessionScore,
       missedLowFreq,
@@ -449,13 +437,7 @@ export default function ClosestMeaningQuizPage() {
       timestamp: new Date().toISOString(),
     };
 
-    console.log("📊 Quiz Session Completed - Metrics:", finalMetrics);
-
-    addPerformanceMetrics("vocabulary", "quiz", finalMetrics);
-
-    const history = getPerformanceHistory("vocabulary", "quiz");
-    const allHistory = [...history, finalMetrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
     console.log(
       "🎯 Next Quiz Difficulty:",
@@ -464,11 +446,24 @@ export default function ClosestMeaningQuizPage() {
       evaluation.tags
     );
 
+    await updateExerciseProgress("vocabulary", "quiz", {
+      status: "in-progress",
+      score: sessionScore,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score: sessionScore,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
+
     updateProgress("quiz", {
       status: "in-progress",
       score: sessionScore,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });
