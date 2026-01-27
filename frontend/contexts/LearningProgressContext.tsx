@@ -344,85 +344,65 @@ export function LearningProgressProvider({
     >,
     data: Partial<QuizProgress>
   ) => {
-    setProgress((prev) => {
-      if (
-        module === "vocabulary" &&
-        (exercise === "quiz" || exercise === "antonym")
-      ) {
-        const moduleProgress = { ...prev[module] } as VocabularyProgress;
-
-        moduleProgress[exercise] = {
-          ...moduleProgress[exercise],
-          ...data,
-        };
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      } else if (
-        module === "grammar" &&
-        (exercise === "error-identification" || exercise === "fill-blanks")
-      ) {
-        const moduleProgress = { ...prev[module] } as GrammarProgress;
-
-        moduleProgress[exercise] = {
-          ...moduleProgress[exercise],
-          ...data,
-        };
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      } else if (
-        module ===
-          "sentence-construction" /*exercise === "complete-sentence" ||*/ &&
-        (exercise === "sentence-ordering" || exercise === "choose-sentence")
-      ) {
-        const moduleProgress = { ...prev[module] } as SentenceProgress;
-
-        moduleProgress[exercise] = {
-          ...moduleProgress[exercise],
-          ...data,
-        };
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      } else if (
-        module === "reading-comprehension" &&
-        (exercise === "passage-questions" || exercise === "summary-exercise")
-      ) {
-        const moduleProgress = { ...prev[module] } as ReadingProgress;
-
-        moduleProgress[exercise] = {
-          ...moduleProgress[exercise],
-          ...data,
-        };
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      }
-
-      return prev;
-    });
-
     if (user && tokens) {
       try {
         await ProgressAPI.updateExerciseProgress(module, exercise, {
           status: data.status,
           score: data.score ?? undefined,
-          attempts: data.attempts,
+          // attempts: data.attempts,
           completedAt: data.completedAt ?? undefined,
           lastDifficulty: data.lastDifficulty,
         });
+
+        await syncProgress();
       } catch (err) {
         console.error("Failed to sync quiz progress:", err);
       }
+    } else {
+      setProgress((prev) => {
+        if (
+          module === "vocabulary" &&
+          (exercise === "quiz" || exercise === "antonym")
+        ) {
+          const moduleProgress = { ...prev[module] } as VocabularyProgress;
+          moduleProgress[exercise] = {
+            ...moduleProgress[exercise],
+            ...data,
+          };
+          return { ...prev, [module]: moduleProgress };
+        } else if (
+          module === "grammar" &&
+          (exercise === "error-identification" || exercise === "fill-blanks")
+        ) {
+          const moduleProgress = { ...prev[module] } as GrammarProgress;
+          moduleProgress[exercise] = {
+            ...moduleProgress[exercise],
+            ...data,
+          };
+          return { ...prev, [module]: moduleProgress };
+        } else if (
+          module === "sentence-construction" &&
+          (exercise === "sentence-ordering" || exercise === "choose-sentence")
+        ) {
+          const moduleProgress = { ...prev[module] } as SentenceProgress;
+          moduleProgress[exercise] = {
+            ...moduleProgress[exercise],
+            ...data,
+          };
+          return { ...prev, [module]: moduleProgress };
+        } else if (
+          module === "reading-comprehension" &&
+          (exercise === "passage-questions" || exercise === "summary-exercise")
+        ) {
+          const moduleProgress = { ...prev[module] } as ReadingProgress;
+          moduleProgress[exercise] = {
+            ...moduleProgress[exercise],
+            ...data,
+          };
+          return { ...prev, [module]: moduleProgress };
+        }
+        return prev;
+      });
     }
   };
 
@@ -882,91 +862,73 @@ export function LearningProgressProvider({
         (exercise === "quiz" || exercise === "antonym")
       ) {
         const moduleProgress = { ...prev[module] } as VocabularyProgress;
-        const quizProgress = moduleProgress[exercise];
-
+        const quizProgress = { ...moduleProgress[exercise] };
         quizProgress.performanceHistory = [
           ...quizProgress.performanceHistory,
           metrics,
         ];
         quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
+        moduleProgress[exercise] = quizProgress;
+        return { ...prev, [module]: moduleProgress };
       } else if (
         module === "grammar" &&
         (exercise === "error-identification" || exercise === "fill-blanks")
       ) {
         const moduleProgress = { ...prev[module] } as GrammarProgress;
-        const quizProgress = moduleProgress[exercise];
-
+        const quizProgress = { ...moduleProgress[exercise] };
         quizProgress.performanceHistory = [
           ...quizProgress.performanceHistory,
           metrics,
         ];
         quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
+        moduleProgress[exercise] = quizProgress;
+        return { ...prev, [module]: moduleProgress };
       } else if (
-        module ===
-          "sentence-construction" /*exercise === "complete-sentence" ||*/ &&
+        module === "sentence-construction" &&
         (exercise === "sentence-ordering" || exercise === "choose-sentence")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
-        const quizProgress = moduleProgress[exercise];
-
+        const quizProgress = { ...moduleProgress[exercise] };
         quizProgress.performanceHistory = [
           ...quizProgress.performanceHistory,
           metrics,
         ];
         quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
+        moduleProgress[exercise] = quizProgress;
+        return { ...prev, [module]: moduleProgress };
       } else if (
         module === "reading-comprehension" &&
         (exercise === "passage-questions" || exercise === "summary-exercise")
       ) {
         const moduleProgress = { ...prev[module] } as ReadingProgress;
-        const quizProgress = moduleProgress[exercise];
-
+        const quizProgress = { ...moduleProgress[exercise] };
         quizProgress.performanceHistory = [
           ...quizProgress.performanceHistory,
           metrics,
         ];
         quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
+        moduleProgress[exercise] = quizProgress;
+        return { ...prev, [module]: moduleProgress };
       }
-
       return prev;
     });
 
-    if (user && tokens) {
-      try {
-        await ProgressAPI.updateExerciseProgress(module, exercise, {
-          lastDifficulty: metrics.difficulty,
-          performanceMetrics: {
-            difficulty: metrics.difficulty,
-            score: metrics.score,
-            missedLowFreq: metrics.missedLowFreq,
-            similarChoiceErrors: metrics.similarChoiceErrors,
-            errorTags: [],
-          },
-        });
-      } catch (err) {
-        console.error("Failed to add performance metrics:", err);
-      }
-    }
+    // if (user && tokens) {
+    //   try {
+    //     await ProgressAPI.updateExerciseProgress(module, exercise, {
+    //       lastDifficulty: metrics.difficulty,
+    //       performanceMetrics: {
+    //         difficulty: metrics.difficulty,
+    //         score: metrics.score,
+    //         missedLowFreq: metrics.missedLowFreq,
+    //         similarChoiceErrors: metrics.similarChoiceErrors,
+    //         errorTags: [],
+    //       },
+    //     });
+    //   } catch (err) {
+    //     console.error("Failed to add performance metrics:", err);
+    //   }
+    // }
   };
 
   const getPerformanceHistory = (

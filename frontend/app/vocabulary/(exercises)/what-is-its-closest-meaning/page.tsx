@@ -9,7 +9,10 @@ import QuizProgress from "@/components/vocabulary/closest-meaning-exercise/QuizP
 import QuizCompletionModal from "@/components/vocabulary/closest-meaning-exercise/QuizCompletionModal";
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
-import type { QuizProgress as QuizProgressType } from "@/contexts/LearningProgressContext";
+import {
+  underlineWordInSentence,
+  sentenceContainsWord,
+} from "@/utils/textFormatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSRSWithExercises } from "@/hooks/useSRS";
@@ -20,12 +23,14 @@ import {
   type VocabularyExerciseItem,
   type LexiconItem,
 } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import {
   isLowFrequencyWord,
   areSimilarWords,
 } from "@/utils/PerformanceTracker";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
+import type { QuizProgress as QuizProgressType } from "@/contexts/LearningProgressContext";
 
 interface QuizItem {
   id: string;
@@ -43,32 +48,19 @@ interface QuizAnswer {
   word: string;
 }
 
-// Helper function to underline a word in a sentence
-function underlineWordInSentence(
-  sentence: string,
-  wordToUnderline: string
-): string {
-  const escapedWord = wordToUnderline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(
-    `(?<=\\s|^)(${escapedWord})(?=\\s|$|[.,!?;:])`,
-    "gi"
-  );
-  return sentence.replace(regex, "<u>$1</u>");
-}
-
 // Generate quiz questions from AI service data
 async function generateQuizQuestionsFromService(
-  vocabExercises: VocabularyExerciseItem[],
-  lexiconData: LexiconItem[]
+  sessionExercises: VocabularyExerciseItem[],
+  lexiconData: LexiconItem[],
 ): Promise<QuizItem[]> {
   const lexiconMap = new Map(
-    lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
+    lexiconData.map((item: LexiconItem) => [item.lemma_id, item]),
   );
 
-  console.log("📚 Vocab Exercises:", vocabExercises.length);
+  console.log("📚 Vocab Exercises:", sessionExercises.length);
   console.log("📖 Lexicon Data:", lexiconData.length);
 
-  const quizItems: QuizItem[] = vocabExercises
+  const quizItems: QuizItem[] = sessionExercises
     .map((vocabItem: VocabularyExerciseItem) => {
       const lexiconEntry = lexiconMap.get(vocabItem.lemma_id);
       if (!lexiconEntry) {
@@ -90,10 +82,7 @@ async function generateQuizQuestionsFromService(
 
       let underlinedWord = lexiconEntry.lemma;
       for (const word of wordsToConsider) {
-        const lowerSentence = sentence.toLowerCase();
-        const lowerWord = word.toLowerCase();
-        const wordRegex = new RegExp(`\\b${lowerWord}\\b`, "i");
-        if (wordRegex.test(lowerSentence)) {
+        if (sentenceContainsWord(sentence, word)) {
           underlinedWord = word;
           break;
         }
@@ -108,7 +97,7 @@ async function generateQuizQuestionsFromService(
         correctAnswer = lexiconEntry.base_definition;
 
         const otherLexicons = lexiconData.filter(
-          (lex: LexiconItem) => lex.lemma_id !== vocabItem.lemma_id
+          (lex: LexiconItem) => lex.lemma_id !== vocabItem.lemma_id,
         );
         const shuffled = otherLexicons.sort(() => Math.random() - 0.5);
         distractors = shuffled
@@ -130,13 +119,13 @@ async function generateQuizQuestionsFromService(
           });
 
           const shuffledSynonyms = otherSynonyms.sort(
-            () => Math.random() - 0.5
+            () => Math.random() - 0.5,
           );
           distractors = shuffledSynonyms.slice(0, 3);
         } else {
           correctAnswer = lexiconEntry.base_definition;
           const otherLexicons = lexiconData.filter(
-            (lex: LexiconItem) => lex.lemma_id !== vocabItem.lemma_id
+            (lex: LexiconItem) => lex.lemma_id !== vocabItem.lemma_id,
           );
           const shuffled = otherLexicons.sort(() => Math.random() - 0.5);
           distractors = shuffled
@@ -146,12 +135,12 @@ async function generateQuizQuestionsFromService(
       }
 
       const allOptions = [correctAnswer, ...distractors].sort(
-        () => Math.random() - 0.5
+        () => Math.random() - 0.5,
       );
 
       const underlinedSentence = underlineWordInSentence(
         sentence,
-        underlinedWord
+        underlinedWord,
       );
 
       return {
@@ -171,15 +160,30 @@ async function generateQuizQuestionsFromService(
 
 export default function ClosestMeaningQuizPage() {
   const { updateProgress, getExerciseProgress } = useVocabularyProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory("vocabulary", "quiz");
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
+
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
-  const { grade: gradeSRS } = useSRSWithExercises({
+  const exerciseProgress = getExerciseProgress("quiz");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgressType).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+
+  const {
+    sessionExercises,
+    grade: gradeSRS,
+    isLoading: srsLoading,
+  } = useSRSWithExercises({
     module: "vocabulary",
-    targetDifficulty: "easy",
-    limit: 15,
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 40,
   });
 
   const [questions, setQuestions] = useState<QuizItem[]>([]);
@@ -197,61 +201,23 @@ export default function ClosestMeaningQuizPage() {
 
   useEffect(() => {
     async function loadQuiz() {
+      if (srsLoading) return;
+      if (!sessionExercises || sessionExercises.length === 0) return;
+
       try {
         setIsLoading(true);
 
-        const performanceHistory = getPerformanceHistory("vocabulary", "quiz");
-        const exerciseProgress = getExerciseProgress("quiz");
+        setCurrentDifficulty(difficultyToServe);
 
-        console.log("📊 Quiz Performance History:", performanceHistory);
-        console.log("📈 Quiz Exercise Progress:", exerciseProgress);
-
-        let targetDifficulty: "easy" | "medium" | "hard" = "easy";
-
-        if (performanceHistory.length > 0) {
-          const evaluation = evaluateUserPerformance(performanceHistory);
-          targetDifficulty = evaluation.nextDifficulty;
-          console.log(
-            "🎯 Evaluated Target Difficulty:",
-            targetDifficulty,
-            "| Tags:",
-            evaluation.tags
-          );
-        } else {
-          if ("lastDifficulty" in exerciseProgress) {
-            targetDifficulty =
-              (exerciseProgress as QuizProgressType).lastDifficulty || "easy";
-          } else {
-            targetDifficulty = "easy";
-          }
-          console.log("🆕 First Session - Using difficulty:", targetDifficulty);
-        }
-
-        setCurrentDifficulty(targetDifficulty);
-
-        console.log(
-          "🔄 Fetching adaptive quiz exercises with difficulty:",
-          targetDifficulty
-        );
-
-        const [vocabExercises, lexiconData] = await Promise.all([
-          getVocabularyExercisesAdaptive({
-            userId: user?.id,
-            targetDifficulty,
-            limit: 15,
-          }),
-          getLexiconData(),
-        ]);
-
-        console.log("📚 Adaptive Quiz Exercises:", vocabExercises.length);
+        const lexiconData = await getLexiconData();
 
         const qs = await generateQuizQuestionsFromService(
-          vocabExercises,
-          lexiconData
+          sessionExercises as VocabularyExerciseItem[],
+          lexiconData,
         );
 
         if (qs.length === 0) {
-          throw new Error("No quiz items available for this difficulty");
+          throw new Error("No quiz items available for this session");
         }
 
         setQuestions(qs);
@@ -262,16 +228,16 @@ export default function ClosestMeaningQuizPage() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load quiz items. Please try again."
+            : "Failed to load quiz items. Please try again.",
         );
       } finally {
         setIsLoading(false);
       }
     }
     loadQuiz();
-  }, [user?.id]);
+  }, [srsLoading, sessionExercises, difficultyToServe]);
 
-  if (authLoading) {
+  if (authLoading || srsLoading) {
     return (
       <div className="h-screen bg-yellow-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
@@ -383,7 +349,7 @@ export default function ClosestMeaningQuizPage() {
     const similarChoiceError =
       !isCorrect &&
       currentQuiz.options.some((opt) =>
-        areSimilarWords(opt, currentQuiz.correctAnswer)
+        areSimilarWords(opt, currentQuiz.correctAnswer),
       );
 
     const score = isCorrect ? 100 : 0;
@@ -405,19 +371,18 @@ export default function ClosestMeaningQuizPage() {
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentQuiz.lemma_id, srsGrade);
 
-    // Update metrics with CURRENT difficulty
-    addPerformanceMetrics("vocabulary", "quiz", {
-      score,
-      difficulty: currentDifficulty,
-      missedLowFreq: !isCorrect && lowFreq ? 1 : 0,
-      similarChoiceErrors: similarChoiceError ? 1 : 0,
-      timestamp: new Date().toISOString(),
-    });
+    // addPerformanceMetrics("vocabulary", "quiz", {
+    //   score,
+    //   difficulty: currentDifficulty,
+    //   missedLowFreq: !isCorrect && lowFreq ? 1 : 0,
+    //   similarChoiceErrors: similarChoiceError ? 1 : 0,
+    //   timestamp: new Date().toISOString(),
+    // });
   };
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeQuiz();
+      void completeQuiz();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -425,7 +390,7 @@ export default function ClosestMeaningQuizPage() {
     }
   };
 
-  const completeQuiz = () => {
+  const completeQuiz = async () => {
     const correctCount = answers.filter((a) => a === true).length;
     const sessionScore = Math.round((correctCount / questions.length) * 100);
 
@@ -441,7 +406,8 @@ export default function ClosestMeaningQuizPage() {
       }
     });
 
-    const finalMetrics = {
+    const history = getPerformanceHistory("vocabulary", "quiz");
+    const thisSession = {
       difficulty: currentDifficulty,
       score: sessionScore,
       missedLowFreq,
@@ -449,26 +415,33 @@ export default function ClosestMeaningQuizPage() {
       timestamp: new Date().toISOString(),
     };
 
-    console.log("📊 Quiz Session Completed - Metrics:", finalMetrics);
-
-    addPerformanceMetrics("vocabulary", "quiz", finalMetrics);
-
-    const history = getPerformanceHistory("vocabulary", "quiz");
-    const allHistory = [...history, finalMetrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
     console.log(
       "🎯 Next Quiz Difficulty:",
       evaluation.nextDifficulty,
       "| Error Tags:",
-      evaluation.tags
+      evaluation.tags,
     );
+
+    await updateExerciseProgress("vocabulary", "quiz", {
+      status: "in-progress",
+      score: sessionScore,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score: sessionScore,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
 
     updateProgress("quiz", {
       status: "in-progress",
       score: sessionScore,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });
@@ -479,18 +452,16 @@ export default function ClosestMeaningQuizPage() {
   const resetQuiz = async () => {
     try {
       setIsLoading(true);
-      const [vocabExercises, lexiconData] = await Promise.all([
-        getVocabularyExercisesAdaptive({
-          userId: user?.id,
-          targetDifficulty: currentDifficulty,
-          limit: 15,
-        }),
-        getLexiconData(),
-      ]);
+      const lexiconData = await getLexiconData();
+
       const qs = await generateQuizQuestionsFromService(
-        vocabExercises,
-        lexiconData
+        sessionExercises as VocabularyExerciseItem[],
+        lexiconData,
       );
+      // const qs = await generateQuizQuestionsFromService(
+      //   sessionExercises,
+      //   lexiconData,
+      // );
       setQuestions(qs);
       setCurrentQuestion(0);
       setSelectedAnswer(null);
@@ -590,7 +561,7 @@ export default function ClosestMeaningQuizPage() {
       <QuizCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length / questions.length) * 100
+          (answers.filter((a) => a === true).length / questions.length) * 100,
         )}
         correctCount={answers.filter((a) => a === true).length}
         totalQuestions={questions.length}

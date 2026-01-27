@@ -3,8 +3,9 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, BookOpen, TrendingUp, Clock } from "lucide-react";
+import { Play, BookOpen, TrendingUp, Clock, Loader2 } from "lucide-react";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
+import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type {
   GrammarExercise,
   QuizProgress,
@@ -30,6 +31,7 @@ export default function GrammarCard({
 }: GrammarCardProps) {
   const { getExerciseProgress, getExerciseMastery, isLessonExercise } =
     useGrammarProgress();
+  const { isLoading: progressLoading } = useLearningProgress();
 
   const exerciseProgress = getExerciseProgress(exerciseType);
   const isLesson = isLessonExercise(exerciseType);
@@ -117,7 +119,19 @@ export default function GrammarCard({
 
               {/* Progress Info */}
               <div className="text-xs space-y-2">
-                {isLesson ? (
+                {progressLoading ? (
+                  <div className="space-y-2">
+                    {/* <div className="flex items-center gap-2 text-gray-600">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Updating progress…</span>
+                    </div> */}
+                    <div className="space-y-2 animate-pulse">
+                      <div className="h-3 bg-gray-200 rounded w-40" />
+                      <div className="h-3 bg-gray-200 rounded w-28" />
+                      <div className="h-3 bg-gray-200 rounded w-32" />
+                    </div>
+                  </div>
+                ) : isLesson ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

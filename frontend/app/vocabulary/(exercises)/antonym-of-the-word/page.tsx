@@ -10,6 +10,10 @@ import AntonymCompletionModal from "@/components/vocabulary/antonym-exercise/Ant
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type { QuizProgress } from "@/contexts/LearningProgressContext";
+import {
+  underlineWordInSentence,
+  sentenceContainsWord,
+} from "@/utils/textFormatting";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getVocabularyExercisesAdaptive,
@@ -17,6 +21,7 @@ import {
   type VocabularyExerciseItem,
   type LexiconItem,
 } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import {
   isLowFrequencyWord,
   areSimilarWords,
@@ -43,32 +48,19 @@ interface AntonymAnswer {
   word: string;
 }
 
-// Helper function to underline a word in a sentence
-function underlineWordInSentence(
-  sentence: string,
-  wordToUnderline: string
-): string {
-  const escapedWord = wordToUnderline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(
-    `(?<=\\s|^)(${escapedWord})(?=\\s|$|[.,!?;:])`,
-    "gi"
-  );
-  return sentence.replace(regex, "<u>$1</u>");
-}
-
 // Generate antonym questions from AI service data
 async function generateAntonymQuestionsFromService(
-  vocabExercises: VocabularyExerciseItem[],
-  lexiconData: LexiconItem[]
+  sessionExercises: VocabularyExerciseItem[],
+  lexiconData: LexiconItem[],
 ): Promise<AntonymItem[]> {
   const lexiconMap = new Map(
-    lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
+    lexiconData.map((item: LexiconItem) => [item.lemma_id, item]),
   );
 
-  console.log("📚 Vocab Exercises:", vocabExercises.length);
+  console.log("📚 Vocab Exercises:", sessionExercises.length);
   console.log("📖 Lexicon Data:", lexiconData.length);
 
-  const itemsWithAntonyms = vocabExercises.filter((vocabItem) => {
+  const itemsWithAntonyms = sessionExercises.filter((vocabItem) => {
     const lexiconEntry = lexiconMap.get(vocabItem.lemma_id);
     return (
       lexiconEntry &&
@@ -100,10 +92,7 @@ async function generateAntonymQuestionsFromService(
 
       let underlinedWord = lexiconEntry.lemma;
       for (const word of wordsToConsider) {
-        const lowerSentence = sentence.toLowerCase();
-        const lowerWord = word.toLowerCase();
-        const wordRegex = new RegExp(`\\b${lowerWord}\\b`, "i");
-        if (wordRegex.test(lowerSentence)) {
+        if (sentenceContainsWord(sentence, word)) {
           underlinedWord = word;
           break;
         }
@@ -115,7 +104,7 @@ async function generateAntonymQuestionsFromService(
         (lex: LexiconItem) =>
           lex.lemma_id !== vocabItem.lemma_id &&
           lex.lemma !== correctAnswer &&
-          !antonyms.includes(lex.lemma)
+          !antonyms.includes(lex.lemma),
       );
       const shuffledLexicons = otherLexicons.sort(() => Math.random() - 0.5);
 
@@ -128,8 +117,8 @@ async function generateAntonymQuestionsFromService(
         if (lex.lemma_id !== vocabItem.lemma_id && lex.relations?.synonyms) {
           otherSynonyms.push(
             ...lex.relations.synonyms.filter(
-              (syn) => syn !== correctAnswer && !antonyms.includes(syn)
-            )
+              (syn) => syn !== correctAnswer && !antonyms.includes(syn),
+            ),
           );
         }
       });
@@ -152,12 +141,12 @@ async function generateAntonymQuestionsFromService(
       }
 
       const allOptions = [correctAnswer, ...uniqueDistractors].sort(
-        () => Math.random() - 0.5
+        () => Math.random() - 0.5,
       );
 
       const sentenceWithUnderline = underlineWordInSentence(
         sentence,
-        underlinedWord
+        underlinedWord,
       );
 
       return {
@@ -177,14 +166,30 @@ async function generateAntonymQuestionsFromService(
 
 export default function AntonymExercisePage() {
   const { updateProgress, getExerciseProgress } = useVocabularyProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
-  const { user } = useAuth();
+  const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory("vocabulary", "antonym");
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
-  const { grade: gradeSRS } = useSRSWithExercises({
+  const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
+
+  const exerciseProgress = getExerciseProgress("antonym");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+
+  const {
+    sessionExercises,
+    grade: gradeSRS,
+    isLoading: srsLoading,
+  } = useSRSWithExercises({
     module: "vocabulary",
-    targetDifficulty: "easy",
-    limit: 15,
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 40,
   });
 
   const [questions, setQuestions] = useState<AntonymItem[]>([]);
@@ -199,68 +204,26 @@ export default function AntonymExercisePage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
-  const { isLoading: authLoading } = useAuthGuard();
 
   useEffect(() => {
     async function loadQuestions() {
+      if (srsLoading) return;
+      if (!sessionExercises || sessionExercises.length === 0) return;
+
       try {
         setIsLoading(true);
 
-        const performanceHistory = getPerformanceHistory(
-          "vocabulary",
-          "antonym"
-        );
-        const exerciseProgress = getExerciseProgress("antonym");
+        setCurrentDifficulty(difficultyToServe);
 
-        console.log("📊 Antonym Performance History:", performanceHistory);
-        console.log("📈 Antonym Exercise Progress:", exerciseProgress);
-
-        let targetDifficulty: "easy" | "medium" | "hard" = "easy";
-
-        if (performanceHistory.length > 0) {
-          const evaluation = evaluateUserPerformance(performanceHistory);
-          targetDifficulty = evaluation.nextDifficulty;
-          console.log(
-            "🎯 Evaluated Target Difficulty:",
-            targetDifficulty,
-            "| Tags:",
-            evaluation.tags
-          );
-        } else {
-          if ("lastDifficulty" in exerciseProgress) {
-            targetDifficulty =
-              (exerciseProgress as QuizProgress).lastDifficulty || "easy";
-          } else {
-            targetDifficulty = "easy";
-          }
-          console.log("🆕 First Session - Using difficulty:", targetDifficulty);
-        }
-
-        setCurrentDifficulty(targetDifficulty);
-
-        console.log(
-          "🔄 Fetching adaptive antonym exercises with difficulty:",
-          targetDifficulty
-        );
-
-        const [vocabExercises, lexiconData] = await Promise.all([
-          getVocabularyExercisesAdaptive({
-            userId: user?.id,
-            targetDifficulty,
-            limit: 15,
-          }),
-          getLexiconData(),
-        ]);
-
-        console.log("📚 Adaptive Antonym Exercises:", vocabExercises.length);
+        const lexiconData = await getLexiconData();
 
         const qs = await generateAntonymQuestionsFromService(
-          vocabExercises,
-          lexiconData
+          sessionExercises as VocabularyExerciseItem[],
+          lexiconData,
         );
 
         if (qs.length === 0) {
-          throw new Error("No antonym items available for this difficulty");
+          throw new Error("No antonym items available for this session");
         }
 
         setQuestions(qs);
@@ -271,16 +234,16 @@ export default function AntonymExercisePage() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load antonym items. Please try again."
+            : "Failed to load antonym items. Please try again.",
         );
       } finally {
         setIsLoading(false);
       }
     }
     loadQuestions();
-  }, [user?.id]);
+  }, [srsLoading, sessionExercises, difficultyToServe]);
 
-  if (authLoading) {
+  if (authLoading || srsLoading) {
     return (
       <div className="h-screen bg-yellow-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
@@ -407,20 +370,11 @@ export default function AntonymExercisePage() {
 
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentAntonym.lemma_id, srsGrade);
-
-    // Update metrics with CURRENT difficulty
-    addPerformanceMetrics("vocabulary", "antonym", {
-      score,
-      difficulty: currentDifficulty,
-      missedLowFreq: !isCorrect && lowFreq ? 1 : 0,
-      similarChoiceErrors: !isCorrect ? 1 : 0,
-      timestamp: new Date().toISOString(),
-    });
   };
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -428,7 +382,7 @@ export default function AntonymExercisePage() {
     }
   };
 
-  const completeExercise = () => {
+  const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
     const sessionScore = Math.round((correctCount / questions.length) * 100);
 
@@ -444,7 +398,8 @@ export default function AntonymExercisePage() {
       }
     });
 
-    const finalMetrics = {
+    const history = getPerformanceHistory("vocabulary", "antonym");
+    const thisSession = {
       difficulty: currentDifficulty,
       score: sessionScore,
       missedLowFreq,
@@ -452,26 +407,33 @@ export default function AntonymExercisePage() {
       timestamp: new Date().toISOString(),
     };
 
-    console.log("📊 Antonym Session Completed - Metrics:", finalMetrics);
-
-    addPerformanceMetrics("vocabulary", "antonym", finalMetrics);
-
-    const history = getPerformanceHistory("vocabulary", "antonym");
-    const allHistory = [...history, finalMetrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
     console.log(
       "🎯 Next Antonym Difficulty:",
       evaluation.nextDifficulty,
       "| Error Tags:",
-      evaluation.tags
+      evaluation.tags,
     );
+
+    await updateExerciseProgress("vocabulary", "antonym", {
+      status: "in-progress",
+      score: sessionScore,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score: sessionScore,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
 
     updateProgress("antonym", {
       status: "in-progress",
       score: sessionScore,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });
@@ -482,17 +444,10 @@ export default function AntonymExercisePage() {
   const resetExercise = async () => {
     try {
       setIsLoading(true);
-      const [vocabExercises, lexiconData] = await Promise.all([
-        getVocabularyExercisesAdaptive({
-          userId: user?.id,
-          targetDifficulty: currentDifficulty,
-          limit: 15,
-        }),
-        getLexiconData(),
-      ]);
+      const [lexiconData] = await Promise.all([getLexiconData()]);
       const qs = await generateAntonymQuestionsFromService(
-        vocabExercises,
-        lexiconData
+        sessionExercises,
+        lexiconData,
       );
       setQuestions(qs);
       setCurrentQuestion(0);
@@ -593,7 +548,7 @@ export default function AntonymExercisePage() {
       <AntonymCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length / questions.length) * 100
+          (answers.filter((a) => a === true).length / questions.length) * 100,
         )}
         correctCount={answers.filter((a) => a === true).length}
         totalQuestions={questions.length}

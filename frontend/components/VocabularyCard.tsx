@@ -4,12 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
+import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type {
   VocabularyExercise,
   QuizProgress,
   LessonProgress,
 } from "@/contexts/LearningProgressContext";
-import { Play, BookOpen, TrendingUp, Clock } from "lucide-react";
+import { Play, BookOpen, TrendingUp, Clock, Loader2 } from "lucide-react";
 
 interface VocabularyCardProps {
   name: string;
@@ -30,6 +31,7 @@ export default function VocabularyCard({
 }: VocabularyCardProps) {
   const { progress, getExerciseMastery, isLessonExercise } =
     useVocabularyProgress();
+  const { isLoading: progressLoading } = useLearningProgress();
 
   const exerciseProgress = progress[exerciseType];
   const isLesson = isLessonExercise(exerciseType);
@@ -117,7 +119,19 @@ export default function VocabularyCard({
 
               {/* Progress Info */}
               <div className="text-xs space-y-2">
-                {isLesson ? (
+                {progressLoading ? (
+                  <div className="space-y-2">
+                    {/* <div className="flex items-center gap-2 text-gray-600">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Updating progress…</span>
+                    </div> */}
+                    <div className="space-y-2 animate-pulse">
+                      <div className="h-3 bg-gray-200 rounded w-40" />
+                      <div className="h-3 bg-gray-200 rounded w-28" />
+                      <div className="h-3 bg-gray-200 rounded w-32" />
+                    </div>
+                  </div>
+                ) : isLesson ? (
                   // Lesson Progress Display
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">

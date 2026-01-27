@@ -125,7 +125,7 @@ export default function ProgressOverview() {
       </div>
 
       {/* Module Progress */}
-      <div className="space-y-3">
+      <div className="space-y-3 pb-5">
         <h4 className="font-semibold text-sm text-gray-700">Module Progress</h4>
         {moduleInsights.map((module) => {
           const colors = getColorClasses(module.color);

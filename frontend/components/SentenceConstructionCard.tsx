@@ -4,11 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
+import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type {
   SentenceExercise,
   QuizProgress,
 } from "@/contexts/LearningProgressContext";
-import { Play, TrendingUp, Clock } from "lucide-react";
+import { Play, TrendingUp, Clock, Loader2 } from "lucide-react";
 
 interface SentenceConstructionCardProps {
   name: string;
@@ -28,6 +29,7 @@ export default function SentenceConstructionCard({
   exerciseType,
 }: SentenceConstructionCardProps) {
   const { progress, getExerciseMastery } = useSentenceConstructionProgress();
+  const { isLoading: progressLoading } = useLearningProgress();
 
   const exerciseProgress = progress[exerciseType];
   const hasStarted = exerciseProgress.attempts > 0;
@@ -98,7 +100,19 @@ export default function SentenceConstructionCard({
 
               {/* Progress Info */}
               <div className="text-xs space-y-2">
-                {hasStarted && exerciseMastery ? (
+                {progressLoading ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Updating progress…</span>
+                    </div>
+                    <div className="space-y-2 animate-pulse">
+                      <div className="h-3 bg-gray-200 rounded w-40" />
+                      <div className="h-3 bg-gray-200 rounded w-28" />
+                      <div className="h-3 bg-gray-200 rounded w-32" />
+                    </div>
+                  </div>
+                ) : hasStarted && exerciseMastery ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

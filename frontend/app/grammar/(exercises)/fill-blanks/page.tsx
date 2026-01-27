@@ -8,17 +8,20 @@ import FillBlanksQuestion from "@/components/grammar/fill-the-blanks/FillBlanksQ
 import FillBlanksProgress from "@/components/grammar/fill-the-blanks/FillBlanksProgress";
 import FillBlanksCompletionModal from "@/components/grammar/fill-the-blanks/FillBlanksCompletionModal";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
-import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import {
+  useLearningProgress,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { SRS_GRADES } from "@/utils/srs";
 import {
-  getGrammarExercisesAdaptive,
   getLexiconData,
   GrammarExerciseItem,
   LexiconItem,
 } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 
@@ -43,7 +46,7 @@ interface ProcessedFillBlanksItem {
 function generateDistractorsFromSurfaceForms(
   lemmaId: string,
   correctAnswer: string,
-  lexiconMap: Map<string, LexiconItem>
+  lexiconMap: Map<string, LexiconItem>,
 ): string[] | null {
   const lexiconEntry = lexiconMap.get(lemmaId);
 
@@ -57,15 +60,15 @@ function generateDistractorsFromSurfaceForms(
     new Set(
       allWords
         .map((word) => word.toLowerCase())
-        .filter((word) => word !== correctAnswer.toLowerCase())
-    )
+        .filter((word) => word !== correctAnswer.toLowerCase()),
+    ),
   ).map((lowerWord) => {
     return allWords.find((w) => w.toLowerCase() === lowerWord) || lowerWord;
   });
 
   if (uniqueWords.length < 2) {
     console.warn(
-      `Insufficient surface forms for lemma_id ${lemmaId}. Need at least 2, got ${uniqueWords.length}. Skipping.`
+      `Insufficient surface forms for lemma_id ${lemmaId}. Need at least 2, got ${uniqueWords.length}. Skipping.`,
     );
     return null;
   }
@@ -80,7 +83,7 @@ function generateDistractorsFromSurfaceForms(
 // Convert grammar items to fill-in-the-blanks format
 function convertToFillBlanksFormat(
   items: GrammarExerciseItem[],
-  lexiconMap: Map<string, LexiconItem>
+  lexiconMap: Map<string, LexiconItem>,
 ): ProcessedFillBlanksItem[] {
   const processedItems: ProcessedFillBlanksItem[] = [];
 
@@ -89,7 +92,7 @@ function convertToFillBlanksFormat(
     const distractors = generateDistractorsFromSurfaceForms(
       item.lemma_id,
       correctAnswer,
-      lexiconMap
+      lexiconMap,
     );
 
     if (!distractors || distractors.length < 2) {
@@ -97,7 +100,7 @@ function convertToFillBlanksFormat(
     }
 
     const choices = [correctAnswer, ...distractors].sort(
-      () => Math.random() - 0.5
+      () => Math.random() - 0.5,
     );
 
     processedItems.push({
@@ -114,21 +117,35 @@ function convertToFillBlanksFormat(
 }
 
 export default function GrammarFillBlanksPage() {
-  const { updateProgress } = useGrammarProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { updateProgress, getExerciseProgress } = useGrammarProgress();
+  const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory("grammar", "fill-blanks");
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
+
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
+  const exerciseProgress = getExerciseProgress("fill-blanks");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+  const [currentDifficulty] = useState(difficultyToServe);
+
   const {
     dueExercises,
+    newExercises,
+    sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
   } = useSRSWithExercises({
     module: "grammar",
     exerciseType: "fill-blanks",
-    targetDifficulty: "easy",
-    limit: 15,
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 20,
   });
 
   const [fillBlanksQuestions, setFillBlanksQuestions] = useState<
@@ -139,38 +156,29 @@ export default function GrammarFillBlanksPage() {
   const [showResult, setShowResult] = useState(false);
   const [answers, setAnswers] = useState<(boolean | null)[]>([]);
   const [detailedAnswers, setDetailedAnswers] = useState<FillBlanksAnswer[]>(
-    []
+    [],
   );
   const [showCompletion, setShowCompletion] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentDifficulty, setCurrentDifficulty] = useState<
-    "easy" | "medium" | "hard"
-  >("easy");
 
   const [finalScore, setFinalScore] = useState(0);
   const [finalCorrectCount, setFinalCorrectCount] = useState(0);
 
   useEffect(() => {
     async function loadQuestions() {
-      if (srsLoading || dueExercises.length === 0) return;
+      if (srsLoading || sessionExercises.length === 0) return;
 
       try {
-        const history = getPerformanceHistory("grammar", "fill-blanks");
-        const targetDifficulty =
-          history.length > 0 ? history[history.length - 1].difficulty : "easy";
-
-        setCurrentDifficulty(targetDifficulty);
-
         // Fetch lexicon data for distractors
         const lexiconData = await getLexiconData();
         const lexiconMap = new Map(
-          lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
+          lexiconData.map((item: LexiconItem) => [item.lemma_id, item]),
         );
 
         // Convert due exercises to fill-blanks format
         const processedItems = convertToFillBlanksFormat(
-          dueExercises as GrammarExerciseItem[],
-          lexiconMap
+          sessionExercises as GrammarExerciseItem[],
+          lexiconMap,
         );
 
         if (processedItems.length === 0) {
@@ -188,7 +196,7 @@ export default function GrammarFillBlanksPage() {
     }
 
     loadQuestions();
-  }, [srsLoading, dueExercises]);
+  }, [srsLoading, sessionExercises, difficultyToServe]);
 
   if (authLoading) {
     return (
@@ -225,7 +233,7 @@ export default function GrammarFillBlanksPage() {
           ) : (
             <div className="text-center">
               <p className="text-lg text-green-900 mb-2">
-                🎉 No exercises due right now!
+                🎉 No items available right now!
               </p>
               <p className="text-sm text-green-600">
                 Come back later for more practice.
@@ -281,7 +289,7 @@ export default function GrammarFillBlanksPage() {
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
       return;
     } else {
       setCurrentQuestion((prev) => prev + 1);
@@ -290,7 +298,7 @@ export default function GrammarFillBlanksPage() {
     }
   };
 
-  const completeExercise = () => {
+  const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
     const score = Math.round((correctCount / fillBlanksQuestions.length) * 100);
 
@@ -306,25 +314,35 @@ export default function GrammarFillBlanksPage() {
       }
     });
 
-    const metrics = {
+    const history = getPerformanceHistory("grammar", "fill-blanks");
+    const thisSession = {
       difficulty: currentDifficulty,
-      score,
+      score: score,
       missedLowFreq,
       similarChoiceErrors,
       timestamp: new Date().toISOString(),
     };
 
-    addPerformanceMetrics("grammar", "fill-blanks", metrics);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    const history = getPerformanceHistory("grammar", "fill-blanks");
-    const allHistory = [...history, metrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    await updateExerciseProgress("grammar", "fill-blanks", {
+      status: "in-progress",
+      score: score,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score: score,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
 
     updateProgress("fill-blanks", {
       status: "in-progress",
       score,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });

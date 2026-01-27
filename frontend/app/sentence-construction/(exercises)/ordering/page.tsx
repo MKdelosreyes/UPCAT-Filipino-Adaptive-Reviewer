@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -8,12 +8,18 @@ import OrderingQuestion from "@/components/sentence-construction/sentence-orderi
 import OrderingProgress from "@/components/sentence-construction/sentence-ordering-exercise/OrderingProgress";
 import OrderingCompletionModal from "@/components/sentence-construction/sentence-ordering-exercise/OrderingCompletionModal";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
-import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import {
+  useLearningProgress,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import type { SentenceConstructionExerciseItem } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { SRS_GRADES } from "@/utils/srs";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 interface OrderingAnswer {
   isCorrect: boolean;
@@ -32,19 +38,39 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function SentenceOrderingPage() {
-  const { updateProgress } = useSentenceConstructionProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { updateProgress, getExerciseProgress } =
+    useSentenceConstructionProgress();
+  const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory(
+    "sentence-construction",
+    "sentence-ordering",
+  );
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
+
+  const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
+
+  const exerciseProgress = getExerciseProgress("sentence-ordering");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+  const [currentDifficulty] = useState(difficultyToServe);
 
   const {
     dueExercises,
+    newExercises,
+    sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
   } = useSRSWithExercises({
     module: "sentence-construction",
-    exerciseType: "ordering",
-    targetDifficulty: "easy", // Dynamic based on performance
-    limit: 10,
+    exerciseType: "sentence-ordering",
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 20,
   });
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -55,12 +81,20 @@ export default function SentenceOrderingPage() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (dueExercises.length > 0) {
-      setAnswers(Array(dueExercises.length).fill(null));
+    if (sessionExercises.length > 0) {
+      setAnswers(Array(sessionExercises.length).fill(null));
     }
-  }, [dueExercises.length]);
+  }, [sessionExercises.length]);
 
-  if (srsLoading || dueExercises.length === 0) {
+  if (authLoading || srsLoading) {
+    return (
+      <div className="h-screen bg-yellow-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
+
+  if (sessionExercises.length === 0) {
     return (
       <div className="h-screen bg-blue-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
@@ -87,7 +121,7 @@ export default function SentenceOrderingPage() {
           ) : (
             <div className="text-center">
               <p className="text-lg text-blue-900 mb-2">
-                🎉 No exercises due right now!
+                🎉 No items available right now!
               </p>
               <p className="text-sm text-blue-600">
                 Come back later for more practice.
@@ -99,14 +133,15 @@ export default function SentenceOrderingPage() {
     );
   }
 
-  const currentExercise = dueExercises[
+  const currentExercise = sessionExercises[
     currentQuestion
   ] as SentenceConstructionExerciseItem;
-  const isLastQuestion = currentQuestion === dueExercises.length - 1;
+  const isLastQuestion = currentQuestion === sessionExercises.length - 1;
 
-  const shuffledWords = shuffleArray(
-    currentExercise.orderingCorrectSentence.split(" ")
-  );
+  const shuffledWords = useMemo(() => {
+    if (!currentExercise?.orderingCorrectSentence) return [];
+    return shuffleArray(currentExercise.orderingCorrectSentence.split(" "));
+  }, [currentExercise.lemma_id, currentExercise?.orderingCorrectSentence]);
 
   // Report performance + Grade SRS
   const handleSubmit = async (userSentence: string, correct: boolean) => {
@@ -128,15 +163,19 @@ export default function SentenceOrderingPage() {
       },
     ]);
 
-    await reportLexicalItemPerformance({
-      module: "sentence-construction",
-      exerciseType: "flashcards", // Mapped to ordering
-      lemmaId: currentExercise.lemma_id,
-      correctAnswer: currentExercise.orderingCorrectSentence,
-      userAnswer: userSentence,
-      difficultyShown: "medium",
-      score: correct ? 100 : 0,
-    });
+    try {
+      await reportLexicalItemPerformance({
+        module: "sentence-construction",
+        exerciseType: "sentence-ordering",
+        lemmaId: currentExercise.lemma_id,
+        correctAnswer: currentExercise.orderingCorrectSentence,
+        userAnswer: userSentence,
+        difficultyShown: currentDifficulty,
+        score: correct ? 100 : 0,
+      });
+    } catch (e) {
+      console.error("Failed to record lexical performance", e);
+    }
 
     const srsGrade = correct ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentExercise.lemma_id, srsGrade);
@@ -144,7 +183,7 @@ export default function SentenceOrderingPage() {
 
   const handleNext = () => {
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setShowResult(false);
@@ -154,7 +193,7 @@ export default function SentenceOrderingPage() {
 
   const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / dueExercises.length) * 100);
+    const score = Math.round((correctCount / sessionExercises.length) * 100);
 
     // Calculate performance metrics
     let missedLowFreq = 0;
@@ -166,16 +205,7 @@ export default function SentenceOrderingPage() {
       }
     });
 
-    // Get current difficulty
-    const history = getPerformanceHistory(
-      "sentence-construction",
-      "sentence-ordering"
-    );
-    const currentDifficulty =
-      history.length > 0 ? history[history.length - 1].difficulty : "easy";
-
-    // Create performance metrics
-    const metrics = {
+    const thisSession = {
       difficulty: currentDifficulty,
       score,
       missedLowFreq,
@@ -183,24 +213,27 @@ export default function SentenceOrderingPage() {
       timestamp: new Date().toISOString(),
     };
 
-    console.log("📊 Sentence Ordering Session Completed - Metrics:", metrics);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    // Add to performance history
-    await addPerformanceMetrics(
-      "sentence-construction",
-      "sentence-ordering",
-      metrics
-    );
-
-    // Evaluate and get next difficulty + tags
-    const allHistory = [...history, metrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    await updateExerciseProgress("sentence-construction", "sentence-ordering", {
+      status: "in-progress",
+      score,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
 
     console.log(
       "🎯 Next Sentence Ordering Difficulty:",
       evaluation.nextDifficulty,
       "| Error Tags:",
-      evaluation.tags
+      evaluation.tags,
     );
 
     // Update progress with evaluation results
@@ -208,7 +241,6 @@ export default function SentenceOrderingPage() {
       status: "in-progress",
       score,
       completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
       lastDifficulty: evaluation.nextDifficulty,
       errorTags: evaluation.tags,
     });
@@ -220,7 +252,7 @@ export default function SentenceOrderingPage() {
     // Reset all local state to restart current exercises
     setCurrentQuestion(0);
     setShowResult(false);
-    setAnswers(Array(dueExercises.length).fill(null));
+    setAnswers(Array(sessionExercises.length).fill(null));
     setDetailedAnswers([]);
     setShowCompletion(false);
     setIsCorrect(null);
@@ -260,7 +292,7 @@ export default function SentenceOrderingPage() {
       <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-5 max-w-7xl mx-auto w-full">
         <OrderingProgress
           currentQuestion={currentQuestion}
-          totalQuestions={dueExercises.length}
+          totalQuestions={sessionExercises.length}
           answers={answers}
         />
 
@@ -274,7 +306,7 @@ export default function SentenceOrderingPage() {
         >
           <OrderingQuestion
             questionNumber={currentQuestion + 1}
-            totalQuestions={dueExercises.length}
+            totalQuestions={sessionExercises.length}
             words={shuffledWords}
             correctSentence={currentExercise.orderingCorrectSentence}
             onSubmit={handleSubmit}
@@ -306,10 +338,11 @@ export default function SentenceOrderingPage() {
       <OrderingCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length / dueExercises.length) * 100
+          (answers.filter((a) => a === true).length / sessionExercises.length) *
+            100,
         )}
         correctCount={answers.filter((a) => a === true).length}
-        totalQuestions={dueExercises.length}
+        totalQuestions={sessionExercises.length}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}
       />
