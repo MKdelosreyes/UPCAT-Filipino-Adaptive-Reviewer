@@ -15,6 +15,9 @@ import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import type { SentenceConstructionExerciseItem } from "@/lib/api/exercises";
 import { updateExerciseProgress } from "@/lib/api/progress";
 import { SRS_GRADES } from "@/utils/srs";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { QuizProgress } from "@/contexts/LearningProgressContext";
 
 interface ChooseSentenceAnswer {
   isCorrect: boolean;
@@ -34,18 +37,39 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function ChooseSentencePage() {
-  const { updateProgress } = useSentenceConstructionProgress();
+  const { updateProgress, getExerciseProgress } =
+    useSentenceConstructionProgress();
   const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory(
+    "sentence-construction",
+    "choose-sentence",
+  );
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
+
+  const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
+
+  const exerciseProgress = getExerciseProgress("choose-sentence");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+  const [currentDifficulty] = useState(difficultyToServe);
 
   const {
     dueExercises,
+    newExercises,
+    sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
   } = useSRSWithExercises({
     module: "sentence-construction",
-    exerciseType: "choose",
-    targetDifficulty: "easy",
-    limit: 10,
+    exerciseType: "choose-sentence",
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 20,
   });
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -58,15 +82,15 @@ export default function ChooseSentencePage() {
   const [showCompletion, setShowCompletion] = useState(false);
 
   useEffect(() => {
-    if (dueExercises.length > 0) {
-      setAnswers(Array(dueExercises.length).fill(null));
+    if (sessionExercises.length > 0) {
+      setAnswers(Array(sessionExercises.length).fill(null));
     }
-  }, [dueExercises.length]);
+  }, [sessionExercises.length]);
 
   // Compute choices early (unconditionally) so hooks order doesn't change
   const choices = useMemo(() => {
-    if (dueExercises.length === 0) return [];
-    const currentExercise = dueExercises[
+    if (sessionExercises.length === 0) return [];
+    const currentExercise = sessionExercises[
       currentQuestion
     ] as SentenceConstructionExerciseItem;
     const allChoices = [
@@ -74,9 +98,17 @@ export default function ChooseSentencePage() {
       ...currentExercise.distractors,
     ];
     return shuffleArray(allChoices);
-  }, [dueExercises, currentQuestion]);
+  }, [sessionExercises, currentQuestion]);
 
-  if (srsLoading || dueExercises.length === 0) {
+  if (authLoading || srsLoading) {
+    return (
+      <div className="h-screen bg-yellow-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
+
+  if (sessionExercises.length === 0) {
     return (
       <div className="h-screen bg-blue-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
@@ -103,7 +135,7 @@ export default function ChooseSentencePage() {
           ) : (
             <div className="text-center">
               <p className="text-lg text-blue-900 mb-2">
-                🎉 No exercises due right now!
+                🎉 No items available right now!
               </p>
               <p className="text-sm text-blue-600">
                 Come back later for more practice.
@@ -115,10 +147,10 @@ export default function ChooseSentencePage() {
     );
   }
 
-  const currentExercise = dueExercises[
+  const currentExercise = sessionExercises[
     currentQuestion
   ] as SentenceConstructionExerciseItem;
-  const isLastQuestion = currentQuestion === dueExercises.length - 1;
+  const isLastQuestion = currentQuestion === sessionExercises.length - 1;
 
   const handleSelectAnswer = async (answer: string) => {
     setSelectedAnswer(answer);
@@ -148,7 +180,7 @@ export default function ChooseSentencePage() {
       lemmaId: currentExercise.lemma_id,
       correctAnswer,
       userAnswer: answer,
-      difficultyShown: "medium",
+      difficultyShown: currentDifficulty,
       score: isCorrect ? 100 : 0,
     });
 
@@ -168,7 +200,7 @@ export default function ChooseSentencePage() {
 
   const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / dueExercises.length) * 100);
+    const score = Math.round((correctCount / sessionExercises.length) * 100);
 
     let missedLowFreq = 0;
     let similarChoiceErrors = 0;
@@ -178,13 +210,6 @@ export default function ChooseSentencePage() {
         similarChoiceErrors++;
       }
     });
-
-    const history = getPerformanceHistory(
-      "sentence-construction",
-      "choose-sentence"
-    );
-    const currentDifficulty =
-      history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
     const thisSession = {
       difficulty: currentDifficulty,
@@ -200,7 +225,7 @@ export default function ChooseSentencePage() {
       "🎯 Next Choose Sentence Difficulty:",
       evaluation.nextDifficulty,
       "| Error Tags:",
-      evaluation.tags
+      evaluation.tags,
     );
 
     await updateExerciseProgress("sentence-construction", "choose-sentence", {
@@ -264,7 +289,7 @@ export default function ChooseSentencePage() {
       <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
         <ChooseSentenceProgress
           currentQuestion={currentQuestion}
-          totalQuestions={dueExercises.length}
+          totalQuestions={sessionExercises.length}
           answers={answers}
         />
 
@@ -277,7 +302,7 @@ export default function ChooseSentencePage() {
         >
           <ChooseSentenceQuestion
             questionNumber={currentQuestion + 1}
-            totalQuestions={dueExercises.length}
+            totalQuestions={sessionExercises.length}
             context={currentExercise.chooseContext}
             choices={choices}
             correctAnswer={currentExercise.chooseCorrectSentence}
@@ -310,10 +335,11 @@ export default function ChooseSentencePage() {
       <ChooseSentenceCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length / dueExercises.length) * 100
+          (answers.filter((a) => a === true).length / sessionExercises.length) *
+            100,
         )}
         correctCount={answers.filter((a) => a === true).length}
-        totalQuestions={dueExercises.length}
+        totalQuestions={sessionExercises.length}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}
       />

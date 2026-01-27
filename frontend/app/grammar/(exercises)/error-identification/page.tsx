@@ -13,10 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { SRS_GRADES } from "@/utils/srs";
-import {
-  getGrammarExercisesAdaptive,
-  GrammarExerciseItem,
-} from "@/lib/api/exercises";
+import { GrammarExerciseItem } from "@/lib/api/exercises";
 import { updateExerciseProgress } from "@/lib/api/progress";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
@@ -43,7 +40,7 @@ interface ProcessedErrorItem {
 // Helper function to extract phrases from sentence for distractor generation
 function extractPhrasesFromSentence(
   sentence: string,
-  correctAnswer: string
+  correctAnswer: string,
 ): string[] {
   const cleanSentence = sentence.replace(/<[^>]*>/g, "");
   const words = cleanSentence
@@ -123,7 +120,7 @@ function extractPhrasesFromSentence(
 
 // Convert grammar items to error identification format
 function convertToErrorFormat(
-  items: GrammarExerciseItem[]
+  items: GrammarExerciseItem[],
 ): ProcessedErrorItem[] {
   return items.map((item) => {
     const correctAnswer = item.errorCorrectAnswer;
@@ -131,7 +128,7 @@ function convertToErrorFormat(
 
     const allPhrases = extractPhrasesFromSentence(
       item.error_sentence,
-      correctAnswer
+      correctAnswer,
     );
 
     let choices: string[];
@@ -157,7 +154,7 @@ function convertToErrorFormat(
 
         // Skip if it overlaps with any selected distractor
         const overlaps = distractors.some((existing) =>
-          phrasesShareWords(phrase, existing)
+          phrasesShareWords(phrase, existing),
         );
 
         if (!overlaps && wordCount >= 2) {
@@ -171,7 +168,7 @@ function convertToErrorFormat(
           if (distractors.length >= 3) break;
 
           const overlaps = distractors.some((existing) =>
-            phrasesShareWords(phrase, existing)
+            phrasesShareWords(phrase, existing),
           );
 
           if (!overlaps && !distractors.includes(phrase)) {
@@ -219,7 +216,7 @@ function convertToErrorFormat(
         const wordCount = phrase.split(/\s+/).length;
 
         const overlaps = distractors.some((existing) =>
-          phrasesShareWords(phrase, existing)
+          phrasesShareWords(phrase, existing),
         );
 
         if (!overlaps && wordCount >= 2) {
@@ -233,7 +230,7 @@ function convertToErrorFormat(
           if (distractors.length >= 2) break;
 
           const overlaps = distractors.some((existing) =>
-            phrasesShareWords(phrase, existing)
+            phrasesShareWords(phrase, existing),
           );
 
           if (!overlaps && !distractors.includes(phrase)) {
@@ -262,7 +259,7 @@ function convertToErrorFormat(
 
       // Combine correct answer + distractors, then shuffle first 3 choices
       const firstThreeChoices = [correctAnswer, ...distractors].sort(
-        () => Math.random() - 0.5
+        () => Math.random() - 0.5,
       );
       choices = [...firstThreeChoices, "Walang Mali"];
     }
@@ -282,22 +279,37 @@ function convertToErrorFormat(
 export default function ErrorIdentificationPage() {
   const { updateProgress, getExerciseProgress } = useGrammarProgress();
   const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory("grammar", "error-identification");
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
+
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
+  const exerciseProgress = getExerciseProgress("error-identification");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+  const [currentDifficulty] = useState(difficultyToServe);
+
   const {
     dueExercises,
+    newExercises,
+    sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
   } = useSRSWithExercises({
     module: "grammar",
-    exerciseType: "error_identification",
-    targetDifficulty: "easy",
-    limit: 15,
+    exerciseType: "error-identification",
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 20,
   });
 
   const [errorQuestions, setErrorQuestions] = useState<ProcessedErrorItem[]>(
-    []
+    [],
   );
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -306,27 +318,15 @@ export default function ErrorIdentificationPage() {
   const [detailedAnswers, setDetailedAnswers] = useState<ErrorAnswer[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentDifficulty, setCurrentDifficulty] = useState<
-    "easy" | "medium" | "hard"
-  >("easy");
 
   useEffect(() => {
     async function loadQuestions() {
-      if (srsLoading || dueExercises.length === 0) return;
+      if (srsLoading || sessionExercises.length === 0) return;
 
       try {
-        const history = getPerformanceHistory(
-          "grammar",
-          "error-identification"
-        );
-        const targetDifficulty =
-          history.length > 0 ? history[history.length - 1].difficulty : "easy";
-
-        setCurrentDifficulty(targetDifficulty);
-
         // Convert due exercises to error format
         const processedItems = convertToErrorFormat(
-          dueExercises as GrammarExerciseItem[]
+          sessionExercises as GrammarExerciseItem[],
         );
 
         if (processedItems.length === 0) {
@@ -344,7 +344,7 @@ export default function ErrorIdentificationPage() {
     }
 
     loadQuestions();
-  }, [srsLoading, dueExercises]);
+  }, [srsLoading, sessionExercises, difficultyToServe]);
 
   if (authLoading) {
     return (
@@ -381,7 +381,7 @@ export default function ErrorIdentificationPage() {
           ) : (
             <div className="text-center">
               <p className="text-lg text-green-900 mb-2">
-                🎉 No exercises due right now!
+                🎉 No items available right now!
               </p>
               <p className="text-sm text-green-600">
                 Come back later for more practice.
@@ -449,11 +449,11 @@ export default function ErrorIdentificationPage() {
   const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
     const sessionScore = Math.round(
-      (correctCount / errorQuestions.length) * 100
+      (correctCount / errorQuestions.length) * 100,
     );
 
     let similarChoiceErrors = detailedAnswers.filter(
-      (a) => !a.isCorrect
+      (a) => !a.isCorrect,
     ).length;
 
     const history = getPerformanceHistory("grammar", "error-identification");
@@ -471,7 +471,7 @@ export default function ErrorIdentificationPage() {
       "🎯 Next Error ID Difficulty:",
       evaluation.nextDifficulty,
       "| Error Tags:",
-      evaluation.tags
+      evaluation.tags,
     );
 
     await updateExerciseProgress("grammar", "error-identification", {
@@ -594,7 +594,7 @@ export default function ErrorIdentificationPage() {
         isOpen={showCompletion}
         score={Math.round(
           (answers.filter((a) => a === true).length / errorQuestions.length) *
-            100
+            100,
         )}
         correctCount={answers.filter((a) => a === true).length}
         totalQuestions={errorQuestions.length}

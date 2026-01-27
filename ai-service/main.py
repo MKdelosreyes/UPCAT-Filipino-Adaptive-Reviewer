@@ -277,12 +277,52 @@ async def fetch_user_lexical_difficulties(
         resp.raise_for_status()
         data = resp.json()
 
-    difficulties = {}
-    for item in data.get("difficulties", []):
-        lemma_id = item["lemma_id"]
-        score = item["difficulty_score"]
-        difficulties[lemma_id] = score
+    rows = data.get("lexical_difficulties")
+    if rows is None:
+        rows = data.get("difficulties", [])
+    if rows is None:
+        rows = []
+
+    difficulties: Dict[str, float] = {}
+    for item in rows:
+        lemma_id = (item.get("lemma_id") or "").strip()
+        score = item.get("difficulty_score", None)
+        if lemma_id:
+            difficulties[lemma_id] = score
     return difficulties
+
+
+def select_with_adjacent_buckets(annotated: list[tuple[dict, str]], target: Optional[str], limit: int) -> list[dict]:
+    if target not in {"easy", "medium", "hard"}:
+        items = [it for it, _b in annotated]
+        random.shuffle(items)
+        return items[:limit]
+
+    order_map = {
+        "easy": ["easy", "medium", "hard"],
+        "medium": ["medium", "easy", "hard"],
+        "hard": ["hard", "medium", "easy"],
+    }
+    order = order_map[target]
+
+    buckets: dict[str, list[dict]] = {k: []
+                                      for k in ["easy", "medium", "hard"]}
+    for item, bucket in annotated:
+        if bucket in buckets:
+            buckets[bucket].append(item)
+
+    for k in buckets:
+        random.shuffle(buckets[k])
+
+    selected: list[dict] = []
+    for b in order:
+        take = min(limit - len(selected), len(buckets[b]))
+        if take > 0:
+            selected.extend(buckets[b][:take])
+        if len(selected) >= limit:
+            break
+
+    return selected[:limit]
 
 
 def bucket_from_score(score: Optional[float]) -> Optional[str]:
@@ -652,7 +692,7 @@ async def get_vocabulary_exercises_adaptive(
 
     annotated = []
     for item in vocabulary_data:
-        lemma_id = item.get("lemma_id")
+        lemma_id = (item.get("lemma_id") or "").strip()
         score = user_difficulties.get(lemma_id)
         bucket = bucket_from_score(score)
         annotated.append((item, bucket))
@@ -690,6 +730,7 @@ async def get_grammar_exercises_adaptive(
     user_id = request.user_id
     target_difficulty = request.target_difficulty
     limit = request.limit
+    # limit = 10
 
     filtered_items = grammar_data
 
@@ -736,6 +777,10 @@ async def get_grammar_exercises_adaptive(
 
     try:
         user_difficulties = await fetch_user_lexical_difficulties(user_id=user_id, token=token)
+        # TEMP DEBUG
+        sample_keys = list(user_difficulties.keys())[:5]
+        print(
+            f"✅ [grammar] fetched lexical difficulties: {len(user_difficulties)}; sample={sample_keys}")
     except Exception as e:
         print(f"⚠️ Failed to fetch difficulties: {e}")
         selected = select_exercises_with_heuristic()
@@ -743,7 +788,7 @@ async def get_grammar_exercises_adaptive(
 
     annotated = []
     for item in filtered_items:
-        lemma_id = item.get("lemma_id")
+        lemma_id = (item.get("lemma_id") or "").strip()
         score = user_difficulties.get(lemma_id)
 
         if score is not None:
@@ -765,20 +810,28 @@ async def get_grammar_exercises_adaptive(
         else:
             others.append(item)
 
-    selected = []
-    random.shuffle(preferred)
-    selected.extend(preferred[:limit])
+    print(
+        f"📊 [grammar] target={target_difficulty} preferred={len(preferred)} others={len(others)} limit={limit}"
+    )
 
-    if len(selected) < limit:
-        remaining = limit - len(selected)
-        random.shuffle(others)
-        selected.extend(others[:remaining])
+    # selected = []
+    # random.shuffle(preferred)
+    # selected.extend(preferred[:limit])
 
-    if not selected and filtered_items:
-        random.shuffle(filtered_items)
-        selected = filtered_items[:limit]
+    # if len(selected) < limit:
+    #     remaining = limit - len(selected)
+    #     random.shuffle(others)
+    #     selected.extend(others[:remaining])
 
-    return {"exercises": selected[:limit]}
+    # if not selected and filtered_items:
+    #     random.shuffle(filtered_items)
+    #     selected = filtered_items[:limit]
+
+    selected = select_with_adjacent_buckets(
+        annotated, target_difficulty, limit)
+    return {"exercises": selected}
+
+# return {"exercises": selected[:limit]}
 
 
 @app.post("/exercises/sentence-construction")
@@ -789,8 +842,8 @@ async def get_sentence_construction_exercises_adaptive(
     """Get adaptive sentence construction exercises based on user performance."""
     user_id = request.user_id
     target_difficulty = request.target_difficulty
-    # exercise_type = request.exercise_type
     limit = request.limit
+    # limit = 10
 
     # Filter by exercise type if specified
     filtered_items = sentence_construction_data
@@ -843,6 +896,10 @@ async def get_sentence_construction_exercises_adaptive(
     # Try to fetch user-specific difficulties
     try:
         user_difficulties = await fetch_user_lexical_difficulties(user_id=user_id, token=token)
+        # TEMP DEBUG
+        sample_keys = list(user_difficulties.keys())[:5]
+        print(
+            f"✅ [sentence] fetched lexical difficulties: {len(user_difficulties)}; sample={sample_keys}")
     except Exception as e:
         print(
             f"⚠️ Failed to fetch difficulties for sentence construction: {e}")
@@ -852,7 +909,7 @@ async def get_sentence_construction_exercises_adaptive(
     # Annotate items with user-specific or estimated difficulty
     annotated = []
     for item in filtered_items:
-        lemma_id = item.get("lemma_id")
+        lemma_id = (item.get("lemma_id") or "").strip()
         score = user_difficulties.get(lemma_id)
 
         if score is not None:
@@ -875,21 +932,29 @@ async def get_sentence_construction_exercises_adaptive(
         else:
             others.append(item)
 
-    selected = []
-    random.shuffle(preferred)
-    selected.extend(preferred[:limit])
+    print(
+        f"📊 [grammar] target={target_difficulty} preferred={len(preferred)} others={len(others)} limit={limit}"
+    )
 
-    if len(selected) < limit:
-        remaining = limit - len(selected)
-        random.shuffle(others)
-        selected.extend(others[:remaining])
+    # selected = []
+    # random.shuffle(preferred)
+    # selected.extend(preferred[:limit])
 
-    # Fallback to random selection if nothing selected
-    if not selected and filtered_items:
-        random.shuffle(filtered_items)
-        selected = filtered_items[:limit]
+    # if len(selected) < limit:
+    #     remaining = limit - len(selected)
+    #     random.shuffle(others)
+    #     selected.extend(others[:remaining])
 
-    return {"exercises": selected[:limit]}
+    # # Fallback to random selection if nothing selected
+    # if not selected and filtered_items:
+    #     random.shuffle(filtered_items)
+    #     selected = filtered_items[:limit]
+
+    selected = select_with_adjacent_buckets(
+        annotated, target_difficulty, limit)
+    return {"exercises": selected}
+
+    # return {"exercises": selected[:limit]}
 
 
 @app.get("/exercises/lexicon")

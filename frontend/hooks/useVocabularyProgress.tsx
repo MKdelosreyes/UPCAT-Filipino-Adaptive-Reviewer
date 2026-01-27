@@ -63,14 +63,17 @@ export function useVocabularyProgress() {
       vocab.antonym.lastDifficulty,
     ];
 
-    const currentDiff = difficulties.reduce((max, diff) => {
-      if (diff === "hard") return "hard";
-      if (diff === "medium" && max !== "hard") return "medium";
-      return max;
-    }, "easy" as "easy" | "medium" | "hard");
+    const currentDiff = difficulties.reduce(
+      (max, diff) => {
+        if (diff === "hard") return "hard";
+        if (diff === "medium" && max !== "hard") return "medium";
+        return max;
+      },
+      "easy" as "easy" | "medium" | "hard",
+    );
 
     const sessionsAtDiff = allHistory.filter(
-      (h) => h.difficulty === currentDiff
+      (h) => h.difficulty === currentDiff,
     ).length;
 
     const scoresAtDiff = allHistory
@@ -126,10 +129,7 @@ export function useVocabularyProgress() {
     };
   };
 
-  const getExerciseMastery = (
-    exercise: QuizProgress // ✅ Only accepts QuizProgress
-  ): ExerciseMastery => {
-    // ✅ ADD: Safety check for performanceHistory
+  const getExerciseMastery = (exercise: QuizProgress): ExerciseMastery => {
     if (
       !exercise.performanceHistory ||
       exercise.performanceHistory.length === 0
@@ -145,7 +145,7 @@ export function useVocabularyProgress() {
 
     const currentDiff = exercise.lastDifficulty;
     const history = exercise.performanceHistory.filter(
-      (h) => h.difficulty === currentDiff
+      (h) => h.difficulty === currentDiff,
     );
 
     const sessionsAtDifficulty = history.length;
@@ -193,7 +193,7 @@ export function useVocabularyProgress() {
   };
 
   const getExerciseProgress = (
-    exercise: VocabularyExercise
+    exercise: VocabularyExercise,
   ): LessonProgress | QuizProgress => {
     return progress.vocabulary[exercise];
   };
@@ -202,19 +202,19 @@ export function useVocabularyProgress() {
     progress: progress.vocabulary,
     updateProgress: (
       exercise: VocabularyExercise,
-      data: Partial<LessonProgress> | Partial<QuizProgress>
+      data: Partial<LessonProgress> | Partial<QuizProgress>,
     ) => {
       if (exercise === "flashcards") {
         return updateLessonProgress(
           "vocabulary",
           exercise,
-          data as Partial<LessonProgress>
+          data as Partial<LessonProgress>,
         );
       } else {
         return updateQuizProgress(
           "vocabulary",
           exercise,
-          data as Partial<QuizProgress>
+          data as Partial<QuizProgress>,
         );
       }
     },
