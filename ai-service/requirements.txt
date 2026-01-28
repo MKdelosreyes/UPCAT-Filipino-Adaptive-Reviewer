@@ -25,5 +25,5 @@ langchain-groq
 sentence-transformers
 google-generativeai
 groq
-ragas
+# ragas
 # pip install -U google-genai
