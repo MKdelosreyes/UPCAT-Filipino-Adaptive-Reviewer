@@ -36,9 +36,8 @@ SUPABASE_ANON_KEY = env('SUPABASE_ANON_KEY')
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'django-insecure-)3u7t0h1afa-xz-nz1&2=xr!d+c-^=+(p*)7air9$m!m7w-9v7'
 SECRET_KEY = env('SECRET_KEY')
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = env.bool('DEBUG', default=False)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
-DEBUG = True
 
 # ALLOWED_HOSTS = []
 
@@ -103,50 +102,33 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+DATABASE_URL = env("DATABASE_URL", default="").strip()
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE':  'django.db.backends.postgresql',
-#         'NAME': env('DB_NAME'),
-#         'USER': env('DB_USER'),
-#         'PASSWORD': env('DB_PASSWORD'),
-#         'HOST': env('DB_HOST'),
-#         'PORT': env('DB_PORT', default='5432'),
-#     }
-# }
-
-# Database
-if os.getenv('DATABASE_URL'):
+if DATABASE_URL:
     DATABASES = {
-        # 'default': dj_database_url.config(
-        #     default=os.getenv('DATABASE_URL'),
-        #     conn_max_age=600
-        # )
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'postgres',
-            'USER': 'postgres.tvhuizlivrmozpljmevo',
-            'PASSWORD': 'SP@2025upcat',
-            'HOST': 'aws-1-ap-southeast-1.pooler.supabase.com',
-            'PORT': '6543',
-            'OPTIONS': {
-                'sslmode': 'require',
-                'connect_timeout': 10,
-            },
-            'CONN_MAX_AGE': 0,
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+elif env("DB_NAME", default="").strip():
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST": env("DB_HOST"),
+            "PORT": env("DB_PORT", default="5432"),
+            "OPTIONS": {"sslmode": "require", "connect_timeout": 10},
         }
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 

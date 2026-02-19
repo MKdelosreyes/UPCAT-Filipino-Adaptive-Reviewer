@@ -318,7 +318,7 @@ export default function ErrorIdentificationPage() {
   const [detailedAnswers, setDetailedAnswers] = useState<ErrorAnswer[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  
   useEffect(() => {
     async function loadQuestions() {
       if (srsLoading || sessionExercises.length === 0) return;
