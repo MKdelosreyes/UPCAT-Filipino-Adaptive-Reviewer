@@ -223,8 +223,8 @@ export default function PrivacyPolicyPage() {
                   access controls and secure authentication.
                 </p>
                 <p className="text-sm text-gray-500">
-                  Note: No method of transmission or storage is $100\%$ secure,
-                  but we aim to use appropriate safeguards for an educational
+                  Note: No method of transmission or storage is 100% secure, but
+                  we aim to use appropriate safeguards for an educational
                   application.
                 </p>
               </div>
