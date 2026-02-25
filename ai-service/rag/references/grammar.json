@@ -967,6 +967,1166 @@
                 ]
             }
         ]
-    }
+    },
+    {
+    "source": "Balarila ng Wikang Pambansa / KWF / DepEd K-12",
+    "topic": "Filipino Verb Focus System (Pokus ng Pandiwa)",
+    "grammar_sections": [
+      {
+        "section_name": "Actor Focus (Pokus sa Aktor)",
+        "rules": [
+          {
+            "name": "Actor Focus with -um- infix",
+            "description": "The -um- infix marks the actor (doer) as the grammatical subject (ang-marked). Used for voluntary, active actions.",
+            "examples": [
+              {
+                "Root": "kain",
+                "Actor Focus Past": "kumain",
+                "Ongoing": "kumakain",
+                "Future": "kakain"
+              },
+              {
+                "Root": "bili",
+                "Actor Focus Past": "bumili",
+                "Ongoing": "bumibili",
+                "Future": "bibili"
+              },
+              {
+                "Root": "sulat",
+                "Actor Focus Past": "sumulat",
+                "Ongoing": "sumusulat",
+                "Future": "susulat"
+              },
+              {
+                "Sentence": "Kumain ang bata ng mangga.",
+                "English": "The child ate a mango. (child = focus/subject)"
+              }
+            ],
+            "common_errors": "Using mag- when -um- is required, or confusing with object focus.",
+            "difficulty_level": "Intermediate"
+          },
+          {
+            "name": "Actor Focus with mag- prefix",
+            "description": "The mag- prefix marks the actor as focus. Often used for activities that are more deliberate or habitual, or involve external objects.",
+            "examples": [
+              {
+                "Root": "aral",
+                "mag- Past": "nag-aral",
+                "Ongoing": "nag-aaral",
+                "Future": "mag-aaral"
+              },
+              {
+                "Root": "luto",
+                "mag- Past": "nagluto",
+                "Ongoing": "nagluluto",
+                "Future": "magluluto"
+              },
+              {
+                "Root": "trabaho",
+                "mag- Past": "nagtrabaho",
+                "Ongoing": "nagtatrabaho",
+                "Future": "magtatrabaho"
+              },
+              {
+                "Sentence": "Nag-aral ang estudyante ng Filipino.",
+                "English": "The student studied Filipino. (student = focus/subject)"
+              }
+            ],
+            "common_errors": "Mixing up mag- and -um- verbs; using the wrong affix for a given root.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      },
+      {
+        "section_name": "Object Focus (Pokus sa Layon)",
+        "rules": [
+          {
+            "name": "Object Focus with -in suffix/infix",
+            "description": "The -in affix marks the object/patient as the grammatical subject (ang-marked). Highlights what is being acted upon.",
+            "examples": [
+              {
+                "Root": "kain",
+                "Object Focus Past": "kinain",
+                "Ongoing": "kinakain",
+                "Future": "kakainin"
+              },
+              {
+                "Root": "bili",
+                "Object Focus Past": "binili",
+                "Ongoing": "binibili",
+                "Future": "bibilhin"
+              },
+              {
+                "Root": "basa",
+                "Object Focus Past": "binasa",
+                "Ongoing": "binabasa",
+                "Future": "babasahin"
+              },
+              {
+                "Sentence": "Kinain ng bata ang mangga.",
+                "English": "The mango was eaten by the child. (mango = focus/subject)"
+              },
+              {
+                "Contrast": "Kumain ang bata ng mangga. (actor focus) vs. Kinain ng bata ang mangga. (object focus)"
+              }
+            ],
+            "common_errors": "Using actor focus when the object should be the grammatical subject; forgetting -in when the object is the focus.",
+            "difficulty_level": "Advanced"
+          }
+        ]
+      },
+      {
+        "section_name": "Locative Focus (Pokus sa Direksyon/Lugar)",
+        "rules": [
+          {
+            "name": "Locative Focus with -an suffix",
+            "description": "The -an affix marks the location, recipient, or direction as the grammatical subject. Indicates where or to whom the action is directed.",
+            "examples": [
+              {
+                "Root": "bili",
+                "Locative Focus Past": "binilhan",
+                "Ongoing": "binibilhan",
+                "Future": "bibilhan"
+              },
+              {
+                "Root": "sulat",
+                "Locative Focus Past": "sinulatan",
+                "Ongoing": "sinusulatan",
+                "Future": "susulatán"
+              },
+              {
+                "Root": "bigay",
+                "Locative Focus Past": "binigyan",
+                "Ongoing": "binibigyan",
+                "Future": "bibigyan"
+              },
+              {
+                "Sentence": "Binilhan ng nanay ang tindahan ng tinapay.",
+                "English": "The store was bought from by mother for bread. (store = focus/subject)"
+              }
+            ],
+            "common_errors": "Confusing with object focus; using -in when location should be the focus.",
+            "difficulty_level": "Advanced"
+          }
+        ]
+      },
+      {
+        "section_name": "Benefactive Focus (Pokus sa Tagatanggap)",
+        "rules": [
+          {
+            "name": "Benefactive Focus with i- prefix",
+            "description": "The i- prefix marks the beneficiary (recipient) or the thing done for someone as the grammatical subject. Also used when the object is being transferred.",
+            "examples": [
+              {
+                "Root": "bili",
+                "Benefactive Focus Past": "ibinili",
+                "Ongoing": "ibinibili",
+                "Future": "ibili"
+              },
+              {
+                "Root": "sulat",
+                "Benefactive Focus Past": "isinulat",
+                "Ongoing": "isinusulat",
+                "Future": "isusulat"
+              },
+              {
+                "Root": "bigay",
+                "Benefactive Focus Past": "ibinigay",
+                "Ongoing": "ibinibigay",
+                "Future": "ibibigay"
+              },
+              {
+                "Sentence": "Ibinigay ng guro ang libro sa estudyante.",
+                "English": "The book was given by the teacher to the student. (book = focus/subject, transferred object)"
+              }
+            ],
+            "common_errors": "Confusing i- focus with actor focus; not recognizing when beneficiary should be the focus.",
+            "difficulty_level": "Advanced"
+          }
+        ]
+      },
+      {
+        "section_name": "Focus System Summary",
+        "rules": [
+          {
+            "name": "Choosing the Correct Verb Focus",
+            "description": "The ang-marked noun phrase (grammatical subject) determines which focus affix to use. The focus matches the semantic role of the ang-marked element.",
+            "examples": [
+              {
+                "Focus Type": "Actor Focus",
+                "ang-marked element": "Doer of the action",
+                "Affix": "-um- / mag-",
+                "Example": "Kumain ang bata ng mangga."
+              },
+              {
+                "Focus Type": "Object Focus",
+                "ang-marked element": "Thing being acted upon",
+                "Affix": "-in",
+                "Example": "Kinain ng bata ang mangga."
+              },
+              {
+                "Focus Type": "Locative Focus",
+                "ang-marked element": "Place/recipient of action",
+                "Affix": "-an",
+                "Example": "Binilhan ng nanay ang tindahan."
+              },
+              {
+                "Focus Type": "Benefactive Focus",
+                "ang-marked element": "Beneficiary/transferred object",
+                "Affix": "i-",
+                "Example": "Ibinigay ng guro ang libro."
+              }
+            ],
+            "common_errors": "Mismatching the verb affix with the ang-marked noun phrase; applying English subject-verb logic to Filipino.",
+            "difficulty_level": "Advanced"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "KWF Ortograpiyang Pambansa / DepEd K-12",
+    "topic": "Reduplication Rules (Pag-uulit) in Filipino",
+    "grammar_sections": [
+      {
+        "section_name": "CV Reduplication for Verb Aspect",
+        "rules": [
+          {
+            "name": "Contemplated Aspect (Future) via CV Reduplication",
+            "description": "To form the future/contemplated aspect of -um- verbs, reduplicate the first consonant-vowel (CV) of the root word before applying the affix.",
+            "examples": [
+              {
+                "Root": "kain",
+                "Contemplated": "kakain",
+                "Pattern": "ka- + kain"
+              },
+              {
+                "Root": "bili",
+                "Contemplated": "bibili",
+                "Pattern": "bi- + bili"
+              },
+              {
+                "Root": "sulat",
+                "Contemplated": "susulat",
+                "Pattern": "su- + sulat"
+              },
+              {
+                "Root": "lakad",
+                "Contemplated": "lalakad",
+                "Pattern": "la- + lakad"
+              },
+              {
+                "Root": "aral",
+                "With mag-": "mag-aaral",
+                "Pattern": "mag- + a- + aral (vowel reduplication)"
+              }
+            ],
+            "common_errors": "Reduplicating the wrong syllable; forgetting to reduplicate for future tense; applying English future tense 'will' without changing verb form.",
+            "difficulty_level": "Intermediate"
+          },
+          {
+            "name": "Imperfective (Ongoing) Aspect via CV Reduplication",
+            "description": "The ongoing/imperfective aspect adds CV reduplication to the imperfective marker. For mag- verbs: nagCCV-; for -um- verbs: CumCV-.",
+            "examples": [
+              {
+                "Root": "kain",
+                "Ongoing (-um-)": "kumakain",
+                "Explanation": "um + ka + kain"
+              },
+              {
+                "Root": "aral",
+                "Ongoing (mag-)": "nag-aaral",
+                "Explanation": "nag + a + aral"
+              },
+              {
+                "Root": "sulat",
+                "Ongoing (-um-)": "sumusulat",
+                "Explanation": "um-su-sulat"
+              },
+              {
+                "Root": "luto",
+                "Ongoing (mag-)": "nagluluto",
+                "Explanation": "nag + lu + luto"
+              }
+            ],
+            "common_errors": "Using past tense form when ongoing action is intended; forgetting the reduplicated syllable.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      },
+      {
+        "section_name": "Full Word Reduplication",
+        "rules": [
+          {
+            "name": "Full Reduplication for Intensity or Distribution",
+            "description": "Full word reduplication expresses intensity, distribution, repetition, or diminutive meaning. Written with a hyphen between the two parts.",
+            "examples": [
+              {
+                "Word": "dahan-dahan",
+                "Meaning": "very slowly / little by little",
+                "Base": "dahan (slowly)"
+              },
+              {
+                "Word": "isa-isa",
+                "Meaning": "one by one",
+                "Base": "isa (one)"
+              },
+              {
+                "Word": "araw-araw",
+                "Meaning": "every day",
+                "Base": "araw (day)"
+              },
+              {
+                "Word": "bahay-bahay",
+                "Meaning": "each house / toy house",
+                "Base": "bahay (house)"
+              },
+              {
+                "Word": "unti-unti",
+                "Meaning": "little by little",
+                "Base": "unti (a little)"
+              },
+              {
+                "Word": "mabilis-mabilis",
+                "Meaning": "rather quickly / repeatedly fast",
+                "Base": "mabilis (fast)"
+              }
+            ],
+            "common_errors": "Omitting the hyphen; confusing full reduplication with partial reduplication; using reduplication for wrong meaning.",
+            "difficulty_level": "Intermediate"
+          },
+          {
+            "name": "Verb Reduplication for Prolonged/Continuous Action",
+            "description": "Repeating a verb with 'nang' expresses that an action is done continuously or excessively.",
+            "examples": [
+              {
+                "Pattern": "Verb + nang + Verb",
+                "Example": "Kain nang kain si Raul.",
+                "English": "Raul just kept eating and eating."
+              },
+              {
+                "Example": "Tulog nang tulog ang bata.",
+                "English": "The child kept sleeping and sleeping."
+              },
+              {
+                "Example": "Takbo nang takbo ang mga bata.",
+                "English": "The children kept running and running."
+              }
+            ],
+            "common_errors": "Using 'ng' instead of 'nang' in this construction; forgetting that this pattern requires 'nang'.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "KWF Ortograpiyang Pambansa / Balarila ng Wikang Pambansa",
+    "topic": "Linker Rules (Pangawing: na / -ng / -g)",
+    "grammar_sections": [
+      {
+        "section_name": "Linker (Pangawing) Rules",
+        "rules": [
+          {
+            "name": "Choosing Between na and -ng",
+            "description": "Linkers connect modifiers (adjectives, adverbs, relative clauses) to the words they modify. The choice between 'na' and '-ng' depends on the final sound of the preceding word.",
+            "examples": [
+              {
+                "Rule": "Word ends in consonant → use 'na' (separate word)",
+                "Example": "maliit na bahay (small house)",
+                "Note": "maliit ends in 't'"
+              },
+              {
+                "Rule": "Word ends in vowel → attach '-ng'",
+                "Example": "magandang babae (beautiful woman)",
+                "Note": "maganda ends in 'a', so add -ng"
+              },
+              {
+                "Rule": "Word ends in 'n' → attach '-g' (becoming -ng)",
+                "Example": "malaking puno (big tree)",
+                "Note": "malaki + ng = malaking"
+              },
+              {
+                "More Examples": "mabait na bata, matalinong estudyante, masamang ugali, payak na tao"
+              }
+            ],
+            "common_errors": "Using '-ng' after a word ending in a consonant; omitting the linker entirely; forgetting the 'n' + 'g' = 'ng' rule.",
+            "difficulty_level": "Beginner"
+          },
+          {
+            "name": "Linker in Relative Clauses",
+            "description": "Linkers also connect relative clauses to the nouns they modify, following the same phonological rules.",
+            "examples": [
+              {
+                "Sentence": "ang batang kumakanta",
+                "English": "the child who is singing",
+                "Analysis": "bata (ends in 'a') + ng = batang"
+              },
+              {
+                "Sentence": "ang gurong nagtuturo",
+                "English": "the teacher who teaches",
+                "Analysis": "guro (ends in 'o') + ng = gurong"
+              },
+              {
+                "Sentence": "ang taong mabait",
+                "English": "the person who is kind",
+                "Analysis": "tao (ends in 'o') + ng = taong"
+              },
+              {
+                "Sentence": "ang aklat na nabasa ko",
+                "English": "the book that I read",
+                "Analysis": "aklat (ends in 't') → na (separate)"
+              }
+            ],
+            "common_errors": "Omitting the linker in relative clause constructions; applying English relative pronoun (who/which/that) structure.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Filipino Linguistics Research / DepEd K-12 / KWF",
+    "topic": "Po/Opo Respect System and Speech Levels",
+    "grammar_sections": [
+      {
+        "section_name": "Po and Opo Usage",
+        "rules": [
+          {
+            "name": "The Po Particle: Placement and Function",
+            "description": "The particle 'po' is added to sentences when speaking to elders, superiors, or people deserving respect. It is placed after the first word or phrase of the sentence (not at the very end).",
+            "examples": [
+              {
+                "Without po": "Kumain ka na ba?",
+                "With po": "Kumain na po ba kayo?",
+                "Note": "Also shift 'ka' to 'kayo' for more respect"
+              },
+              {
+                "Without po": "Saan ka pupunta?",
+                "With po": "Saan po kayo pupunta?"
+              },
+              {
+                "Without po": "Hindi ako alam.",
+                "With po": "Hindi po ako alam."
+              },
+              {
+                "Rule": "Po is placed after the first content word of the sentence.",
+                "Example": "Maganda po ang panahon ngayon."
+              },
+              {
+                "Wrong placement": "Maganda ang panahon po ngayon.",
+                "Correct": "Maganda po ang panahon ngayon."
+              }
+            ],
+            "common_errors": "Placing 'po' at the end of the sentence instead of after the first content word; omitting 'po' when addressing elders; not shifting 'ka' to 'kayo' in formal respectful speech.",
+            "difficulty_level": "Beginner"
+          },
+          {
+            "name": "Opo vs. Oo and Hindi po vs. Hindi",
+            "description": "When responding to questions, use 'opo' (respectful yes) or 'hindi po' (respectful no) when speaking to elders or superiors. Use 'oo' and 'hindi' in neutral or peer conversations.",
+            "examples": [
+              {
+                "Context": "Speaking to an elder",
+                "Affirmative": "Opo.",
+                "Negative": "Hindi po."
+              },
+              {
+                "Context": "Speaking to a peer",
+                "Affirmative": "Oo.",
+                "Negative": "Hindi."
+              },
+              {
+                "Context": "Speaking to an elder (more formal)",
+                "Affirmative": "Oho.",
+                "Negative": "Hindi ho."
+              },
+              {
+                "Wrong": "Oo, kumain na po ako.",
+                "Correct": "Opo, kumain na ako.",
+                "Note": "Don't mix 'oo' with 'po'"
+              }
+            ],
+            "common_errors": "Mixing 'oo' with 'po' in the same sentence; using 'oo' when 'opo' is required; forgetting 'po' in the negative response.",
+            "difficulty_level": "Beginner"
+          },
+          {
+            "name": "Kayo vs. Ka in Respectful Speech",
+            "description": "When showing respect, 'ka' (informal 'you') shifts to 'kayo' (plural or respectful 'you'), and 'mo' shifts to 'ninyo' or 'nila' accordingly.",
+            "examples": [
+              {
+                "Informal": "Kumain ka na ba?",
+                "Respectful": "Kumain na po ba kayo?"
+              },
+              {
+                "Informal": "Nasaan ang libro mo?",
+                "Respectful": "Nasaan po ang libro ninyo?"
+              },
+              {
+                "Informal": "Ikaw ba ang guro?",
+                "Respectful": "Kayo po ba ang guro?"
+              },
+              {
+                "Note": "The shift to 'kayo/ninyo' shows respect even when speaking to a single person."
+              }
+            ],
+            "common_errors": "Using 'ka/mo' when 'kayo/ninyo' is required in respectful speech; forgetting the pronoun shift when adding 'po'.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "UPCAT Filipino Review Materials / Balarila ng Wikang Pambansa",
+    "topic": "Common Writing Errors: Redundancy and Incomplete Constructions",
+    "grammar_sections": [
+      {
+        "section_name": "Kalabisan (Redundancy)",
+        "rules": [
+          {
+            "name": "Redundant Words and Phrases",
+            "description": "Redundancy (kalabisan) occurs when words that repeat an already-expressed meaning are added unnecessarily. In formal Filipino writing, especially UPCAT, redundant expressions should be avoided.",
+            "examples": [
+              {
+                "Redundant": "umakyat pataas",
+                "Correct": "umakyat",
+                "Why": "'Umakyat' already means to go up"
+              },
+              {
+                "Redundant": "bumaba pababa",
+                "Correct": "bumaba",
+                "Why": "'Bumaba' already means to go down"
+              },
+              {
+                "Redundant": "muling ulitin",
+                "Correct": "ulitin",
+                "Why": "'Muling' duplicates the meaning of 'ulitin' (to repeat)"
+              },
+              {
+                "Redundant": "bago pa lamang",
+                "Correct": "bago pa / bago lamang",
+                "Why": "'Pa' and 'lamang' used together is redundant"
+              },
+              {
+                "Redundant": "bumalik pabalik",
+                "Correct": "bumalik",
+                "Why": "'Bumalik' already implies returning"
+              },
+              {
+                "Redundant": "magkasamang magkasama",
+                "Correct": "magkasama",
+                "Why": "Unnecessary repetition"
+              },
+              {
+                "Redundant": "namatay na patay",
+                "Correct": "namatay / patay na",
+                "Why": "Both express death, redundant together"
+              }
+            ],
+            "common_errors": "Adding direction words (pataas/pababa/pabalik) after verbs that already imply direction; doubling intensifiers.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      },
+      {
+        "section_name": "Kakulangan (Incomplete Constructions)",
+        "rules": [
+          {
+            "name": "Sentence Fragments and Missing Elements",
+            "description": "Incomplete constructions occur when a sentence is missing an essential component — usually the main clause, the subject, or the predicate.",
+            "examples": [
+              {
+                "Incomplete": "Dahil sa ulan.",
+                "Complete": "Hindi siya pumasok dahil sa ulan.",
+                "Missing": "Main (independent) clause"
+              },
+              {
+                "Incomplete": "Ang batang matalino.",
+                "Complete": "Ang batang matalino ay nanalo.",
+                "Missing": "Predicate"
+              },
+              {
+                "Incomplete": "Kumain at uminom.",
+                "Complete": "Kumain at uminom ang bisita.",
+                "Missing": "Subject"
+              },
+              {
+                "Incomplete": "Kung mag-aaral ka.",
+                "Complete": "Kung mag-aaral ka, magiging matagumpay ka.",
+                "Missing": "Main clause (consequence)"
+              },
+              {
+                "Note": "Dependent clauses starting with 'dahil', 'kung', 'nang', 'upang', 'kahit' cannot stand alone as complete sentences."
+              }
+            ],
+            "common_errors": "Treating dependent clauses beginning with 'dahil', 'kung', 'nang' as complete sentences; omitting the subject or predicate in compound sentences.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      },
+      {
+        "section_name": "Di-wastong Pag-uugnay (Faulty Parallelism)",
+        "rules": [
+          {
+            "name": "Parallelism in Coordinated Elements",
+            "description": "When listing actions, qualities, or things in a series connected by 'at', 'o', or similar conjunctions, all items must follow the same grammatical structure.",
+            "examples": [
+              {
+                "Faulty": "Mahilig siyang kumanta, sumayaw, at pagluluto.",
+                "Correct": "Mahilig siyang kumanta, sumayaw, at magluto.",
+                "Problem": "Inconsistent verb forms: kumanta/sumayaw are -um- actor focus; pagluluto is a noun"
+              },
+              {
+                "Faulty": "Matalino, masipag, at may kagandahan.",
+                "Correct": "Matalino, masipag, at maganda.",
+                "Problem": "Mixing adjectives with a noun phrase"
+              },
+              {
+                "Faulty": "Gusto niyang magluto, pagbabasa, at matulog.",
+                "Correct": "Gusto niyang magluto, magbasa, at matulog.",
+                "Problem": "Pagbabasa is a noun, not an infinitive"
+              },
+              {
+                "Rule": "All items in a series must have the same part of speech and grammatical form."
+              }
+            ],
+            "common_errors": "Mixing nouns and verbs in a list; using different verb forms (infinitive vs. gerund vs. noun) in the same series.",
+            "difficulty_level": "Advanced"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "KWF Ortograpiyang Pambansa",
+    "topic": "Hyphenation Rules for Affixed and Borrowed Words",
+    "grammar_sections": [
+      {
+        "section_name": "Gitling (Hyphen) Usage",
+        "rules": [
+          {
+            "name": "Hyphen with Filipino Affixes on Borrowed/English Words",
+            "description": "When Filipino affixes (mag-, nag-, i-, pag-) are attached to borrowed English words or words beginning with a vowel, a hyphen is used to separate the affix from the root.",
+            "examples": [
+              {
+                "Affix + English root": "mag-text → nag-text → mag-te-text (ongoing)",
+                "Note": "hyphen required"
+              },
+              {
+                "Affix + English root": "i-save, i-print, i-download",
+                "Note": "hyphen after i-"
+              },
+              {
+                "Affix + English root": "nag-computer, mag-computer",
+                "Note": "hyphen required"
+              },
+              {
+                "Affix + vowel-starting root": "mag-aral, nag-aral",
+                "Note": "hyphen when root begins with vowel after mag-/nag-"
+              },
+              {
+                "Affix + vowel-starting root": "i-ayos, i-organisa, i-update",
+                "Note": "hyphen required"
+              },
+              {
+                "No hyphen needed": "kumain, bumili, nagluto",
+                "Note": "No hyphen when affix merges smoothly with root (no vowel collision)"
+              }
+            ],
+            "common_errors": "Omitting the hyphen when affixing to vowel-starting or English words; writing 'imagtrabaho' instead of 'nag-trabaho'; incorrect spacing.",
+            "difficulty_level": "Intermediate"
+          },
+          {
+            "name": "Hyphen in Compound Words vs. Reduplication",
+            "description": "Hyphens are used in compound words and reduplicated forms, but NOT between a repeated verb and 'nang' in continuous action constructions.",
+            "examples": [
+              {
+                "Compound words (use hyphen)": "bahay-kubo, araw-gabi, anak-anakan, tanong-sagot"
+              },
+              {
+                "Reduplication (use hyphen)": "dahan-dahan, isa-isa, araw-araw, unti-unti"
+              },
+              {
+                "Continuous action (NO hyphen)": "Kain nang kain.",
+                "Note": "No hyphen; 'nang' is a separate word"
+              },
+              {
+                "Continuous action (NO hyphen)": "Tulog nang tulog ang bata.",
+                "Note": "Verb repeated with nang, no hyphen"
+              }
+            ],
+            "common_errors": "Adding hyphens to 'kain nang kain' type constructions; omitting hyphens in true compound words.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "Filipino Linguistics Research / DepEd K-12",
+    "topic": "Discourse Connectors and Cohesive Devices",
+    "grammar_sections": [
+      {
+        "section_name": "Mga Pang-ugnay sa Diskurso (Discourse Connectors)",
+        "rules": [
+          {
+            "name": "Addition Connectors",
+            "description": "Words and phrases used to add information to what has already been stated.",
+            "examples": [
+              {
+                "Connector": "bukod dito / bukod pa rito",
+                "English": "besides this / in addition to this",
+                "Example": "Matalino siya. Bukod dito, masipag din."
+              },
+              {
+                "Connector": "dagdag pa",
+                "English": "furthermore / additionally",
+                "Example": "Dagdag pa, may kakayahan din siya sa musika."
+              },
+              {
+                "Connector": "gayundin / gayunman",
+                "English": "likewise / similarly",
+                "Example": "Gayundin, kailangan nating mag-aral nang mabuti."
+              },
+              {
+                "Connector": "pati na rin",
+                "English": "also / as well",
+                "Example": "Dumating ang guro. Pati na rin ang mga estudyante."
+              }
+            ],
+            "common_errors": "Confusing 'bukod dito' (addition) with 'maliban dito' (exception); using 'gayunman' when contrast is intended.",
+            "difficulty_level": "Intermediate"
+          },
+          {
+            "name": "Contrast Connectors",
+            "description": "Words and phrases that introduce contrasting or opposing ideas.",
+            "examples": [
+              {
+                "Connector": "ngunit / subalit",
+                "English": "but / however",
+                "Example": "Nag-aral siya, ngunit hindi siya pumasa."
+              },
+              {
+                "Connector": "gayunpaman / gayunman",
+                "English": "nevertheless / however",
+                "Example": "Mahirap ang buhay. Gayunpaman, nagpatuloy siya."
+              },
+              {
+                "Connector": "sa kabila nito / sa kabilang dako",
+                "English": "despite this / on the other hand",
+                "Example": "Sa kabila nito, nagpunyagi pa rin siya."
+              },
+              {
+                "Connector": "samantala",
+                "English": "meanwhile / whereas",
+                "Example": "Nag-aaral ang isa. Samantala, natutulog ang isa pa."
+              }
+            ],
+            "common_errors": "Using 'ngunit' where a cause-effect relationship is needed; confusing contrast with concessive meaning.",
+            "difficulty_level": "Intermediate"
+          },
+          {
+            "name": "Cause and Effect Connectors",
+            "description": "Words and phrases that express cause-and-effect or logical consequences.",
+            "examples": [
+              {
+                "Connector": "kaya / kaya naman",
+                "English": "so / therefore / that is why",
+                "Example": "Nag-aral siya nang mabuti, kaya pumasa siya."
+              },
+              {
+                "Connector": "samakatuwid / dahil dito",
+                "English": "therefore / because of this",
+                "Example": "Samakatuwid, kailangan nating kumilos."
+              },
+              {
+                "Connector": "bunga nito / bilang resulta",
+                "English": "as a result / consequently",
+                "Example": "Bunga nito, nabago ang kanyang pananaw."
+              },
+              {
+                "Connector": "dahil sa / dahil",
+                "English": "because of / because",
+                "Example": "Hindi siya dumating dahil sa ulan."
+              }
+            ],
+            "common_errors": "Starting a sentence with 'Dahil' without a main clause to follow; using 'kaya' where a contrast connector is needed.",
+            "difficulty_level": "Intermediate"
+          },
+          {
+            "name": "Sequence and Summary Connectors",
+            "description": "Words and phrases that organize ideas in a sequence or summarize information.",
+            "examples": [
+              {
+                "Sequence connectors": "una (first), ikalawa (second), ikatlo (third), sa wakas / panghuli (finally), pagkatapos (after/then)"
+              },
+              {
+                "Summary connectors": "sa kabuuan (in summary), sa madaling salita (in short), bilang konklusyon (in conclusion), sa pangkalahatan (in general)"
+              },
+              {
+                "Example (sequence)": "Una, basahin ang teksto. Pagkatapos, sagutin ang mga tanong. Sa wakas, suriin ang iyong mga sagot."
+              },
+              {
+                "Example (summary)": "Sa kabuuan, mahalagang mag-aral nang maaga para sa UPCAT."
+              }
+            ],
+            "common_errors": "Using 'una' as the only sequence marker without completing the sequence; overusing a single connector type in an essay.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "UPCAT Filipino Review Materials / DepEd K-12",
+    "topic": "Sentence Types and Clause Structures",
+    "grammar_sections": [
+      {
+        "section_name": "Kayarian ng Pangungusap (Sentence Structure Types)",
+        "rules": [
+          {
+            "name": "Payak na Pangungusap (Simple Sentence)",
+            "description": "A simple sentence contains a single independent clause with a subject (paksa) and predicate (panaguri). It expresses one complete thought.",
+            "examples": [
+              {
+                "Filipino": "Kumain ang bata.",
+                "English": "The child ate.",
+                "Parts": "Kumain = panaguri; ang bata = paksa"
+              },
+              {
+                "Filipino": "Maganda ang panahon ngayon.",
+                "English": "The weather is beautiful today."
+              },
+              {
+                "Filipino": "Mabilis na tumakbo si Juan.",
+                "English": "Juan ran quickly."
+              }
+            ],
+            "common_errors": "Adding unnecessary subordinating conjunctions that convert simple sentences into fragments.",
+            "difficulty_level": "Beginner"
+          },
+          {
+            "name": "Tambalan na Pangungusap (Compound Sentence)",
+            "description": "A compound sentence joins two or more independent clauses using coordinating conjunctions (at, ngunit, o, kaya).",
+            "examples": [
+              {
+                "Filipino": "Kumain ang bata at uminom siya ng gatas.",
+                "English": "The child ate and drank milk.",
+                "Conjunction": "at (and)"
+              },
+              {
+                "Filipino": "Nag-aral siya, ngunit hindi siya pumasa.",
+                "English": "She studied, but she did not pass.",
+                "Conjunction": "ngunit (but)"
+              },
+              {
+                "Filipino": "Pupunta ka ba, o mananatili ka na lang dito?",
+                "Conjunction": "o (or)"
+              },
+              {
+                "Note": "Each clause can stand alone as a complete sentence."
+              }
+            ],
+            "common_errors": "Using subordinating conjunctions (dahil, kung) to join independent clauses; punctuation errors (missing comma before conjunction).",
+            "difficulty_level": "Intermediate"
+          },
+          {
+            "name": "Hugnayan na Pangungusap (Complex Sentence)",
+            "description": "A complex sentence contains one independent clause and at least one dependent clause introduced by a subordinating conjunction.",
+            "examples": [
+              {
+                "Filipino": "Kumain ang bata nang dumating ang nanay.",
+                "Clause analysis": "Main: Kumain ang bata; Dependent: nang dumating ang nanay (temporal)"
+              },
+              {
+                "Filipino": "Mag-aaral ako kung may panahon.",
+                "Clause analysis": "Main: Mag-aaral ako; Dependent: kung may panahon (conditional)"
+              },
+              {
+                "Filipino": "Natutuwa siya dahil pumasa siya.",
+                "Clause analysis": "Main: Natutuwa siya; Dependent: dahil pumasa siya (causal)"
+              },
+              {
+                "Common subordinators": "dahil (because), kung (if), nang (when - past), kapag (when - habitual), upang/para (so that), kahit (even though), habang (while)"
+              }
+            ],
+            "common_errors": "Treating dependent clauses as complete sentences; confusing subordinating with coordinating conjunctions.",
+            "difficulty_level": "Intermediate"
+          },
+          {
+            "name": "Dependent Clause Types",
+            "description": "Dependent clauses cannot stand alone and must be attached to a main clause. They are introduced by specific subordinating words.",
+            "examples": [
+              {
+                "Type": "Temporal (Panahon)",
+                "Introducer": "nang, habang, pagkatapos na",
+                "Example": "nang dumating siya (when she arrived)"
+              },
+              {
+                "Type": "Conditional (Kondisyonal)",
+                "Introducer": "kung, kapag",
+                "Example": "kung umuulan (if it rains) / kapag umuulan (whenever it rains)"
+              },
+              {
+                "Type": "Causal (Sanhi)",
+                "Introducer": "dahil, sapagkat, yamang",
+                "Example": "dahil nagtrabaho siya (because she worked)"
+              },
+              {
+                "Type": "Purpose (Layunin)",
+                "Introducer": "upang, para",
+                "Example": "upang matuto (in order to learn)"
+              },
+              {
+                "Type": "Concessive (Palaban)",
+                "Introducer": "kahit, bagaman",
+                "Example": "kahit mahirap (even though it's difficult)"
+              },
+              {
+                "Type": "Result (Bunga)",
+                "Introducer": "kaya, kaya naman",
+                "Example": "kaya siya pumasa (that's why she passed)"
+              }
+            ],
+            "common_errors": "Writing dependent clauses as standalone sentences; using the wrong type of clause for the intended meaning.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      },
+      {
+        "section_name": "Paksa at Panaguri (Subject and Predicate Analysis)",
+        "rules": [
+          {
+            "name": "Identifying Subject (Paksa) and Predicate (Panaguri)",
+            "description": "In Filipino, the predicate (panaguri) usually comes before the subject (paksa). The subject is the ang-marked noun phrase; the predicate is everything else.",
+            "examples": [
+              {
+                "Sentence": "Maganda ang bulaklak.",
+                "Panaguri": "Maganda",
+                "Paksa": "ang bulaklak"
+              },
+              {
+                "Sentence": "Kumain ng mangga ang bata.",
+                "Panaguri": "Kumain ng mangga",
+                "Paksa": "ang bata"
+              },
+              {
+                "Sentence": "Si Maria ay matalino.",
+                "Paksa": "Si Maria",
+                "Panaguri": "matalino",
+                "Note": "ay-inversion: subject comes first"
+              },
+              {
+                "Sentence": "Mabilis na tumakbo ang aso.",
+                "Panaguri": "Mabilis na tumakbo",
+                "Paksa": "ang aso"
+              },
+              {
+                "Note": "In ay-inversion (formal), subject appears first followed by 'ay', then predicate."
+              }
+            ],
+            "common_errors": "Confusing grammatical subject (ang-marked) with English subject (the doer); misidentifying subject in ay-inverted sentences.",
+            "difficulty_level": "Advanced"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "UPCAT Filipino Review Materials / DepEd K-12",
+    "topic": "Tayutay (Figures of Speech) — Advanced Review",
+    "grammar_sections": [
+      {
+        "section_name": "Common Tayutay in UPCAT",
+        "rules": [
+          {
+            "name": "Simile (Pagtutulad) and Metaphor (Pagwawangis)",
+            "description": "Simile explicitly compares two things using 'tulad ng', 'gaya ng', 'kasing', 'parang'. Metaphor directly states one thing IS another without using comparison words.",
+            "examples": [
+              {
+                "Simile": "Kasing puti ng busilak ang kanyang balat.",
+                "English": "Her skin is as white as cotton.",
+                "Marker": "kasing"
+              },
+              {
+                "Simile": "Parang batong matigas ang kanyang puso.",
+                "English": "His heart is like a hard stone.",
+                "Marker": "parang"
+              },
+              {
+                "Simile": "Tulad ng agila, lumilipad ang kanyang pangarap.",
+                "Marker": "tulad ng"
+              },
+              {
+                "Metaphor": "Siya ang liwanag ng aking buhay.",
+                "English": "She is the light of my life.",
+                "Note": "No comparison word — directly states identity"
+              },
+              {
+                "Metaphor": "Ang kabataan ay pag-asa ng bayan.",
+                "English": "Youth is the hope of the nation."
+              },
+              {
+                "Key difference": "Simile uses comparison words; metaphor does not — it directly equates two things."
+              }
+            ],
+            "common_errors": "Misclassifying metaphors as similes or vice versa; not recognizing implicit comparison markers.",
+            "difficulty_level": "Advanced"
+          },
+          {
+            "name": "Personification (Pagtatao) and Hyperbole (Pagmamalabis)",
+            "description": "Personification gives human qualities to non-human things. Hyperbole uses extreme exaggeration for emphasis.",
+            "examples": [
+              {
+                "Personification": "Sumayaw ang mga dahon sa hangin.",
+                "English": "The leaves danced in the wind."
+              },
+              {
+                "Personification": "Kumanta ang mga ibon upang batiin ang umaga.",
+                "English": "The birds sang to greet the morning."
+              },
+              {
+                "Personification": "Niyakap ng dilim ang buong lungsod.",
+                "English": "The darkness embraced the entire city."
+              },
+              {
+                "Hyperbole": "Namatay ako sa kahihintay.",
+                "English": "I died waiting. (extreme exaggeration for emphasis)"
+              },
+              {
+                "Hyperbole": "Libo-libong beses ko na itong sinabi.",
+                "English": "I've said this a thousand times."
+              },
+              {
+                "Hyperbole": "Maaari akong kumain ng kabayo sa gutom ko.",
+                "English": "I could eat a horse I'm so hungry."
+              }
+            ],
+            "common_errors": "Confusing personification with metaphor; not recognizing hyperbole as non-literal.",
+            "difficulty_level": "Advanced"
+          },
+          {
+            "name": "Irony (Kabalintunaan) and Alliteration (Pag-uulit-tunog)",
+            "description": "Irony states the opposite of what is meant for effect or sarcasm. Alliteration repeats the same initial consonant sound in consecutive words.",
+            "examples": [
+              {
+                "Irony": "Napakayaman mo naman! (said to someone very poor)",
+                "English": "How rich you are! (sarcastic)"
+              },
+              {
+                "Irony": "Ang talino mo! (said after someone makes a mistake)",
+                "English": "How smart of you! (sarcastic)"
+              },
+              {
+                "Irony": "Maganda talaga ang lagay ng ating bansa! (when things are bad)"
+              },
+              {
+                "Alliteration": "Batang bagito sa bayan",
+                "Repeated sound": "/b/"
+              },
+              {
+                "Alliteration": "Mapagmahal, maamo, at matapang na mandirigma",
+                "Repeated sound": "/m/"
+              },
+              {
+                "Note": "Alliteration is common in Filipino poetry and tongue twisters (bugtong)."
+              }
+            ],
+            "common_errors": "Confusing irony with sarcasm (irony is a broader device); missing alliteration when consonants are not strictly at the start of words.",
+            "difficulty_level": "Advanced"
+          },
+          {
+            "name": "Onomatopoeia (Pagsasatinig) and Apostrophe (Pagtatanong sa Wala)",
+            "description": "Onomatopoeia uses words that imitate sounds. Apostrophe directly addresses an absent, dead, or non-human entity.",
+            "examples": [
+              {
+                "Onomatopoeia": "Kaluskos ng mga dahon sa hangin.",
+                "Sound imitated": "rustling"
+              },
+              {
+                "Onomatopoeia": "Dumaragundong ang kulog.",
+                "Sound imitated": "thunder rumbling"
+              },
+              {
+                "Onomatopoeia": "Tumatangis ang bagyo.",
+                "Sound imitated": "crying sound of storm"
+              },
+              {
+                "Apostrophe": "O Inang Bayan, ilang taon ka nang naghihintay!",
+                "Addressed to": "the nation (non-present)"
+              },
+              {
+                "Apostrophe": "O Kamatayan, bakit mo kinuha ang aking ina?",
+                "Addressed to": "Death (personified abstraction)"
+              }
+            ],
+            "common_errors": "Confusing onomatopoeia with personification; not recognizing apostrophe as a figure of speech distinct from the punctuation mark.",
+            "difficulty_level": "Advanced"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "source": "DepEd K-12 / UPCAT Filipino Review Materials",
+    "topic": "Antas ng Wika (Language Registers) and Formal vs. Informal Filipino",
+    "grammar_sections": [
+      {
+        "section_name": "Four Registers of Filipino",
+        "rules": [
+          {
+            "name": "Pormal (Formal) Register",
+            "description": "Used in official settings, academic writing, government documents, news, speeches. Follows strict grammar rules, avoids colloquialisms and Taglish.",
+            "examples": [
+              {
+                "Context": "Academic writing, UPCAT essays, speeches, news reports"
+              },
+              {
+                "Feature": "Complete sentences, correct grammar, formal vocabulary",
+                "Example": "Ang kabataan ang pag-asa ng ating bansa."
+              },
+              {
+                "Feature": "Use of full Filipino words instead of abbreviations or slang"
+              },
+              {
+                "Feature": "Proper use of po/opo when appropriate"
+              },
+              {
+                "Avoid": "Taglish, slang, contractions, incomplete sentences"
+              }
+            ],
+            "common_errors": "Using informal vocabulary or Taglish in formal essays; omitting required grammar markers in formal speech.",
+            "difficulty_level": "Advanced"
+          },
+          {
+            "name": "Di-pormal (Informal) vs. Kolokyal (Colloquial) Register",
+            "description": "Informal register is used among friends and peers in everyday conversation. Colloquial is even more casual, with heavy use of clipped forms and slang.",
+            "examples": [
+              {
+                "Formal": "Magandang umaga po. Maaari po bang makahingi ng tulong?"
+              },
+              {
+                "Informal": "Good morning! Pwede bang humingi ng tulong?"
+              },
+              {
+                "Colloquial": "Pre, tulungan mo naman ako!"
+              },
+              {
+                "Formal vocabulary": "kumain, pupunta, masaya"
+              },
+              {
+                "Colloquial equivalent": "kain na, punta na, masaya (same, but delivery/context differs)"
+              },
+              {
+                "Clipped forms (kolokyal)": "'di (hindi), 'yon (iyon), 'to (ito), ganon (ganoon), grabe (exaggeration intensifier)"
+              }
+            ],
+            "common_errors": "Using colloquial forms in formal writing; mixing registers inappropriately in academic essays.",
+            "difficulty_level": "Intermediate"
+          }
+        ]
+      }
+    ]
+  }
 ]
 
