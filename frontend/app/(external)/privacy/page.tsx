@@ -22,12 +22,20 @@ export default function PrivacyPolicyPage() {
             ← Back to Home
           </Link>
 
-          <Link
-            href="/login"
-            className="text-gray-700 hover:text-gray-900 font-semibold text-sm"
-          >
-            Go to Login
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/terms"
+              className="text-gray-700 hover:text-gray-900 font-semibold text-sm"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="/login"
+              className="text-gray-700 hover:text-gray-900 font-semibold text-sm"
+            >
+              Go to Login
+            </Link>
+          </div>
         </div>
 
         {/* Card */}
