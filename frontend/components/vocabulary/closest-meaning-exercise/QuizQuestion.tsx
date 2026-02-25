@@ -61,7 +61,7 @@ export default function QuizQuestion({
           // Try to get AI explanation with timeout
           try {
             const timeoutPromise = new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error("AI timeout")), 5000)
+              setTimeout(() => reject(new Error("AI timeout")), 5000),
             );
 
             const aiPromise = getExplanation({
@@ -90,7 +90,7 @@ export default function QuizQuestion({
           const simpleExplanation = buildSimpleExplanation(
             correctAnswer,
             entry.base_definition,
-            entry.relations?.synonyms || []
+            entry.relations?.synonyms || [],
           );
           setExplanation(simpleExplanation);
           setIsAIExplanation(false);
@@ -98,7 +98,7 @@ export default function QuizQuestion({
       } catch (error) {
         console.error("Failed to load explanation:", error);
         setExplanation(
-          "Unable to load explanation. Please try again or click the 'Explain' button below for help."
+          "Unable to load explanation. Please try again or click the 'Explain' button below for help.",
         );
         setIsAIExplanation(false);
       } finally {
@@ -112,7 +112,7 @@ export default function QuizQuestion({
   const buildSimpleExplanation = (
     correct: string,
     meaning: string,
-    synonyms: string[]
+    synonyms: string[],
   ): string => {
     let explanation = `**Correct Answer:** ${correct}\n\n`;
     explanation += `**Meaning:** ${meaning}\n\n`;
@@ -159,14 +159,14 @@ export default function QuizQuestion({
       </div>
 
       {/* Options and Explanation Side by Side */}
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
+      <div className="flex flex-col lg:flex-row gap-6 items-start justify-center">
         {/* Options Container */}
         <motion.div
           animate={{
             flex: showExplanation ? "0 0 42%" : "1 1 100%",
           }}
           transition={{ duration: 0.3 }}
-          className={`w-full mx-3 ${
+          className={`w-full ${
             showExplanation ? "lg:flex-[0_0_42%]" : "lg:mx-60"
           }`}
         >
@@ -188,10 +188,10 @@ export default function QuizQuestion({
                     showCorrect
                       ? "bg-green-100 border-green-500"
                       : showWrong
-                      ? "bg-red-100 border-red-500"
-                      : isSelected
-                      ? "bg-yellow-500 text-white"
-                      : "bg-yellow-100 text-yellow-700"
+                        ? "bg-red-100 border-red-500"
+                        : isSelected
+                          ? "bg-yellow-500 text-white"
+                          : "bg-yellow-100 text-yellow-700"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -201,10 +201,10 @@ export default function QuizQuestion({
                         showCorrect
                           ? "bg-green-500 text-white"
                           : showWrong
-                          ? "bg-red-500 text-white"
-                          : isSelected
-                          ? "bg-yellow-500 text-white"
-                          : "bg-yellow-200 text-yellow-700"
+                            ? "bg-red-500 text-white"
+                            : isSelected
+                              ? "bg-yellow-500 text-white"
+                              : "bg-yellow-200 text-yellow-700"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}

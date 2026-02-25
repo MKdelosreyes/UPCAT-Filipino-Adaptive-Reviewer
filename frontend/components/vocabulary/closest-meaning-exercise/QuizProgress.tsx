@@ -55,7 +55,7 @@ export default function QuizProgress({
       <div className="flex flex-col gap-4 md:hidden">
         {/* Stats Row */}
         <div className="flex gap-3 justify-between items-center">
-          <div className="flex items-center gap-1.5 bg-green-100 px-3 py-1.5 rounded-full">
+          {/* <div className="flex items-center gap-1.5 bg-green-100 px-3 py-1.5 rounded-full">
             <Check size={14} className="text-green-600" />
             <span className="text-xs font-semibold text-green-700">
               {correctCount}
@@ -66,7 +66,42 @@ export default function QuizProgress({
             <span className="text-xs font-semibold text-red-700">
               {wrongCount}
             </span>
+          </div> */}
+
+          {/* Question Indicators */}
+          <div className="flex gap-2 flex-wrap justify-center">
+            {Array.from({ length: totalQuestions }).map((_, index) => {
+              const isAnswered = answers[index] !== null;
+              const isCorrect = answers[index] === true;
+              const isCurrent = index === currentQuestion;
+
+              return (
+                <div
+                  key={index}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+                    isCurrent
+                      ? "border-yellow-500 bg-yellow-100 text-yellow-700 scale-110"
+                      : isCorrect
+                        ? "border-green-500 bg-green-100 text-green-700"
+                        : isAnswered
+                          ? "border-red-500 bg-red-100 text-red-700"
+                          : "border-gray-300 bg-white text-gray-400"
+                  }`}
+                >
+                  {isCorrect ? (
+                    <Check size={14} />
+                  ) : isAnswered ? (
+                    <X size={14} />
+                  ) : isCurrent ? (
+                    index + 1
+                  ) : (
+                    <Circle size={10} />
+                  )}
+                </div>
+              );
+            })}
           </div>
+
           {/* Add to Review Deck Button */}
           <button
             onClick={handleToggleReviewDeck}
@@ -86,46 +121,12 @@ export default function QuizProgress({
             )}
           </button>
         </div>
-
-        {/* Question Indicators */}
-        <div className="flex gap-2 flex-wrap justify-center">
-          {Array.from({ length: totalQuestions }).map((_, index) => {
-            const isAnswered = answers[index] !== null;
-            const isCorrect = answers[index] === true;
-            const isCurrent = index === currentQuestion;
-
-            return (
-              <div
-                key={index}
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
-                  isCurrent
-                    ? "border-yellow-500 bg-yellow-100 text-yellow-700 scale-110"
-                    : isCorrect
-                    ? "border-green-500 bg-green-100 text-green-700"
-                    : isAnswered
-                    ? "border-red-500 bg-red-100 text-red-700"
-                    : "border-gray-300 bg-white text-gray-400"
-                }`}
-              >
-                {isCorrect ? (
-                  <Check size={14} />
-                ) : isAnswered ? (
-                  <X size={14} />
-                ) : isCurrent ? (
-                  index + 1
-                ) : (
-                  <Circle size={10} />
-                )}
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* Desktop/Tablet Layout - Horizontal */}
       <div className="hidden md:flex md:flex-row justify-between items-center">
         {/* Stats */}
-        <div className="flex gap-4">
+        {/* <div className="flex gap-4">
           <div className="flex items-center gap-1.5 bg-green-100 px-3 py-1.5 rounded-full">
             <Check size={14} className="text-green-600" />
             <span className="text-xs font-semibold text-green-700">
@@ -138,7 +139,7 @@ export default function QuizProgress({
               Wrong: {wrongCount}
             </span>
           </div>
-        </div>
+        </div> */}
 
         {/* Question Indicators */}
         <div className="flex gap-2 flex-wrap justify-center">
@@ -154,10 +155,10 @@ export default function QuizProgress({
                   isCurrent
                     ? "border-yellow-500 bg-yellow-100 text-yellow-700 scale-110"
                     : isCorrect
-                    ? "border-green-500 bg-green-100 text-green-700"
-                    : isAnswered
-                    ? "border-red-500 bg-red-100 text-red-700"
-                    : "border-gray-300 bg-white text-gray-400"
+                      ? "border-green-500 bg-green-100 text-green-700"
+                      : isAnswered
+                        ? "border-red-500 bg-red-100 text-red-700"
+                        : "border-gray-300 bg-white text-gray-400"
                 }`}
               >
                 {isCorrect ? (

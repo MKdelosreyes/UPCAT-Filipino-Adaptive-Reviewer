@@ -477,7 +477,7 @@ export default function ClosestMeaningQuizPage() {
   };
 
   return (
-    <div className="h-screen bg-yellow-50 overflow-auto flex flex-col scrollbar-yellow">
+    <div className="h-screen bg-white overflow-auto flex flex-col scrollbar-yellow">
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
         <Link
