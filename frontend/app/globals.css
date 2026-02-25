@@ -163,6 +163,36 @@
   width: 0;
 }
 
+/* ========= */
+.scrollbar-purple {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(178, 125, 181) transparent;
+}
+
+.scrollbar-purple::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-purple::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 8px;
+}
+
+.scrollbar-purple::-webkit-scrollbar-thumb {
+  background: rgb(167, 109, 172);
+  border-radius: 8px;
+}
+
+.scrollbar-purple::-webkit-scrollbar-thumb:hover {
+  background: rgb(187, 117, 192);
+} 
+
+.scrollbar-purple::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
 .scrollbar-blue {
   scrollbar-width: thin;
   scrollbar-color: rgb(13,81,125) transparent;

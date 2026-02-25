@@ -99,7 +99,7 @@ Be concise and educational."""
 # ============================================================
 
 async def handle_redefine(request: RedefineRequest) -> RedefineResponse:
-    """Main handler function with RAG integration using Gemini API"""
+    """Main handler function with RAG integration using Groq API"""
     try:
         print(f"📝 Redefine request - Word: {request.word}")
 

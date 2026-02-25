@@ -82,7 +82,7 @@ export default function RegisterPage() {
             <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Check Your Email! 📧
+            Check Your Email!
           </h2>
           <p className="text-gray-600 mb-6 leading-relaxed">
             We've sent a confirmation link to your email address. Please click

@@ -462,7 +462,7 @@ Keep it brief and educational in Filipino."""
 
 async def handle_explain(request: ExplainRequest, return_chunks: bool = False) -> ExplainResponse:
     """
-    Main handler function with RAG integration using Gemini API
+    Main handler function with RAG integration using Groq API
     """
     try:
         print(
@@ -579,7 +579,7 @@ async def handle_explain(request: ExplainRequest, return_chunks: bool = False) -
             if status['requests_last_1min'] >= 10:
                 print("⚠️ WARNING: High request rate detected")
 
-        print(f"🤖 Calling Gemini with enhanced RAG prompt...")
+        print(f"🤖 Calling Groq with enhanced RAG prompt...")
         print(f"📏 Prompt length: {len(prompt):,} characters")
 
         max_retries = 3

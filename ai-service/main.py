@@ -601,7 +601,7 @@ async def find_confusables(request: ConfusablesRequest):
     """
     raise HTTPException(
         status_code=501,
-        detail="Confusables endpoint requires embeddings. Consider using sentence-transformers instead of OpenAI/Gemini embeddings."
+        detail="Confusables endpoint requires embeddings."
     )
 
 
