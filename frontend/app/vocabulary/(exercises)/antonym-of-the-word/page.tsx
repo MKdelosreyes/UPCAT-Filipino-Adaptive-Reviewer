@@ -52,6 +52,16 @@ interface AntonymAnswer {
   word: string;
 }
 
+type PersistedAntonymSessionV1 = {
+  questions: AntonymItem[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: AntonymAnswer[];
+  currentDifficulty: "easy" | "medium" | "hard";
+};
+
 // Generate antonym questions from AI service data
 async function generateAntonymQuestionsFromService(
   sessionExercises: VocabularyExerciseItem[],
