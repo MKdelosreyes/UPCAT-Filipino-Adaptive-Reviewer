@@ -31,6 +31,10 @@ import {
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import type { QuizProgress as QuizProgressType } from "@/contexts/LearningProgressContext";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
 
 interface QuizItem {
   id: string;
@@ -47,6 +51,16 @@ interface QuizAnswer {
   correctAnswer: string;
   word: string;
 }
+
+type PersistedClosestMeaningSessionV1 = {
+  questions: QuizItem[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: QuizAnswer[];
+  currentDifficulty: "easy" | "medium" | "hard";
+};
 
 // Generate quiz questions from AI service data
 async function generateQuizQuestionsFromService(
@@ -199,8 +213,67 @@ export default function ClosestMeaningQuizPage() {
     "easy" | "medium" | "hard"
   >("easy");
 
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(
+        user,
+        "far:quizSession:vocabulary:closest-meaning",
+      );
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedClosestMeaningSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: questions.length > 0 && !isLoading && !error,
+      snapshot: () => ({
+        questions,
+        currentQuestion,
+        selectedAnswer,
+        showResult,
+        answers,
+        detailedAnswers,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setQuestions(payload.questions);
+        setCurrentQuestion(payload.currentQuestion);
+        setSelectedAnswer(payload.selectedAnswer);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setCurrentDifficulty(payload.currentDifficulty);
+        setError(null);
+        setIsLoading(false);
+        setShowCompletion(false);
+      },
+      validate: (p: any): p is PersistedClosestMeaningSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+        if (!Array.isArray(p.questions)) return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (
+          !(p.selectedAnswer === null || typeof p.selectedAnswer === "string")
+        )
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (!Array.isArray(p.answers)) return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+        if (p.questions.length === 0) return false;
+        if (p.answers.length !== p.questions.length) return false;
+        if (p.currentQuestion >= p.questions.length) return false;
+        return true;
+      },
+    });
+
   useEffect(() => {
     async function loadQuiz() {
+      if (didRestore) return;
       if (srsLoading) return;
       if (!sessionExercises || sessionExercises.length === 0) return;
 
@@ -222,6 +295,10 @@ export default function ClosestMeaningQuizPage() {
 
         setQuestions(qs);
         setAnswers(Array(qs.length).fill(null));
+        setDetailedAnswers([]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load quiz items:", err);
@@ -235,7 +312,7 @@ export default function ClosestMeaningQuizPage() {
       }
     }
     loadQuiz();
-  }, [srsLoading, sessionExercises, difficultyToServe]);
+  }, [didRestore, srsLoading, sessionExercises, difficultyToServe]);
 
   if (authLoading || srsLoading) {
     return (
@@ -262,12 +339,6 @@ export default function ClosestMeaningQuizPage() {
             <h1 className="text-xl md:text-2xl font-bold text-yellow-700">
               What is its Closest Meaning
             </h1>
-            {/* <p className="text-xs text-gray-500 mt-1">
-              Difficulty:{" "}
-              <span className="font-semibold capitalize">
-                {currentDifficulty}
-              </span>
-            </p> */}
           </div>
 
           <div className="w-20"></div>
@@ -311,7 +382,10 @@ export default function ClosestMeaningQuizPage() {
               {error || "No quiz questions available"}
             </p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                clearSession();
+                window.location.reload();
+              }}
               className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
             >
               Retry
@@ -344,14 +418,6 @@ export default function ClosestMeaningQuizPage() {
       },
     ]);
 
-    // Error pattern features
-    const lowFreq = isLowFrequencyWord(currentQuiz.underlinedWord);
-    const similarChoiceError =
-      !isCorrect &&
-      currentQuiz.options.some((opt) =>
-        areSimilarWords(opt, currentQuiz.correctAnswer),
-      );
-
     const score = isCorrect ? 100 : 0;
 
     try {
@@ -370,14 +436,6 @@ export default function ClosestMeaningQuizPage() {
 
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentQuiz.lemma_id, srsGrade);
-
-    // addPerformanceMetrics("vocabulary", "quiz", {
-    //   score,
-    //   difficulty: currentDifficulty,
-    //   missedLowFreq: !isCorrect && lowFreq ? 1 : 0,
-    //   similarChoiceErrors: similarChoiceError ? 1 : 0,
-    //   timestamp: new Date().toISOString(),
-    // });
   };
 
   const handleNext = () => {
@@ -450,6 +508,7 @@ export default function ClosestMeaningQuizPage() {
   };
 
   const resetQuiz = async () => {
+    clearSession();
     try {
       setIsLoading(true);
       const lexiconData = await getLexiconData();
@@ -458,10 +517,7 @@ export default function ClosestMeaningQuizPage() {
         sessionExercises as VocabularyExerciseItem[],
         lexiconData,
       );
-      // const qs = await generateQuizQuestionsFromService(
-      //   sessionExercises,
-      //   lexiconData,
-      // );
+
       setQuestions(qs);
       setCurrentQuestion(0);
       setSelectedAnswer(null);
@@ -492,12 +548,6 @@ export default function ClosestMeaningQuizPage() {
           <h1 className="text-xl md:text-2xl font-bold text-yellow-700">
             What is its Closest Meaning
           </h1>
-          {/* <p className="text-xs text-gray-500 mt-1">
-            Difficulty:{" "}
-            <span className="font-semibold capitalize">
-              {currentDifficulty}
-            </span>
-          </p> */}
         </div>
 
         <button
@@ -518,7 +568,6 @@ export default function ClosestMeaningQuizPage() {
           wordId={currentQuiz.lemma_id}
         />
 
-        {/* Question Component with Animation */}
         <motion.div
           key={currentQuestion}
           initial={{ opacity: 0, x: 50 }}
