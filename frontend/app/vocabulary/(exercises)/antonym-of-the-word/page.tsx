@@ -31,6 +31,10 @@ import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { SRS_GRADES } from "@/utils/srs";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
 
 interface AntonymItem {
   id: string;
@@ -205,8 +209,64 @@ export default function AntonymExercisePage() {
     "easy" | "medium" | "hard"
   >("easy");
 
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(user, "far:quizSession:vocabulary:antonym");
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedAntonymSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: questions.length > 0 && !isLoading && !error,
+      snapshot: () => ({
+        questions,
+        currentQuestion,
+        selectedAnswer,
+        showResult,
+        answers,
+        detailedAnswers,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setQuestions(payload.questions);
+        setCurrentQuestion(payload.currentQuestion);
+        setSelectedAnswer(payload.selectedAnswer);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setCurrentDifficulty(payload.currentDifficulty);
+        setError(null);
+        setIsLoading(false);
+        setShowCompletion(false);
+      },
+      validate: (p: any): p is PersistedAntonymSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+        if (!Array.isArray(p.questions)) return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (
+          !(p.selectedAnswer === null || typeof p.selectedAnswer === "string")
+        )
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (!Array.isArray(p.answers)) return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+        if (p.questions.length === 0) return false;
+        if (p.answers.length !== p.questions.length) return false;
+        if (p.currentQuestion >= p.questions.length) return false;
+        return true;
+      },
+    });
+
   useEffect(() => {
     async function loadQuestions() {
+      if (didRestore) return;
       if (srsLoading) return;
       if (!sessionExercises || sessionExercises.length === 0) return;
 
@@ -228,6 +288,10 @@ export default function AntonymExercisePage() {
 
         setQuestions(qs);
         setAnswers(Array(qs.length).fill(null));
+        setDetailedAnswers([]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load antonym items:", err);
@@ -241,7 +305,7 @@ export default function AntonymExercisePage() {
       }
     }
     loadQuestions();
-  }, [srsLoading, sessionExercises, difficultyToServe]);
+  }, [didRestore, srsLoading, sessionExercises, difficultyToServe]);
 
   if (authLoading || srsLoading) {
     return (
@@ -442,6 +506,7 @@ export default function AntonymExercisePage() {
   };
 
   const resetExercise = async () => {
+    clearSession();
     try {
       setIsLoading(true);
       const [lexiconData] = await Promise.all([getLexiconData()]);
@@ -464,7 +529,7 @@ export default function AntonymExercisePage() {
   };
 
   return (
-    <div className="h-screen bg-yellow-50 overflow-auto flex flex-col scrollbar-yellow">
+    <div className="h-screen bg-white overflow-auto flex flex-col scrollbar-yellow">
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
         <Link

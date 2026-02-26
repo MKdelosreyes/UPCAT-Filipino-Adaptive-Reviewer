@@ -1,6 +1,16 @@
 import { apiClient } from "../client/aiServiceClient";
+import { backendApiClient } from "../client/backendApiClient";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+// Background sync timeout (keep relatively low)
+const PROGRESS_SYNC_TIMEOUT_MS = Number(
+  process.env.NEXT_PUBLIC_PROGRESS_SYNC_TIMEOUT_MS ?? "10000",
+);
+
+// Initial load timeout (allow slower backend to still load)
+const PROGRESS_SYNC_INITIAL_TIMEOUT_MS = Number(
+  process.env.NEXT_PUBLIC_PROGRESS_SYNC_INITIAL_TIMEOUT_MS ?? "30000",
+);
 
 export interface PerformanceMetrics {
   difficulty: 'easy' | 'medium' | 'hard';
@@ -93,13 +103,20 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 }
 
 // API Functions
-export async function getAllProgress(): Promise<AllProgressResponse> {
-  const response = await apiClient.get('/progress/all/');
+export async function getAllProgress(opts?: {
+  timeoutMs?: number;
+  initial?: boolean;
+}): Promise<AllProgressResponse> {
+  const timeoutMs =
+    opts?.timeoutMs ??
+    (opts?.initial ? PROGRESS_SYNC_INITIAL_TIMEOUT_MS : PROGRESS_SYNC_TIMEOUT_MS);
+
+  const response = await backendApiClient.get("/progress/all/", { timeout: timeoutMs });
   return response.data;
 }
 
 export async function getModuleProgress(module: string): Promise<ModuleProgress> {
-  const response = await apiClient.get(`/progress/${module}/`);
+  const response = await backendApiClient.get(`/progress/${module}/`);
   return response.data;
 }
 
@@ -112,8 +129,8 @@ export async function updateExerciseProgress(
     attempts?: number;
     completedAt?: string;
     lastDifficulty?: string;
-    timeSpent?: number; 
-    cardsReviewed?: number; 
+    timeSpent?: number;
+    cardsReviewed?: number;
     lessonsViewed?: number;
     performanceMetrics?: {
       difficulty: string;
@@ -124,7 +141,7 @@ export async function updateExerciseProgress(
     };
   }
 ): Promise<ExerciseProgress> {
-  const response = await apiClient.post(`/progress/${module}/${exercise}/update/`, data);
+  const response = await backendApiClient.post(`/progress/${module}/${exercise}/update/`, data);
   return response.data;
 }
 
@@ -132,13 +149,13 @@ export async function getPerformanceHistory(
   module: string,
   exercise: string
 ): Promise<PerformanceMetrics[]> {
-  const response = await apiClient.get(`/progress/${module}/${exercise}/history/`);
+  const response = await backendApiClient.get(`/progress/${module}/${exercise}/history/`);
   return response.data;
 }
 
 export async function resetProgress(module?: string): Promise<{ message: string }> {
   const url = module ? `/progress/${module}/reset/` : `/progress/reset/all/`;
-  const response = await apiClient.delete(url);
+  const response = await backendApiClient.delete(url);
   return response.data;
 }
 
@@ -157,34 +174,23 @@ export interface SRSCard {
   last_reviewed: string;
 }
 
-export async function getAllSRSCards(): Promise<{
-  all_cards: SRSCard[];
-  due_cards: SRSCard[];
-  due_count: number;
-  total_count: number;
-}> {
-  const response = await apiClient.get('/progress/srs/all/');
+export async function getAllSRSCards() {
+  const response = await backendApiClient.get("/progress/srs/all/");
   return response.data;
 }
 
-export async function getDueSRSCards(): Promise<{
-  cards: SRSCard[];
-  count: number;
-}> {
-  const response = await apiClient.get('/progress/srs/due/');
+export async function getDueSRSCards() {
+  const response = await backendApiClient.get("/progress/srs/due/");
   return response.data;
 }
 
-export async function updateSRSCard(
-  wordId: number,
-  grade: number
-): Promise<SRSCard> {
-  const response = await apiClient.post(`/progress/srs/${wordId}/update/`, { grade });
+export async function updateSRSCard(wordId: number, grade: number) {
+  const response = await backendApiClient.post(`/progress/srs/${wordId}/update/`, { grade });
   return response.data;
 }
 
-export async function resetSRSCard(wordId: number): Promise<{ message: string }> {
-  const response = await apiClient.delete(`/progress/srs/${wordId}/reset/`);
+export async function resetSRSCard(wordId: number) {
+  const response = await backendApiClient.delete(`/progress/srs/${wordId}/reset/`);
   return response.data;
 }
 
@@ -200,42 +206,28 @@ export interface ReviewDeckCard {
   times_reviewed: number;
 }
 
-export async function getReviewDeck(): Promise<{
-  cards: ReviewDeckCard[];
-  count: number;
-}> {
-  const response = await apiClient.get('/progress/review-deck/');
+export async function getReviewDeck() {
+  const response = await backendApiClient.get("/progress/review-deck/");
   return response.data;
 }
 
-export async function addToReviewDeck(wordId: number): Promise<{
-  card: ReviewDeckCard;
-  created: boolean;
-}> {
-  const response = await apiClient.post(`/progress/review-deck/${wordId}/add/`);
+export async function addToReviewDeck(wordId: number) {
+  const response = await backendApiClient.post(`/progress/review-deck/${wordId}/add/`);
   return response.data;
 }
 
-export async function removeFromReviewDeck(wordId: number): Promise<{
-  message: string;
-  deleted: boolean;
-}> {
-  const response = await apiClient.delete(`/progress/review-deck/${wordId}/remove/`);
+export async function removeFromReviewDeck(wordId: number) {
+  const response = await backendApiClient.delete(`/progress/review-deck/${wordId}/remove/`);
   return response.data;
 }
 
-export async function updateReviewDeckItem(
-  wordId: number
-): Promise<ReviewDeckCard> {
-  const response = await apiClient.post(`/progress/review-deck/${wordId}/update/`);
+export async function updateReviewDeckItem(wordId: number) {
+  const response = await backendApiClient.post(`/progress/review-deck/${wordId}/update/`);
   return response.data;
 }
 
-export async function clearReviewDeck(): Promise<{
-  message: string;
-  deleted_count: number;
-}> {
-  const response = await apiClient.delete('/progress/review-deck/clear/');
+export async function clearReviewDeck() {
+  const response = await backendApiClient.delete("/progress/review-deck/clear/");
   return response.data;
 }
 
@@ -261,16 +253,8 @@ export interface LexicalPerformanceEvent {
 export async function recordLexicalPerformance(
   event: LexicalPerformanceEvent
 ): Promise<{ message: string }> {
-  try {
-    const response = await apiClient.post("/progress/performance-event/", event); // ✅ Uses apiClient
-    console.log("✅ Lexical performance recorded successfully");
-    return response.data;
-  } catch (error: any) {
-    console.error("❌ Failed to record lexical performance:", error);
-    console.error("❌ Error response:", error.response?.data);
-    console.error("❌ Error status:", error.response?.status);
-    throw error;
-  }
+  const response = await backendApiClient.post("/progress/performance-event/", event);
+  return response.data;
 }
 
 export async function submitQuizAttempt(

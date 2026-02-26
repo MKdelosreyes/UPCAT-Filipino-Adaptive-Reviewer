@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { useAuth } from "./AuthContext";
 import * as ProgressAPI from "@/lib/api/progress";
 
@@ -125,7 +132,7 @@ interface LearningProgressContextType {
   updateLessonProgress: (
     module: ModuleType,
     exercise: VocabularyLessonExercise | GrammarLessonExercise,
-    data: Partial<LessonProgress>
+    data: Partial<LessonProgress>,
   ) => Promise<void>;
 
   updateQuizProgress: (
@@ -134,7 +141,7 @@ interface LearningProgressContextType {
       ExerciseType,
       VocabularyLessonExercise | GrammarLessonExercise
     >,
-    data: Partial<QuizProgress>
+    data: Partial<QuizProgress>,
   ) => Promise<void>;
 
   resetProgress: (module?: ModuleType) => Promise<void>;
@@ -153,11 +160,11 @@ interface LearningProgressContextType {
       ExerciseType,
       VocabularyLessonExercise | GrammarLessonExercise
     >,
-    metrics: PerformanceMetrics
+    metrics: PerformanceMetrics,
   ) => Promise<void>;
   getPerformanceHistory: (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ) => PerformanceMetrics[];
   getModuleExercises: (module: ModuleType) => ExerciseType[];
   isLessonExercise: (module: ModuleType, exercise: ExerciseType) => boolean;
@@ -234,9 +241,31 @@ export function LearningProgressProvider({
     last_study_date: null as string | null,
   });
 
+  // Prevent "refresh-like" UI flapping and repeated sync storms
+  const hasInitializedRef = useRef(false);
+  const syncInFlightRef = useRef<Promise<void> | null>(null);
+  const backoffMsRef = useRef(0);
+  const nextAllowedSyncAtRef = useRef(0);
+
+  const safeLocalStorageGet = (key: string) => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  };
+
+  const safeLocalStorageSet = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // ignore storage errors
+    }
+  };
+
   const isLessonExercise = (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ): boolean => {
     if (module === "vocabulary") return exercise === "flashcards";
     if (module === "grammar") return exercise === "lesson-cards";
@@ -245,7 +274,7 @@ export function LearningProgressProvider({
 
   const getExerciseProgressTyped = (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ): LessonProgress | QuizProgress | null => {
     const moduleData = progress[module];
 
@@ -289,7 +318,7 @@ export function LearningProgressProvider({
   const updateLessonProgress = async (
     module: ModuleType,
     exercise: VocabularyLessonExercise | GrammarLessonExercise,
-    data: Partial<LessonProgress>
+    data: Partial<LessonProgress>,
   ) => {
     setProgress((prev) => {
       if (module === "vocabulary" && exercise === "flashcards") {
@@ -342,7 +371,7 @@ export function LearningProgressProvider({
       ExerciseType,
       VocabularyLessonExercise | GrammarLessonExercise
     >,
-    data: Partial<QuizProgress>
+    data: Partial<QuizProgress>,
   ) => {
     if (user && tokens) {
       try {
@@ -407,7 +436,7 @@ export function LearningProgressProvider({
   };
 
   const convertBackendToFrontend = (
-    backendModules: ProgressAPI.ModuleProgress[]
+    backendModules: ProgressAPI.ModuleProgress[],
   ): AllModulesProgress => {
     const frontendProgress = { ...defaultProgress };
 
@@ -436,7 +465,7 @@ export function LearningProgressProvider({
                 missedLowFreq: p.missed_low_freq,
                 similarChoiceErrors: p.similar_choice_errors,
                 timestamp: p.timestamp,
-              })
+              }),
             );
 
             vocabProgress[exType] = {
@@ -480,7 +509,7 @@ export function LearningProgressProvider({
                 missedLowFreq: p.missed_low_freq,
                 similarChoiceErrors: p.similar_choice_errors,
                 timestamp: p.timestamp,
-              })
+              }),
             );
 
             grammarProgress[exType] = {
@@ -514,7 +543,7 @@ export function LearningProgressProvider({
                 missedLowFreq: p.missed_low_freq,
                 similarChoiceErrors: p.similar_choice_errors,
                 timestamp: p.timestamp,
-              })
+              }),
             );
 
             sentenceProgress[exType] = {
@@ -548,7 +577,7 @@ export function LearningProgressProvider({
                 missedLowFreq: p.missed_low_freq,
                 similarChoiceErrors: p.similar_choice_errors,
                 timestamp: p.timestamp,
-              })
+              }),
             );
 
             readingProgress[exType] = {
@@ -574,57 +603,105 @@ export function LearningProgressProvider({
     return frontendProgress;
   };
 
-  const syncProgress = async () => {
+  const syncProgress = useCallback(async () => {
     if (!user || !tokens) {
       setProgress(defaultProgress);
       setStudyStreak({ current: 0, longest: 0, last_study_date: null });
+      setError(null);
       setIsLoading(false);
+      hasInitializedRef.current = true;
       return;
     }
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await ProgressAPI.getAllProgress();
-      const convertedProgress = convertBackendToFrontend(response.modules);
-      setProgress(convertedProgress);
-      setStudyStreak(response.study_streak);
-
-      localStorage.setItem(
-        "learning-progress-backup",
-        JSON.stringify({
-          progress: convertedProgress,
-          studyStreak: response.study_streak,
-        })
-      );
-    } catch (err: any) {
-      console.error("Failed to load progress from backend:", err);
-      setError(err.message);
-
-      const backup = localStorage.getItem("learning-progress-backup");
-      if (backup) {
-        try {
-          const parsed = JSON.parse(backup);
-          setProgress(parsed.progress || defaultProgress);
-          setStudyStreak(
-            parsed.studyStreak || {
-              current: 0,
-              longest: 0,
-              last_study_date: null,
-            }
-          );
-        } catch {
-          setProgress(defaultProgress);
-        }
-      }
-    } finally {
-      setIsLoading(false);
+    // Avoid concurrent syncs
+    if (syncInFlightRef.current) {
+      return syncInFlightRef.current;
     }
-  };
+
+    const run = (async () => {
+      const now = Date.now();
+
+      // Backoff gate: if last failures happened, don't hammer backend
+      if (now < nextAllowedSyncAtRef.current) {
+        return;
+      }
+
+      // Only show global loading spinner on the first-ever sync
+      if (!hasInitializedRef.current) {
+        setIsLoading(true);
+      }
+      setError(null);
+
+      try {
+        const response = await ProgressAPI.getAllProgress({
+          initial: !hasInitializedRef.current, // long timeout only for first load
+        });
+        const convertedProgress = convertBackendToFrontend(response.modules);
+
+        setProgress(convertedProgress);
+        setStudyStreak(response.study_streak);
+
+        safeLocalStorageSet(
+          "learning-progress-backup",
+          JSON.stringify({
+            progress: convertedProgress,
+            studyStreak: response.study_streak,
+          }),
+        );
+
+        // Success resets backoff
+        backoffMsRef.current = 0;
+        nextAllowedSyncAtRef.current = 0;
+        hasInitializedRef.current = true;
+      } catch (err: any) {
+        // Failure: increase backoff but DO NOT "refresh" UI
+        const message =
+          typeof err?.message === "string"
+            ? err.message
+            : "Failed to sync progress.";
+
+        setError(message);
+
+        // Exponential backoff: 15s, 30s, 60s, ... max 5 min
+        const next =
+          backoffMsRef.current === 0
+            ? 15000
+            : Math.min(backoffMsRef.current * 2, 300000);
+        backoffMsRef.current = next;
+        nextAllowedSyncAtRef.current = Date.now() + next;
+
+        console.error("Failed to load progress from backend:", err);
+
+        // Try restoring backup WITHOUT throwing
+        const backup = safeLocalStorageGet("learning-progress-backup");
+        if (backup) {
+          try {
+            const parsed = JSON.parse(backup);
+            if (parsed?.progress) setProgress(parsed.progress);
+            if (parsed?.studyStreak) setStudyStreak(parsed.studyStreak);
+          } catch {
+            // If backup is corrupt, keep current in-memory progress instead of resetting
+          }
+        }
+
+        // Consider app "initialized" even on failure so we don't keep toggling big loaders
+        hasInitializedRef.current = true;
+      } finally {
+        // After first attempt, stop global loading spinner
+        setIsLoading(false);
+      }
+    })();
+    syncInFlightRef.current = run;
+    try {
+      await run;
+    } finally {
+      syncInFlightRef.current = null;
+    }
+  }, [user, tokens]);
 
   useEffect(() => {
-    syncProgress();
-  }, [user?.id]);
+    void syncProgress();
+  }, [syncProgress, user?.id, tokens?.access]);
 
   const resetProgress = async (module?: ModuleType) => {
     if (user && tokens) {
@@ -642,10 +719,10 @@ export function LearningProgressProvider({
             module === "vocabulary"
               ? createDefaultVocabularyProgress()
               : module === "grammar"
-              ? createDefaultGrammarProgress()
-              : module === "sentence-construction"
-              ? createDefaultSentenceProgress()
-              : createDefaultReadingProgress(),
+                ? createDefaultGrammarProgress()
+                : module === "sentence-construction"
+                  ? createDefaultSentenceProgress()
+                  : createDefaultReadingProgress(),
         }));
       } else {
         setProgress(defaultProgress);
@@ -760,7 +837,7 @@ export function LearningProgressProvider({
 
   const canAccessExercise = (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ): boolean => {
     return true;
   };
@@ -854,7 +931,7 @@ export function LearningProgressProvider({
       ExerciseType,
       VocabularyLessonExercise | GrammarLessonExercise
     >,
-    metrics: PerformanceMetrics
+    metrics: PerformanceMetrics,
   ) => {
     setProgress((prev) => {
       if (
@@ -933,7 +1010,7 @@ export function LearningProgressProvider({
 
   const getPerformanceHistory = (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ): PerformanceMetrics[] => {
     const exerciseProgress = getExerciseProgressTyped(module, exercise);
 
@@ -978,7 +1055,7 @@ export function useLearningProgress() {
   const context = useContext(LearningProgressContext);
   if (!context) {
     throw new Error(
-      "useLearningProgress must be used within LearningProgressProvider"
+      "useLearningProgress must be used within LearningProgressProvider",
     );
   }
   return context;
