@@ -15,58 +15,38 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
-  const [isClient, setIsClient] = useState(false);
+  // const [isClient, setIsClient] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // useEffect(() => {
+  //   setIsClient(true);
+  // }, []);
 
   const handleStartLearning = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-
-    // Show loading state
     setIsCheckingAuth(true);
-
-    // Small delay to ensure auth state is loaded
     setTimeout(() => {
-      if (user) {
-        router.push("/dashboard");
-      } else {
-        router.push("/login");
-      }
+      router.push(user ? "/dashboard" : "/login");
       setIsCheckingAuth(false);
     }, 100);
   };
 
   const handleStartVocabulary = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-
     setIsCheckingAuth(true);
-
     setTimeout(() => {
-      if (user) {
-        router.push("/vocabulary");
-      } else {
-        router.push("/login");
-      }
+      router.push(user ? "/vocabulary" : "/login");
       setIsCheckingAuth(false);
     }, 100);
   };
 
   const handleStartGrammar = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-
     setIsCheckingAuth(true);
-
     setTimeout(() => {
-      if (user) {
-        router.push("/grammar");
-      } else {
-        router.push("/login");
-      }
+      router.push(user ? "/grammar" : "/login");
       setIsCheckingAuth(false);
     }, 100);
   };
@@ -75,30 +55,18 @@ export default function Home() {
     e: React.MouseEvent<HTMLAnchorElement>,
   ) => {
     e.preventDefault();
-
     setIsCheckingAuth(true);
-
     setTimeout(() => {
-      if (user) {
-        router.push("/sentence-construction");
-      } else {
-        router.push("/login");
-      }
+      router.push(user ? "/sentence-construction" : "/login");
       setIsCheckingAuth(false);
     }, 100);
   };
 
   const handleStartReadingComp = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-
     setIsCheckingAuth(true);
-
     setTimeout(() => {
-      if (user) {
-        router.push("/reading-comprehension");
-      } else {
-        router.push("/login");
-      }
+      router.push(user ? "/reading-comprehension" : "/login");
       setIsCheckingAuth(false);
     }, 100);
   };
@@ -138,13 +106,13 @@ export default function Home() {
     { value: "AI", label: "Powered Learning" },
   ];
 
-  if (!isClient) {
-    return (
-      <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  // if (!isClient) {
+  //   return (
+  //     <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -561,19 +529,19 @@ export default function Home() {
           </p>
 
           <div className="flex items-center justify-center gap-3 text-xs text-gray-500 mb-2">
-            <a
+            <Link
               href="/terms"
               className="hover:text-gray-700 underline underline-offset-2"
             >
               Terms of Service
-            </a>
+            </Link>
             <span aria-hidden="true">•</span>
-            <a
+            <Link
               href="/privacy"
               className="hover:text-gray-700 underline underline-offset-2"
             >
               Privacy Policy
-            </a>
+            </Link>
           </div>
 
           <p className="text-xs text-gray-500">
