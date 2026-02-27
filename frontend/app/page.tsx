@@ -72,7 +72,7 @@ export default function Home() {
   };
 
   const handleStartSentenceConstruct = (
-    e: React.MouseEvent<HTMLAnchorElement>
+    e: React.MouseEvent<HTMLAnchorElement>,
   ) => {
     e.preventDefault();
 
@@ -559,6 +559,23 @@ export default function Home() {
             © 2026 UPCAT Filipino Adaptive Reviewer. Developed as part of BSCS-4
             Special Problem.
           </p>
+
+          <div className="flex items-center justify-center gap-3 text-xs text-gray-500 mb-2">
+            <Link
+              href="/terms"
+              className="hover:text-gray-700 underline underline-offset-2"
+            >
+              Terms of Service
+            </Link>
+            <span aria-hidden="true">•</span>
+            <Link
+              href="/privacy"
+              className="hover:text-gray-700 underline underline-offset-2"
+            >
+              Privacy Policy
+            </Link>
+          </div>
+
           <p className="text-xs text-gray-500">
             An educational project to help students prepare for the University
             of the Philippines College Admission Test
