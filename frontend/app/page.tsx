@@ -561,19 +561,19 @@ export default function Home() {
           </p>
 
           <div className="flex items-center justify-center gap-3 text-xs text-gray-500 mb-2">
-            <Link
+            <a
               href="/terms"
               className="hover:text-gray-700 underline underline-offset-2"
             >
               Terms of Service
-            </Link>
+            </a>
             <span aria-hidden="true">•</span>
-            <Link
+            <a
               href="/privacy"
               className="hover:text-gray-700 underline underline-offset-2"
             >
               Privacy Policy
-            </Link>
+            </a>
           </div>
 
           <p className="text-xs text-gray-500">
