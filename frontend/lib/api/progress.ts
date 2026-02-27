@@ -174,22 +174,31 @@ export interface SRSCard {
   last_reviewed: string;
 }
 
-export async function getAllSRSCards() {
+export interface GetAllSRSCardsResponse {
+  all_cards: SRSCard[];
+}
+
+export interface GetDueSRSCardsResponse {
+  due_cards: SRSCard[];
+}
+
+export async function getAllSRSCards(): Promise<GetAllSRSCardsResponse> {
   const response = await backendApiClient.get("/progress/srs/all/");
   return response.data;
 }
 
-export async function getDueSRSCards() {
+export async function getDueSRSCards(): Promise<GetDueSRSCardsResponse> {
   const response = await backendApiClient.get("/progress/srs/due/");
   return response.data;
 }
 
-export async function updateSRSCard(wordId: number, grade: number) {
+// Keep updateSRSCard/resetSRSCard typed too (optional but recommended)
+export async function updateSRSCard(wordId: number, grade: number): Promise<SRSCard> {
   const response = await backendApiClient.post(`/progress/srs/${wordId}/update/`, { grade });
   return response.data;
 }
 
-export async function resetSRSCard(wordId: number) {
+export async function resetSRSCard(wordId: number): Promise<SRSCard> {
   const response = await backendApiClient.delete(`/progress/srs/${wordId}/reset/`);
   return response.data;
 }
@@ -269,7 +278,7 @@ export async function submitQuizAttempt(
   },
   completedAt?: string
 ): Promise<ExerciseProgress> {
-  const response = await apiClient.post(`/progress/${module}/${exercise}/update/`, {
+  const response = await backendApiClient.post(`/progress/${module}/${exercise}/update/`, {
     status: "in-progress",
     score: metrics.score,
     lastDifficulty: metrics.difficulty,

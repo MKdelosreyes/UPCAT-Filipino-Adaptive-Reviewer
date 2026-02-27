@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import * as ProgressAPI from "@/lib/api/progress";
+import { backendApiClient } from "@/lib/client/backendApiClient";
 
 // Distinguish between lesson and quiz exercises
 export type VocabularyLessonExercise = "flashcards";
@@ -240,6 +241,14 @@ export function LearningProgressProvider({
     longest: 0,
     last_study_date: null as string | null,
   });
+
+  useEffect(() => {
+    if (tokens?.access) {
+      backendApiClient.defaults.headers.common.Authorization = `Bearer ${tokens.access}`;
+    } else {
+      delete backendApiClient.defaults.headers.common.Authorization;
+    }
+  }, [tokens?.access]);
 
   // Prevent "refresh-like" UI flapping and repeated sync storms
   const hasInitializedRef = useRef(false);
@@ -609,7 +618,12 @@ export function LearningProgressProvider({
       setStudyStreak({ current: 0, longest: 0, last_study_date: null });
       setError(null);
       setIsLoading(false);
-      hasInitializedRef.current = true;
+
+      // IMPORTANT:
+      // If we mark initialized here, the first authenticated sync won't show loading,
+      // causing a "0%" flash. Keep this false until we attempt a real authenticated sync.
+      hasInitializedRef.current = false;
+
       return;
     }
 

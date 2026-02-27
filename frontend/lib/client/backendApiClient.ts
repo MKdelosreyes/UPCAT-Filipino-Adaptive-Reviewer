@@ -10,6 +10,11 @@ export const backendApiClient = axios.create({
 backendApiClient.interceptors.request.use((config) => {
   if (typeof window === "undefined") return config;
 
+  // If caller already set Authorization, keep it.
+  const existingAuth =
+    (config.headers as any)?.Authorization ?? (config.headers as any)?.authorization;
+  if (existingAuth) return config;
+
   try {
     const raw = localStorage.getItem("tokens");
     if (!raw) return config;
