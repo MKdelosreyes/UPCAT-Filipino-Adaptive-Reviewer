@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -259,15 +259,22 @@ export default function GrammarFillBlanksPage() {
       },
     });
 
+  const hasSeededQuestionsRef = useRef(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+
   useEffect(() => {
     async function loadQuestions() {
       if (didRestore) return;
       if (srsLoading) return;
+      if (isCompleting || showCompletion) return;
+
+      // ✅ only seed once (avoid resetting to Q1 when difficulty/progress changes)
+      if (hasSeededQuestionsRef.current) return;
+
       if (!sessionExercises || sessionExercises.length === 0) return;
 
       try {
         setIsLoadingQuestions(true);
-        setCurrentDifficulty(difficultyToServe);
 
         const lexiconData = await getLexiconData();
         const lexiconMap = new Map(
@@ -284,13 +291,15 @@ export default function GrammarFillBlanksPage() {
           return;
         }
 
+        // mark seeded BEFORE setting state to avoid any rapid double-run
+        hasSeededQuestionsRef.current = true;
+
         setFillBlanksQuestions(processedItems);
         setAnswers(Array(processedItems.length).fill(null));
         setDetailedAnswers([]);
         setCurrentQuestion(0);
         setSelectedAnswer(null);
         setShowResult(false);
-        setShowCompletion(false);
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load exercises:", err);
@@ -301,7 +310,7 @@ export default function GrammarFillBlanksPage() {
     }
 
     loadQuestions();
-  }, [didRestore, srsLoading, sessionExercises, difficultyToServe]);
+  }, [didRestore, srsLoading, sessionExercises, isCompleting, showCompletion]);
 
   if (authLoading) {
     return (
@@ -445,10 +454,12 @@ export default function GrammarFillBlanksPage() {
 
     let missedLowFreq = 0;
     let similarChoiceErrors = 0;
-
     detailedAnswers.forEach((answer) => {
       if (!answer.isCorrect) similarChoiceErrors++;
     });
+
+    setIsCompleting(true);
+    setShowCompletion(true);
 
     const history = getPerformanceHistory("grammar", "fill-blanks");
     const thisSession = {
@@ -461,33 +472,36 @@ export default function GrammarFillBlanksPage() {
 
     const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    await updateExerciseProgress("grammar", "fill-blanks", {
-      status: "in-progress",
-      score,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      performanceMetrics: {
-        difficulty: currentDifficulty,
+    try {
+      await updateExerciseProgress("grammar", "fill-blanks", {
+        status: "in-progress",
         score,
-        missedLowFreq,
-        similarChoiceErrors,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        performanceMetrics: {
+          difficulty: currentDifficulty,
+          score,
+          missedLowFreq,
+          similarChoiceErrors,
+          errorTags: evaluation.tags,
+        },
+      });
+
+      updateProgress("fill-blanks", {
+        status: "in-progress",
+        score,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
         errorTags: evaluation.tags,
-      },
-    });
-
-    updateProgress("fill-blanks", {
-      status: "in-progress",
-      score,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
-
-    setShowCompletion(true);
+      });
+    } finally {
+      setIsCompleting(false);
+    }
   };
 
   const resetExercise = () => {
     clearSession();
+    hasSeededQuestionsRef.current = false;
     window.location.reload();
   };
 
