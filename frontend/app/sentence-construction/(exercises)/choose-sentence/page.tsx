@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -8,7 +8,10 @@ import ChooseSentenceQuestion from "@/components/sentence-construction/choose-se
 import ChooseSentenceProgress from "@/components/sentence-construction/choose-sentence-exercise/ChooseSentenceProgress";
 import ChooseSentenceCompletionModal from "@/components/sentence-construction/choose-sentence-exercise/ChooseSentenceCompletionModal";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
-import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import {
+  useLearningProgress,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
@@ -17,7 +20,10 @@ import { updateExerciseProgress } from "@/lib/api/progress";
 import { SRS_GRADES } from "@/utils/srs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { QuizProgress } from "@/contexts/LearningProgressContext";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
 
 interface ChooseSentenceAnswer {
   isCorrect: boolean;
@@ -26,6 +32,17 @@ interface ChooseSentenceAnswer {
   context: string;
   lemmaId: string;
 }
+
+type PersistedChooseSentenceSessionV1 = {
+  exercises: SentenceConstructionExerciseItem[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: ChooseSentenceAnswer[];
+  showCompletion: boolean;
+  currentDifficulty: "easy" | "medium" | "hard";
+};
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -56,11 +73,10 @@ export default function ChooseSentencePage() {
       ? ((exerciseProgress as QuizProgress).lastDifficulty ??
         fallbackDifficulty)
       : fallbackDifficulty;
+
   const [currentDifficulty] = useState(difficultyToServe);
 
   const {
-    dueExercises,
-    newExercises,
     sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
@@ -72,6 +88,11 @@ export default function ChooseSentencePage() {
     fetchLimit: 20,
   });
 
+  // NEW: stable list so we don't get reset if sessionExercises changes mid-session
+  const [exercises, setExercises] = useState<
+    SentenceConstructionExerciseItem[]
+  >([]);
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -81,34 +102,127 @@ export default function ChooseSentencePage() {
   >([]);
   const [showCompletion, setShowCompletion] = useState(false);
 
-  useEffect(() => {
-    if (sessionExercises.length > 0) {
-      setAnswers(Array(sessionExercises.length).fill(null));
-    }
-  }, [sessionExercises.length]);
+  // Persisted session (like Closest Meaning)
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(
+        user,
+        "far:quizSession:sentence-construction:choose-sentence",
+      );
 
-  // Compute choices early (unconditionally) so hooks order doesn't change
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedChooseSentenceSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: exercises.length > 0,
+      snapshot: () => ({
+        exercises,
+        currentQuestion,
+        selectedAnswer,
+        showResult,
+        answers,
+        detailedAnswers,
+        showCompletion,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setExercises(payload.exercises);
+        setCurrentQuestion(payload.currentQuestion);
+        setSelectedAnswer(payload.selectedAnswer);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setShowCompletion(payload.showCompletion);
+      },
+      validate: (p: any): p is PersistedChooseSentenceSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+        if (!Array.isArray(p.exercises) || p.exercises.length === 0)
+          return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (
+          !(p.selectedAnswer === null || typeof p.selectedAnswer === "string")
+        )
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (
+          !Array.isArray(p.answers) ||
+          p.answers.length !== p.exercises.length
+        )
+          return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (typeof p.showCompletion !== "boolean") return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+        if (p.currentQuestion >= p.exercises.length) return false;
+
+        const e0 = p.exercises[0];
+        if (
+          !e0 ||
+          typeof e0 !== "object" ||
+          typeof e0.lemma_id !== "string" ||
+          typeof e0.chooseCorrectSentence !== "string" ||
+          typeof e0.chooseContext !== "string" ||
+          !Array.isArray((e0 as any).distractors)
+        ) {
+          return false;
+        }
+        return true;
+      },
+    });
+
+  // Seed once from SRS unless we restored
+  const hasSeededSessionRef = useRef(false);
+  useEffect(() => {
+    if (didRestore) return;
+    if (srsLoading) return;
+    if (hasSeededSessionRef.current) return;
+
+    const list = (sessionExercises ?? []) as SentenceConstructionExerciseItem[];
+    if (list.length === 0) return;
+
+    hasSeededSessionRef.current = true;
+
+    setExercises(list);
+    setAnswers(Array(list.length).fill(null));
+    setDetailedAnswers([]);
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setShowCompletion(false);
+  }, [didRestore, srsLoading, sessionExercises]);
+
+  // Compute current exercise + choices early (unconditionally) so hooks order doesn't change
+  const currentExercise = exercises[currentQuestion];
+  const isLastQuestion =
+    exercises.length > 0 && currentQuestion === exercises.length - 1;
+
   const choices = useMemo(() => {
-    if (sessionExercises.length === 0) return [];
-    const currentExercise = sessionExercises[
-      currentQuestion
-    ] as SentenceConstructionExerciseItem;
+    if (!currentExercise) return [];
     const allChoices = [
       currentExercise.chooseCorrectSentence,
-      ...currentExercise.distractors,
+      ...(currentExercise.distractors || []),
     ];
     return shuffleArray(allChoices);
-  }, [sessionExercises, currentQuestion]);
+  }, [
+    currentExercise?.lemma_id,
+    currentExercise?.chooseCorrectSentence,
+    currentExercise?.distractors,
+  ]);
 
   if (authLoading || srsLoading) {
     return (
-      <div className="h-screen bg-yellow-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+      <div className="h-screen bg-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
-  if (sessionExercises.length === 0) {
+  if (exercises.length === 0) {
     return (
       <div className="h-screen bg-blue-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
@@ -130,29 +244,22 @@ export default function ChooseSentencePage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          {srsLoading ? (
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          ) : (
-            <div className="text-center">
-              <p className="text-lg text-blue-900 mb-2">
-                🎉 No items available right now!
-              </p>
-              <p className="text-sm text-blue-600">
-                Come back later for more practice.
-              </p>
-            </div>
-          )}
+          <div className="text-center">
+            <p className="text-lg text-blue-900 mb-2">
+              🎉 No items available right now!
+            </p>
+            <p className="text-sm text-blue-600">
+              Come back later for more practice.
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
-  const currentExercise = sessionExercises[
-    currentQuestion
-  ] as SentenceConstructionExerciseItem;
-  const isLastQuestion = currentQuestion === sessionExercises.length - 1;
-
   const handleSelectAnswer = async (answer: string) => {
+    if (!currentExercise) return;
+
     setSelectedAnswer(answer);
     setShowResult(true);
 
@@ -200,15 +307,13 @@ export default function ChooseSentencePage() {
 
   const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / sessionExercises.length) * 100);
+    const score = Math.round((correctCount / exercises.length) * 100);
 
     let missedLowFreq = 0;
     let similarChoiceErrors = 0;
 
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
+    detailedAnswers.forEach((a) => {
+      if (!a.isCorrect) similarChoiceErrors++;
     });
 
     const thisSession = {
@@ -220,13 +325,6 @@ export default function ChooseSentencePage() {
     };
 
     const evaluation = evaluateUserPerformance([...history, thisSession]);
-
-    console.log(
-      "🎯 Next Choose Sentence Difficulty:",
-      evaluation.nextDifficulty,
-      "| Error Tags:",
-      evaluation.tags,
-    );
 
     await updateExerciseProgress("sentence-construction", "choose-sentence", {
       status: "in-progress",
@@ -254,6 +352,8 @@ export default function ChooseSentencePage() {
   };
 
   const resetExercise = () => {
+    clearSession();
+    hasSeededSessionRef.current = false;
     window.location.reload();
   };
 
@@ -272,9 +372,6 @@ export default function ChooseSentencePage() {
           <h1 className="text-xl md:text-2xl font-bold text-blue-900">
             Choose the Best Sentence
           </h1>
-          {/* <p className="text-xs text-blue-600 mt-1">
-            {dueExercises.length} exercises due for review
-          </p> */}
         </div>
 
         <button
@@ -289,7 +386,7 @@ export default function ChooseSentencePage() {
       <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
         <ChooseSentenceProgress
           currentQuestion={currentQuestion}
-          totalQuestions={sessionExercises.length}
+          totalQuestions={exercises.length}
           answers={answers}
         />
 
@@ -302,7 +399,7 @@ export default function ChooseSentencePage() {
         >
           <ChooseSentenceQuestion
             questionNumber={currentQuestion + 1}
-            totalQuestions={sessionExercises.length}
+            totalQuestions={exercises.length}
             context={currentExercise.chooseContext}
             choices={choices}
             correctAnswer={currentExercise.chooseCorrectSentence}
@@ -335,11 +432,10 @@ export default function ChooseSentencePage() {
       <ChooseSentenceCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length / sessionExercises.length) *
-            100,
+          (answers.filter((a) => a === true).length / exercises.length) * 100,
         )}
         correctCount={answers.filter((a) => a === true).length}
-        totalQuestions={sessionExercises.length}
+        totalQuestions={exercises.length}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}
       />
