@@ -18,6 +18,10 @@ import { updateExerciseProgress } from "@/lib/api/progress";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import type { QuizProgress } from "@/contexts/LearningProgressContext";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
 
 interface ErrorAnswer {
   isCorrect: boolean;
@@ -36,6 +40,16 @@ interface ProcessedErrorItem {
   correct_answer: string;
   explanation: string;
 }
+
+type PersistedErrorIdentificationSessionV1 = {
+  errorQuestions: ProcessedErrorItem[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: ErrorAnswer[];
+  currentDifficulty: "easy" | "medium" | "hard";
+};
 
 // Helper function to extract phrases from sentence for distractor generation
 function extractPhrasesFromSentence(
@@ -318,13 +332,92 @@ export default function ErrorIdentificationPage() {
   const [detailedAnswers, setDetailedAnswers] = useState<ErrorAnswer[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(
+        user,
+        "far:quizSession:grammar:error-identification",
+      );
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedErrorIdentificationSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: errorQuestions.length > 0 && !error,
+      snapshot: () => ({
+        errorQuestions,
+        currentQuestion,
+        selectedAnswer,
+        showResult,
+        answers,
+        detailedAnswers,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setErrorQuestions(payload.errorQuestions);
+        setCurrentQuestion(payload.currentQuestion);
+        setSelectedAnswer(payload.selectedAnswer);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setError(null);
+        setShowCompletion(false);
+      },
+
+      validate: (p: any): p is PersistedErrorIdentificationSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+
+        if (!Array.isArray(p.errorQuestions) || p.errorQuestions.length === 0)
+          return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (
+          !(p.selectedAnswer === null || typeof p.selectedAnswer === "string")
+        )
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (!Array.isArray(p.answers)) return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+
+        if (p.answers.length !== p.errorQuestions.length) return false;
+        if (p.currentQuestion >= p.errorQuestions.length) return false;
+
+        // light shape check for questions
+        const q0 = p.errorQuestions[0];
+
+        if (
+          !q0 ||
+          typeof q0 !== "object" ||
+          typeof q0.item_id !== "string" ||
+          typeof q0.lemma_id !== "string" ||
+          typeof q0.sentence !== "string" ||
+          typeof q0.question !== "string" ||
+          !Array.isArray(q0.choices) ||
+          typeof q0.correct_answer !== "string" ||
+          typeof q0.explanation !== "string"
+        ) {
+          return false;
+        }
+
+        return true;
+      },
+    });
+
   useEffect(() => {
     async function loadQuestions() {
+      // If we restored a session, do not override it.
+      if (didRestore) return;
+
       if (srsLoading || sessionExercises.length === 0) return;
 
       try {
-        // Convert due exercises to error format
         const processedItems = convertToErrorFormat(
           sessionExercises as GrammarExerciseItem[],
         );
@@ -336,6 +429,11 @@ export default function ErrorIdentificationPage() {
 
         setErrorQuestions(processedItems);
         setAnswers(Array(processedItems.length).fill(null));
+        setDetailedAnswers([]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
+        setShowCompletion(false);
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load exercises:", err);
@@ -344,7 +442,7 @@ export default function ErrorIdentificationPage() {
     }
 
     loadQuestions();
-  }, [srsLoading, sessionExercises, difficultyToServe]);
+  }, [didRestore, srsLoading, sessionExercises, difficultyToServe]);
 
   if (authLoading) {
     return (
@@ -500,6 +598,7 @@ export default function ErrorIdentificationPage() {
   };
 
   const resetExercise = () => {
+    clearSession();
     window.location.reload();
   };
 
