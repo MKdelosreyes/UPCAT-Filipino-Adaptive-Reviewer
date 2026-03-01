@@ -24,7 +24,7 @@ export default function GrammarProgressStepper() {
   const completedQuizzes = quizSteps.filter(
     (s) =>
       (getExerciseProgress(s.key) as QuizProgress).performanceHistory?.length >
-      0
+      0,
   ).length;
 
   return (
@@ -57,13 +57,16 @@ export default function GrammarProgressStepper() {
               : null;
 
           return (
-            <div key={step.id} className="flex flex-col items-center w-full relative">
+            <div
+              key={step.id}
+              className="flex flex-col items-center w-full relative"
+            >
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
                   hasStarted
-                    ? "bg-green-500 border-green-500 text-white"
-                    : "bg-white border-green-300 text-green-600"
+                    ? "bg-green-800 border-green-800 text-white"
+                    : "bg-white border-green-700 text-green-600"
                 }`}
               >
                 {hasStarted && mastery ? (
@@ -73,14 +76,13 @@ export default function GrammarProgressStepper() {
                 )}
               </motion.div>
               <p
-                className={`mt-2 text-xs font-medium text-center w-full ${
-                  hasStarted ? "text-green-700" : "text-gray-500"
+                className={`mt-2 text-xs md:text-sm font-medium text-center w-full ${
+                  hasStarted ? "text-green-900" : "text-gray-600"
                 }`}
               >
                 {step.name}
               </p>
 
-              {/* ✅ FIX: Type guard before accessing timeSpent */}
               {isLesson && hasStarted && (
                 <span className="mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
                   {Math.floor((progress as LessonProgress).timeSpent / 60)}m

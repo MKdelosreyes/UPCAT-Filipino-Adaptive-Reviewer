@@ -16,7 +16,8 @@ export default function SentenceConstructionProgressStepper() {
   const { progress, getExerciseMastery } = useSentenceConstructionProgress();
 
   const completedExercises = steps.filter(
-    (step) => (progress[step.id] as QuizProgress).performanceHistory?.length > 0
+    (step) =>
+      (progress[step.id] as QuizProgress).performanceHistory?.length > 0,
   ).length;
 
   return (
@@ -40,7 +41,10 @@ export default function SentenceConstructionProgressStepper() {
             : null;
 
           return (
-            <div key={step.id} className="flex flex-col items-center w-full relative">
+            <div
+              key={step.id}
+              className="flex flex-col items-center w-full relative"
+            >
               {/* Circle */}
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 ${
@@ -71,9 +75,9 @@ export default function SentenceConstructionProgressStepper() {
                   <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold capitalize">
                     {mastery.level}
                   </span>
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold capitalize">
+                  {/* <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold capitalize">
                     {mastery.difficulty}
-                  </span>
+                  </span> */}
                 </div>
               )}
             </div>
