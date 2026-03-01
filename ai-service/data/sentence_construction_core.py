@@ -3124,22 +3124,22 @@ sentence_construction_data = [
         "completeContext": "Layunin ng bitag.",
         "sampleCompletions": "mahuli ang hayop na sumisira sa kanilang mga pananim"
     },
-    {
-        "item_id": "SC-LEX-183",
-        "lemma_id": "LEX-183",
-        "orderingCorrectSentence": "Patnubay ng guro ang mga estudyante sa tamang landas.",
-        "chooseContext": "May baguhang empleyado at kailangan niya ng gabay sa trabaho.",
-        "chooseCorrectSentence": "Ang patnubay ng magulang ay mahalaga sa paglaki ng anak.",
-        "distractors": [
-            "Ang panunuya ng magulang ay mahalaga sa paglaki ng anak.",
-            "Ang pagpapabaya ng magulang ay mahalaga sa paglaki ng anak.",
-            "Ang panlilibak ng magulang ay mahalaga sa paglaki ng anak."
-        ],
-        "explanation": "Ang 'patnubay' ang tama dahil ito ay tumutukoy sa pagbibigay ng direksyon o alalay sa isang tao.",
-        "incompletePhrase": "Humingi siya ng patnubay upang ________.",
-        "completeContext": "Paghahanap ng gabay.",
-        "sampleCompletions": "makagawa siya ng tamang desisyon sa mahirap na sitwasyon"
-    },
+    # {
+    #     "item_id": "SC-LEX-183",
+    #     "lemma_id": "LEX-183",
+    #     "orderingCorrectSentence": "Patnubay ng guro ang mga estudyante sa tamang landas.",
+    #     "chooseContext": "May baguhang empleyado at kailangan niya ng gabay sa trabaho.",
+    #     "chooseCorrectSentence": "Ang patnubay ng magulang ay mahalaga sa paglaki ng anak.",
+    #     "distractors": [
+    #         "Ang panunuya ng magulang ay mahalaga sa paglaki ng anak.",
+    #         "Ang pagpapabaya ng magulang ay mahalaga sa paglaki ng anak.",
+    #         "Ang panlilibak ng magulang ay mahalaga sa paglaki ng anak."
+    #     ],
+    #     "explanation": "Ang 'patnubay' ang tama dahil ito ay tumutukoy sa pagbibigay ng direksyon o alalay sa isang tao.",
+    #     "incompletePhrase": "Humingi siya ng patnubay upang ________.",
+    #     "completeContext": "Paghahanap ng gabay.",
+    #     "sampleCompletions": "makagawa siya ng tamang desisyon sa mahirap na sitwasyon"
+    # },
     {
         "item_id": "SC-LEX-184",
         "lemma_id": "LEX-184",
