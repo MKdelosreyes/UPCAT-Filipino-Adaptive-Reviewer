@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -24,6 +24,7 @@ import {
   makeUserScopedStorageKey,
   usePersistedQuizSession,
 } from "@/hooks/usePersistedQuizSession";
+import { set } from "zod";
 
 interface OrderingAnswer {
   isCorrect: boolean;
@@ -170,10 +171,14 @@ export default function SentenceOrderingPage() {
       },
     });
 
+  const hasSeededSessionRef = useRef(false);
+
   // Initialize exercises from SRS only if we didn't restore
   useEffect(() => {
     if (didRestore) return;
     if (srsLoading) return;
+
+    if (hasSeededSessionRef.current) return;
 
     const list = (sessionExercises ?? []) as SentenceConstructionExerciseItem[];
     if (list.length === 0) return;
@@ -198,8 +203,8 @@ export default function SentenceOrderingPage() {
 
   if (authLoading || srsLoading) {
     return (
-      <div className="h-screen bg-yellow-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+      <div className="h-screen bg-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -338,6 +343,10 @@ export default function SentenceOrderingPage() {
 
   const resetExercise = () => {
     clearSession();
+
+    hasSeededSessionRef.current = false;
+
+    setExercises([]);
 
     setCurrentQuestion(0);
     setShowResult(false);
