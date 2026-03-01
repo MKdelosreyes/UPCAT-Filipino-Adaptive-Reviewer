@@ -38,13 +38,25 @@ export default function SentenceConstructionCard({
     : null;
 
   const getLastAttempted = (): string | null => {
-    if (exerciseProgress.performanceHistory.length === 0) return null;
+    const candidates: string[] = [];
 
-    const lastTimestamp =
-      exerciseProgress.performanceHistory[
-        exerciseProgress.performanceHistory.length - 1
-      ].timestamp;
-    const date = new Date(lastTimestamp);
+    // Prefer newest of completedAt and performanceHistory timestamp
+    if (exerciseProgress.completedAt)
+      candidates.push(exerciseProgress.completedAt);
+
+    const hist = exerciseProgress.performanceHistory;
+    if (hist.length > 0) {
+      const lastHistTs = hist[hist.length - 1]?.timestamp;
+      if (lastHistTs) candidates.push(lastHistTs);
+    }
+
+    if (candidates.length === 0) return null;
+
+    const newestIso = candidates.reduce((best, cur) => {
+      return new Date(cur).getTime() > new Date(best).getTime() ? cur : best;
+    });
+
+    const date = new Date(newestIso);
     const now = new Date();
     const diffDays = Math.floor(
       (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),

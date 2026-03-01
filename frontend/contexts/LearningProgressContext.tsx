@@ -382,12 +382,101 @@ export function LearningProgressProvider({
     >,
     data: Partial<QuizProgress>,
   ) => {
+    setProgress((prev) => {
+      const applyUpdate = (moduleProgress: any) => {
+        const current = moduleProgress[exercise] as QuizProgress;
+        const next: QuizProgress = {
+          ...current,
+          ...data,
+          // keep required fields sane
+          attempts: current.attempts,
+          performanceHistory: current.performanceHistory ?? [],
+          errorTags: data.errorTags ?? current.errorTags ?? [],
+          lastDifficulty:
+            (data.lastDifficulty as any) ?? current.lastDifficulty ?? "easy",
+        };
+
+        // Increment attempts when a session completes (common call site)
+        if (data.attempts != null) {
+          next.attempts = data.attempts;
+        } else if (data.completedAt) {
+          next.attempts = (current.attempts ?? 0) + 1;
+        }
+
+        // If caller didn't provide performanceHistory, append a minimal metric
+        // so "Last attempted" updates even if syncProgress is slow.
+        if (data.completedAt && data.performanceHistory == null) {
+          const metric: PerformanceMetrics = {
+            difficulty: next.lastDifficulty,
+            score:
+              typeof data.score === "number"
+                ? data.score
+                : (current.score ?? 0),
+            missedLowFreq: 0,
+            similarChoiceErrors: 0,
+            timestamp: data.completedAt,
+          };
+
+          const last =
+            next.performanceHistory[next.performanceHistory.length - 1];
+          const isDuplicate =
+            last &&
+            last.timestamp === metric.timestamp &&
+            last.score === metric.score &&
+            last.difficulty === metric.difficulty;
+
+          if (!isDuplicate) {
+            next.performanceHistory = [...next.performanceHistory, metric];
+          }
+        } else if (data.performanceHistory) {
+          next.performanceHistory = data.performanceHistory;
+        }
+
+        moduleProgress[exercise] = next;
+        return moduleProgress;
+      };
+
+      if (
+        module === "vocabulary" &&
+        (exercise === "quiz" || exercise === "antonym")
+      ) {
+        const moduleProgress = { ...prev[module] } as VocabularyProgress;
+        return { ...prev, [module]: applyUpdate(moduleProgress) };
+      }
+
+      if (
+        module === "grammar" &&
+        (exercise === "error-identification" || exercise === "fill-blanks")
+      ) {
+        const moduleProgress = { ...prev[module] } as GrammarProgress;
+        return { ...prev, [module]: applyUpdate(moduleProgress) };
+      }
+
+      if (
+        module === "sentence-construction" &&
+        (exercise === "sentence-ordering" || exercise === "choose-sentence")
+      ) {
+        const moduleProgress = { ...prev[module] } as SentenceProgress;
+        return { ...prev, [module]: applyUpdate(moduleProgress) };
+      }
+
+      if (
+        module === "reading-comprehension" &&
+        (exercise === "passage-questions" || exercise === "summary-exercise")
+      ) {
+        const moduleProgress = { ...prev[module] } as ReadingProgress;
+        return { ...prev, [module]: applyUpdate(moduleProgress) };
+      }
+
+      return prev;
+    });
+
+    // ✅ Then sync to backend if authenticated
     if (user && tokens) {
       try {
         await ProgressAPI.updateExerciseProgress(module, exercise, {
           status: data.status,
           score: data.score ?? undefined,
-          // attempts: data.attempts,
           completedAt: data.completedAt ?? undefined,
           lastDifficulty: data.lastDifficulty,
         });
@@ -396,51 +485,6 @@ export function LearningProgressProvider({
       } catch (err) {
         console.error("Failed to sync quiz progress:", err);
       }
-    } else {
-      setProgress((prev) => {
-        if (
-          module === "vocabulary" &&
-          (exercise === "quiz" || exercise === "antonym")
-        ) {
-          const moduleProgress = { ...prev[module] } as VocabularyProgress;
-          moduleProgress[exercise] = {
-            ...moduleProgress[exercise],
-            ...data,
-          };
-          return { ...prev, [module]: moduleProgress };
-        } else if (
-          module === "grammar" &&
-          (exercise === "error-identification" || exercise === "fill-blanks")
-        ) {
-          const moduleProgress = { ...prev[module] } as GrammarProgress;
-          moduleProgress[exercise] = {
-            ...moduleProgress[exercise],
-            ...data,
-          };
-          return { ...prev, [module]: moduleProgress };
-        } else if (
-          module === "sentence-construction" &&
-          (exercise === "sentence-ordering" || exercise === "choose-sentence")
-        ) {
-          const moduleProgress = { ...prev[module] } as SentenceProgress;
-          moduleProgress[exercise] = {
-            ...moduleProgress[exercise],
-            ...data,
-          };
-          return { ...prev, [module]: moduleProgress };
-        } else if (
-          module === "reading-comprehension" &&
-          (exercise === "passage-questions" || exercise === "summary-exercise")
-        ) {
-          const moduleProgress = { ...prev[module] } as ReadingProgress;
-          moduleProgress[exercise] = {
-            ...moduleProgress[exercise],
-            ...data,
-          };
-          return { ...prev, [module]: moduleProgress };
-        }
-        return prev;
-      });
     }
   };
 
