@@ -24,6 +24,10 @@ import {
 import { updateExerciseProgress } from "@/lib/api/progress";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
 
 interface FillBlanksAnswer {
   isCorrect: boolean;
@@ -41,6 +45,16 @@ interface ProcessedFillBlanksItem {
   correct_answer: string;
   explanation: string;
 }
+
+type PersistedFillBlanksSessionV1 = {
+  fillBlanksQuestions: ProcessedFillBlanksItem[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: FillBlanksAnswer[];
+  currentDifficulty: "easy" | "medium" | "hard";
+};
 
 // Generate distractors from surface forms
 function generateDistractorsFromSurfaceForms(
@@ -132,11 +146,12 @@ export default function GrammarFillBlanksPage() {
       ? ((exerciseProgress as QuizProgress).lastDifficulty ??
         fallbackDifficulty)
       : fallbackDifficulty;
-  const [currentDifficulty] = useState(difficultyToServe);
+
+  const [currentDifficulty, setCurrentDifficulty] = useState<
+    "easy" | "medium" | "hard"
+  >(difficultyToServe);
 
   const {
-    dueExercises,
-    newExercises,
     sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
@@ -164,18 +179,101 @@ export default function GrammarFillBlanksPage() {
   const [finalScore, setFinalScore] = useState(0);
   const [finalCorrectCount, setFinalCorrectCount] = useState(0);
 
+  // NEW: local loading flag so we don't show "no items" while lexicon fetch/processing runs
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+
+  // NEW: persisted session
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(user, "far:quizSession:grammar:fill-blanks");
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedFillBlanksSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading && !isLoadingQuestions,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: fillBlanksQuestions.length > 0 && !error,
+      snapshot: () => ({
+        fillBlanksQuestions,
+        currentQuestion,
+        selectedAnswer,
+        showResult,
+        answers,
+        detailedAnswers,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setFillBlanksQuestions(payload.fillBlanksQuestions);
+        setCurrentQuestion(payload.currentQuestion);
+        setSelectedAnswer(payload.selectedAnswer);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setCurrentDifficulty(payload.currentDifficulty);
+
+        setError(null);
+        setShowCompletion(false);
+        setIsLoadingQuestions(false);
+      },
+      validate: (p: any): p is PersistedFillBlanksSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+
+        if (
+          !Array.isArray(p.fillBlanksQuestions) ||
+          p.fillBlanksQuestions.length === 0
+        )
+          return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (
+          !(p.selectedAnswer === null || typeof p.selectedAnswer === "string")
+        )
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (!Array.isArray(p.answers)) return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+
+        if (p.answers.length !== p.fillBlanksQuestions.length) return false;
+        if (p.currentQuestion >= p.fillBlanksQuestions.length) return false;
+
+        const q0 = p.fillBlanksQuestions[0];
+        if (
+          !q0 ||
+          typeof q0 !== "object" ||
+          typeof q0.item_id !== "string" ||
+          typeof q0.lemma_id !== "string" ||
+          typeof q0.sentence !== "string" ||
+          !Array.isArray(q0.choices) ||
+          typeof q0.correct_answer !== "string" ||
+          typeof q0.explanation !== "string"
+        ) {
+          return false;
+        }
+
+        return true;
+      },
+    });
+
   useEffect(() => {
     async function loadQuestions() {
-      if (srsLoading || sessionExercises.length === 0) return;
+      if (didRestore) return;
+      if (srsLoading) return;
+      if (!sessionExercises || sessionExercises.length === 0) return;
 
       try {
-        // Fetch lexicon data for distractors
+        setIsLoadingQuestions(true);
+        setCurrentDifficulty(difficultyToServe);
+
         const lexiconData = await getLexiconData();
         const lexiconMap = new Map(
           lexiconData.map((item: LexiconItem) => [item.lemma_id, item]),
         );
 
-        // Convert due exercises to fill-blanks format
         const processedItems = convertToFillBlanksFormat(
           sessionExercises as GrammarExerciseItem[],
           lexiconMap,
@@ -188,15 +286,22 @@ export default function GrammarFillBlanksPage() {
 
         setFillBlanksQuestions(processedItems);
         setAnswers(Array(processedItems.length).fill(null));
+        setDetailedAnswers([]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
+        setShowCompletion(false);
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load exercises:", err);
         setError("Failed to load exercises");
+      } finally {
+        setIsLoadingQuestions(false);
       }
     }
 
     loadQuestions();
-  }, [srsLoading, sessionExercises, difficultyToServe]);
+  }, [didRestore, srsLoading, sessionExercises, difficultyToServe]);
 
   if (authLoading) {
     return (
@@ -206,7 +311,8 @@ export default function GrammarFillBlanksPage() {
     );
   }
 
-  if (srsLoading || fillBlanksQuestions.length === 0) {
+  // Loading state (SRS + local question-building)
+  if (srsLoading || isLoadingQuestions) {
     return (
       <div className="h-screen bg-green-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
@@ -228,18 +334,52 @@ export default function GrammarFillBlanksPage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          {srsLoading ? (
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-          ) : (
-            <div className="text-center">
-              <p className="text-lg text-green-900 mb-2">
-                🎉 No items available right now!
-              </p>
-              <p className="text-sm text-green-600">
-                Come back later for more practice.
-              </p>
-            </div>
-          )}
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-green-700 font-semibold">Loading exercises...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error / empty state
+  if (error || fillBlanksQuestions.length === 0) {
+    return (
+      <div className="h-screen bg-green-50 flex flex-col">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
+          <Link
+            href="/grammar"
+            className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Link>
+
+          <div className="text-center flex-1 px-4">
+            <h1 className="text-xl md:text-2xl font-bold text-green-900">
+              Fill the Blank
+            </h1>
+          </div>
+
+          <div className="w-20"></div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            <p className="text-red-600 font-semibold mb-4">
+              {error || "No exercises available"}
+            </p>
+            <button
+              onClick={() => {
+                clearSession();
+                window.location.reload();
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -248,7 +388,6 @@ export default function GrammarFillBlanksPage() {
   const currentFillBlanks = fillBlanksQuestions[currentQuestion];
   const isLastQuestion = currentQuestion === fillBlanksQuestions.length - 1;
 
-  // Handle answer selection with performance tracking
   const handleSelectAnswer = async (answer: string) => {
     setSelectedAnswer(answer);
     setShowResult(true);
@@ -291,11 +430,10 @@ export default function GrammarFillBlanksPage() {
     if (isLastQuestion) {
       void completeExercise();
       return;
-    } else {
-      setCurrentQuestion((prev) => prev + 1);
-      setSelectedAnswer(null);
-      setShowResult(false);
     }
+    setCurrentQuestion((prev) => prev + 1);
+    setSelectedAnswer(null);
+    setShowResult(false);
   };
 
   const completeExercise = async () => {
@@ -309,15 +447,13 @@ export default function GrammarFillBlanksPage() {
     let similarChoiceErrors = 0;
 
     detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
+      if (!answer.isCorrect) similarChoiceErrors++;
     });
 
     const history = getPerformanceHistory("grammar", "fill-blanks");
     const thisSession = {
       difficulty: currentDifficulty,
-      score: score,
+      score,
       missedLowFreq,
       similarChoiceErrors,
       timestamp: new Date().toISOString(),
@@ -327,12 +463,12 @@ export default function GrammarFillBlanksPage() {
 
     await updateExerciseProgress("grammar", "fill-blanks", {
       status: "in-progress",
-      score: score,
+      score,
       completedAt: new Date().toISOString(),
       lastDifficulty: evaluation.nextDifficulty,
       performanceMetrics: {
         difficulty: currentDifficulty,
-        score: score,
+        score,
         missedLowFreq,
         similarChoiceErrors,
         errorTags: evaluation.tags,
@@ -351,6 +487,7 @@ export default function GrammarFillBlanksPage() {
   };
 
   const resetExercise = () => {
+    clearSession();
     window.location.reload();
   };
 
@@ -370,13 +507,6 @@ export default function GrammarFillBlanksPage() {
           <h1 className="text-xl md:text-2xl font-bold text-green-900">
             Complete the Sentence
           </h1>
-          {/* <p className="text-xs text-green-600 mt-1">
-            Difficulty:{" "}
-            <span className="font-semibold capitalize">
-              {currentDifficulty}
-            </span>{" "}
-            | {fillBlanksQuestions.length} exercises due
-          </p> */}
         </div>
 
         <button
