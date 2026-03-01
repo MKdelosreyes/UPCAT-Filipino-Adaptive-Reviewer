@@ -748,7 +748,10 @@ lexicon_data = [
         "base_definition": "Kalagayan ng matinding kakulangan, lalo na sa salapi o kabuhayan; lubhang kahirapan.",
         "surface_forms": [
             "hikahos",
-            "kahikahusan"
+            "kahikahusan",
+            "naghikahos",
+            "naghihikahos",
+            "pagkahikahos"
         ],
         "relations": {
             "synonyms": ["dukha", "hirap", "kapos"],
@@ -1050,8 +1053,6 @@ lexicon_data = [
         "base_definition": "Pinakaubod o pinakaloob na bahagi; maaaring tumukoy sa pisikal na gitna o sa pinakamalalim na damdamin o kalooban.",
         "surface_forms": [
             "kaibuturan",
-            "kaibuturan ng",
-            "sa kaibuturan"
         ],
         "relations": {
             "synonyms": ["kaibuturan-ng-loob", "pinakaloob", "ubod"],
@@ -1136,8 +1137,6 @@ lexicon_data = [
         "base_definition": "Kabuluhan, saysay, o dahilan kung bakit may halaga ang isang bagay o ginagawa.",
         "surface_forms": [
             "kapararakan",
-            "may kapararakan",
-            "walang kapararakan"
         ],
         "relations": {
             "synonyms": ["kabuluhan", "saysay", "kahulugan"],
@@ -1150,8 +1149,6 @@ lexicon_data = [
         "base_definition": "Samahan o ugnayan ng mga taong nagkakaisa sa isang layunin o interes; maaaring pormal na organisasyon o di‑pormal na samahan.",
         "surface_forms": [
             "kapatiran",
-            "kakapatiran",
-            "kapatiran"
         ],
         "relations": {
             "synonyms": ["samahan", "brotherhood", "organisasyon"],
@@ -1165,7 +1162,6 @@ lexicon_data = [
         "surface_forms": [
             "katiwalian",
             "tiwali",
-            "katiwalian"
         ],
         "relations": {
             "synonyms": ["korupsiyon", "anomalya", "panlalamang"],
@@ -1179,7 +1175,6 @@ lexicon_data = [
         "surface_forms": [
             "katuwang",
             "magkatuwang",
-            "katuwang sa"
         ],
         "relations": {
             "synonyms": ["kasama", "katulong", "kaagapay"],
@@ -1222,8 +1217,6 @@ lexicon_data = [
         "base_definition": "Isang tradisyonal na instrumentong de-kuwerdas ng ilang pangkat-etniko sa Pilipinas.",
         "surface_forms": [
             "kudyapi",
-            "kudyapi't",
-            "tumugtog ng kudyapi"
         ],
         "relations": {
             "synonyms": ["instrumentong de-kuwerdas"],
@@ -1251,7 +1244,6 @@ lexicon_data = [
         "base_definition": "Tahimik at payapang sandali o pakiramdam na nagbibigay-lugod at katahimikan ng isip.",
         "surface_forms": [
             "lamikmik",
-            "lamikmik ng buhay"
         ],
         "relations": {
             "synonyms": ["kapayapaan", "katahimikan", "paghinga"],
@@ -1322,8 +1314,6 @@ lexicon_data = [
         "base_definition": "Kakayahan o istilo ng pamumuno; paraan ng paggabay sa isang grupo o organisasyon.",
         "surface_forms": [
             "liderato",
-            "pamumuno",
-            "uri ng liderato"
         ],
         "relations": {
             "synonyms": ["pamumuno", "pangunguna"],
@@ -1435,7 +1425,6 @@ lexicon_data = [
         "lemma": "lunduyan",
         "base_definition": "Lugar na pinagmumulan o pinagtitipunan ng isang bagay, tulad ng kalakalan, kultura, o karunungan.",
         "surface_forms": [
-            "lunduyan",
             "lunduyan"
         ],
         "relations": {
@@ -1463,7 +1452,6 @@ lexicon_data = [
         "lemma": "lunsaran",
         "base_definition": "Lugar na pinagmumulan o pinagdadaungan ng mga sasakyang pandagat; maaari ring tumukoy sa panimulang pook ng isang gawain.",
         "surface_forms": [
-            "lunsaran",
             "lunsaran"
         ],
         "relations": {
@@ -1506,7 +1494,6 @@ lexicon_data = [
         "surface_forms": [
             "maalwan",
             "kaalwanan",
-            "mas-maalwan"
         ],
         "relations": {
             "synonyms": ["maginhawa", "madali", "kampante"],
@@ -1535,7 +1522,7 @@ lexicon_data = [
         "surface_forms": [
             "mabulas",
             "kabulasan",
-            "bulás"
+            "bulas"
         ],
         "relations": {
             "synonyms": ["malusog", "matipuno", "masigla-ang-tubo"],
@@ -1548,7 +1535,7 @@ lexicon_data = [
         "base_definition": "Hindi matatag o madaling matinag; ginagamit sa lakad, bagay, o pundasyon.",
         "surface_forms": [
             "mabuway",
-            "pagkabuwal",
+            "pagkabuway",
             "pagkamabuway"
         ],
         "relations": {
@@ -1591,7 +1578,6 @@ lexicon_data = [
         "base_definition": "Bagay o kagamitan na ginagamit upang magawa ang isang gawain o tungkulin.",
         "surface_forms": [
             "kasangkapan",
-            "kasangkapan"
         ],
         "relations": {
             "synonyms": ["kagamitan", "tools", "aparato"],
@@ -1619,7 +1605,7 @@ lexicon_data = [
         "surface_forms": [
             "manggagaway",
             "panggagaway",
-            "manggagaway"
+            "nanggagaway"
         ],
         "relations": {
             "synonyms": ["mangkukulam", "salamangkero-sa-masama"],
@@ -1676,7 +1662,6 @@ lexicon_data = [
         "surface_forms": [
             "layaw",
             "palayaw",
-            "layaw sa",
             "mapagpalayaw"
         ],
         "relations": {
@@ -1721,7 +1706,6 @@ lexicon_data = [
             "pukaw",
             "mapukaw",
             "napukaw",
-            "mapukaw ang",
             "pagpukaw"
         ],
         "relations": {
@@ -1806,7 +1790,7 @@ lexicon_data = [
         "base_definition": "Lubos at taimtim; masinsing nakatuon ang isip o damdamin sa isang bagay, tulad ng pangako o titig.",
         "surface_forms": [
             "matiim",
-            "matiim na",
+            "nakatiim",
             "pagkakatiim"
         ],
         "relations": {
@@ -1820,7 +1804,8 @@ lexicon_data = [
         "base_definition": "Lubhang wagas, dalisay, at malalim, lalo na sa pag-ibig o damdamin.",
         "surface_forms": [
             "matimyas",
-            "katimyasan"
+            "katimyasan",
+            "pagkatimyas"
         ],
         "relations": {
             "synonyms": ["tapat", "dalisay", "wagas"],
@@ -1833,7 +1818,6 @@ lexicon_data = [
         "base_definition": "Mataas at malinaw ang tono ng tunog o boses; madaling marinig o tumatagos sa pandinig.",
         "surface_forms": [
             "matining",
-            "matining na",
             "pagkamatining"
         ],
         "relations": {
@@ -1861,7 +1845,6 @@ lexicon_data = [
         "base_definition": "Pagkakaroon ng kaalaman o pagkaunawa, lalo na sa murang edad; kamuwangan.",
         "surface_forms": [
             "muwang",
-            "may muwang",
             "kamuwangan"
         ],
         "relations": {
@@ -2035,7 +2018,6 @@ lexicon_data = [
         "surface_forms": [
             "ikintal",
             "nakakintal",
-            "nakakintal sa",
             "pagkakakintal"
         ],
         "relations": {
@@ -2104,7 +2086,6 @@ lexicon_data = [
         "lemma": "taytay",
         "base_definition": "Maliit o pansamantalang tulay na gawa sa kahoy, kawayan, o iba pang materyales upang daanan sa ibabaw ng tubig o hukay.",
         "surface_forms": [
-            "taytay",
             "taytay"
         ],
         "relations": {
@@ -2310,7 +2291,8 @@ lexicon_data = [
         "base_definition": "Ang pakikipaglaban o pakikipagtunggali sa isang labanan.",
         "surface_forms": [
             "paghamok",
-            "makipaghamok"
+            "makipaghamok",
+            "hamok"
         ],
         "relations": {
             "synonyms": ["paglaban"],
@@ -2337,7 +2319,8 @@ lexicon_data = [
         "base_definition": "Ang pagkilos ng pagkakabit o pagdudugtong ng dalawang bahagi.",
         "surface_forms": [
             "paghuhugpong",
-            "hugpungan"
+            "hugpungan",
+            "hugpong"
         ],
         "relations": {
             "synonyms": ["pagdurugtong"],
@@ -2350,7 +2333,8 @@ lexicon_data = [
         "base_definition": "Ang pag-ikot sa sariling axis o sa paligid ng isang bagay.",
         "surface_forms": [
             "pag-inog",
-            "umiinog"
+            "umiinog",
+            "inog"
         ],
         "relations": {
             "synonyms": ["pag-ikot"],
@@ -2363,7 +2347,8 @@ lexicon_data = [
         "base_definition": "Ang masinsinang pag-uusap o pagsasama ng dalawang tao.",
         "surface_forms": [
             "pagniniig",
-            "niniig"
+            "niniig",
+            "naniniig"
         ],
         "relations": {
             "synonyms": ["pagsasama"],
@@ -2376,7 +2361,8 @@ lexicon_data = [
         "base_definition": "Ang mabilis at malakas na pagdaloy o pagkilos ng tubig o pangkat ng mga tao.",
         "surface_forms": [
             "pagragasa",
-            "rumaragasa"
+            "rumaragasa",
+            "ragasa"
         ],
         "relations": {
             "synonyms": ["mabilis na pagdaloy"],
@@ -2403,7 +2389,8 @@ lexicon_data = [
         "base_definition": "Ang pagkakaroon ng matinding pagsisikap at tiyaga sa pagtatapos ng isang gawain.",
         "surface_forms": [
             "pagsusumigasig",
-            "masigasig"
+            "masigasig",
+            "sigasig"
         ],
         "relations": {
             "synonyms": ["pagsisikap"],
@@ -2472,7 +2459,8 @@ lexicon_data = [
         "base_definition": "Ang huling mensahe o pamamaalam bago ang isang mahabang paghihiwalay o bago ang kamatayan.",
         "surface_forms": [
             "pahimakas",
-            "magpahimakas"
+            "magpahimakas",
+            "himakas"
         ],
         "relations": {
             "synonyms": ["huling pamamaalam"],
@@ -2541,7 +2529,6 @@ lexicon_data = [
         "base_definition": "Nangyayari nang may pagitan o hindi madalas.",
         "surface_forms": [
             "panaka-naka",
-            "panaka-nakang"
         ],
         "relations": {
             "synonyms": ["paminsan", "paminsan-minsan"],
@@ -2554,7 +2541,8 @@ lexicon_data = [
         "base_definition": "Ang kalagayan ng pagkakaroon ng malalim na kalungkutan o lihim na dinaramdam.",
         "surface_forms": [
             "panimdim",
-            "papanimdimin"
+            "papanimdimin",
+            "dimdim"
         ],
         "relations": {
             "synonyms": ["kalungkutan"],
@@ -2568,7 +2556,8 @@ lexicon_data = [
         "surface_forms": [
             "pasanin",
             "pinapasan",
-            "pasan-pasan"
+            "pasan-pasan",
+            "pasan"
         ],
         "relations": {
             "synonyms": ["suliranin", "mabigat na tungkulin"],
@@ -2629,7 +2618,7 @@ lexicon_data = [
     },
     {
         "lemma_id": "LEX-186",
-        "lemma": "hati",
+        "lemma": "pighati",
         "base_definition": "Matinding lungkot na tila naghahati sa puso ng isang tao.",
         "surface_forms": [
             "pighati",
@@ -2662,7 +2651,8 @@ lexicon_data = [
         "base_definition": "Ang pagkakataon ng pagkakasabay o pagsasama ng mga pangyayari.",
         "surface_forms": [
             "pinagtiyap",
-            "tiyapan"
+            "tiyapan",
+            "nakatiyap"
         ],
         "relations": {
             "synonyms": ["pinagsama", "nagkataon"],
@@ -2675,7 +2665,9 @@ lexicon_data = [
         "base_definition": "Ang pagpapasidhi sa kulay o katangian ng isang bagay.",
         "surface_forms": [
             "pinatingkad",
-            "matingkad"
+            "matingkad",
+            "tingkad",
+            "napakatingkad"
         ],
         "relations": {
             "synonyms": ["pinatindi"],
@@ -2727,7 +2719,9 @@ lexicon_data = [
         "base_definition": "Ang mabilis na pagputol o paghiwalay sa isang bagay.",
         "surface_forms": [
             "pugtuin",
-            "pagpugtuin"
+            "pagpugtuin",
+            "napugto",
+            "pinugto"
         ],
         "relations": {
             "synonyms": ["putulin"],
@@ -2740,7 +2734,6 @@ lexicon_data = [
         "base_definition": "Isang gawa na maingat at malinis ang pagkakatapos.",
         "surface_forms": [
             "pulido",
-            "pulidong",
             "pumulido"
         ],
         "relations": {
@@ -2783,7 +2776,7 @@ lexicon_data = [
         "surface_forms": [
             "puna",
             "pumuna",
-            "mapunahin"
+            "mapuna"
         ],
         "relations": {
             "synonyms": ["pansin"],
@@ -2809,7 +2802,8 @@ lexicon_data = [
         "base_definition": "Isang tanda o representasyon na tumatayo para sa isang ideya o bansa.",
         "surface_forms": [
             "sagisag",
-            "sumasagisag"
+            "sumasagisag",
+            "nagsasagisag"
         ],
         "relations": {
             "synonyms": ["simbolo"],
@@ -2947,8 +2941,9 @@ lexicon_data = [
         "surface_forms": [
             "sinta",
             "kasintahan",
-            "suminta",
-            "magsinta"
+            "sumisinta",
+            "magsinta",
+            "pagsinta"
         ],
         "relations": {
             "synonyms": ["giliw"],
@@ -3101,7 +3096,8 @@ lexicon_data = [
         "base_definition": "Ang kalagayan ng pagiging sobrang tuyo, lalo na ang lupa.",
         "surface_forms": [
             "tigang",
-            "natigang"
+            "natigang",
+            "matigang"
         ],
         "relations": {
             "synonyms": ["tuyot"],
