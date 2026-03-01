@@ -20,6 +20,10 @@ import { updateExerciseProgress } from "@/lib/api/progress";
 import { SRS_GRADES } from "@/utils/srs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
 
 interface OrderingAnswer {
   isCorrect: boolean;
@@ -27,6 +31,17 @@ interface OrderingAnswer {
   correctSentence: string;
   lemmaId: string;
 }
+
+type PersistedSentenceOrderingSessionV1 = {
+  exercises: SentenceConstructionExerciseItem[];
+  currentQuestion: number;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: OrderingAnswer[];
+  showCompletion: boolean;
+  isCorrect: boolean | null;
+  currentDifficulty: "easy" | "medium" | "hard";
+};
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -57,6 +72,7 @@ export default function SentenceOrderingPage() {
       ? ((exerciseProgress as QuizProgress).lastDifficulty ??
         fallbackDifficulty)
       : fallbackDifficulty;
+
   const [currentDifficulty] = useState(difficultyToServe);
 
   const {
@@ -73,6 +89,11 @@ export default function SentenceOrderingPage() {
     fetchLimit: 20,
   });
 
+  // NEW: local stable list of exercises (restored or freshly fetched)
+  const [exercises, setExercises] = useState<
+    SentenceConstructionExerciseItem[]
+  >([]);
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [answers, setAnswers] = useState<(boolean | null)[]>([]);
@@ -80,11 +101,100 @@ export default function SentenceOrderingPage() {
   const [showCompletion, setShowCompletion] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
+  // NEW: persisted session (like Closest Meaning)
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(
+        user,
+        "far:quizSession:sentence-construction:sentence-ordering",
+      );
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedSentenceOrderingSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: exercises.length > 0,
+      snapshot: () => ({
+        exercises,
+        currentQuestion,
+        showResult,
+        answers,
+        detailedAnswers,
+        showCompletion,
+        isCorrect,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setExercises(payload.exercises);
+        setCurrentQuestion(payload.currentQuestion);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setShowCompletion(payload.showCompletion);
+        setIsCorrect(payload.isCorrect);
+      },
+      validate: (p: any): p is PersistedSentenceOrderingSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+        if (!Array.isArray(p.exercises) || p.exercises.length === 0)
+          return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (!Array.isArray(p.answers)) return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (typeof p.showCompletion !== "boolean") return false;
+        if (!(p.isCorrect === null || typeof p.isCorrect === "boolean"))
+          return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+
+        if (p.currentQuestion >= p.exercises.length) return false;
+        if (p.answers.length !== p.exercises.length) return false;
+
+        // light shape check
+        const e0 = p.exercises[0];
+        if (
+          !e0 ||
+          typeof e0 !== "object" ||
+          typeof e0.lemma_id !== "string" ||
+          typeof e0.orderingCorrectSentence !== "string"
+        ) {
+          return false;
+        }
+
+        return true;
+      },
+    });
+
+  // Initialize exercises from SRS only if we didn't restore
   useEffect(() => {
-    if (sessionExercises.length > 0) {
-      setAnswers(Array(sessionExercises.length).fill(null));
-    }
-  }, [sessionExercises.length]);
+    if (didRestore) return;
+    if (srsLoading) return;
+
+    const list = (sessionExercises ?? []) as SentenceConstructionExerciseItem[];
+    if (list.length === 0) return;
+
+    setExercises(list);
+    setAnswers(Array(list.length).fill(null));
+    setCurrentQuestion(0);
+    setShowResult(false);
+    setDetailedAnswers([]);
+    setShowCompletion(false);
+    setIsCorrect(null);
+  }, [didRestore, srsLoading, sessionExercises]);
+
+  const currentExercise = exercises[currentQuestion];
+  const isLastQuestion = currentQuestion === Math.max(0, exercises.length - 1);
+
+  const shuffledWords = useMemo(() => {
+    const sentence = currentExercise?.orderingCorrectSentence;
+    if (!sentence) return [];
+    return shuffleArray(sentence.split(" "));
+  }, [currentExercise?.lemma_id, currentExercise?.orderingCorrectSentence]);
 
   if (authLoading || srsLoading) {
     return (
@@ -94,7 +204,7 @@ export default function SentenceOrderingPage() {
     );
   }
 
-  if (sessionExercises.length === 0) {
+  if (exercises.length === 0) {
     return (
       <div className="h-screen bg-blue-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
@@ -133,16 +243,6 @@ export default function SentenceOrderingPage() {
     );
   }
 
-  const currentExercise = sessionExercises[
-    currentQuestion
-  ] as SentenceConstructionExerciseItem;
-  const isLastQuestion = currentQuestion === sessionExercises.length - 1;
-
-  const shuffledWords = useMemo(() => {
-    if (!currentExercise?.orderingCorrectSentence) return [];
-    return shuffleArray(currentExercise.orderingCorrectSentence.split(" "));
-  }, [currentExercise.lemma_id, currentExercise?.orderingCorrectSentence]);
-
   // Report performance + Grade SRS
   const handleSubmit = async (userSentence: string, correct: boolean) => {
     setIsCorrect(correct);
@@ -152,7 +252,6 @@ export default function SentenceOrderingPage() {
     newAnswers[currentQuestion] = correct;
     setAnswers(newAnswers);
 
-    // Store detailed answer for analysis
     setDetailedAnswers([
       ...detailedAnswers,
       {
@@ -193,16 +292,13 @@ export default function SentenceOrderingPage() {
 
   const completeExercise = async () => {
     const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / sessionExercises.length) * 100);
+    const score = Math.round((correctCount / exercises.length) * 100);
 
-    // Calculate performance metrics
     let missedLowFreq = 0;
     let similarChoiceErrors = 0;
 
     detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
+      if (!answer.isCorrect) similarChoiceErrors++;
     });
 
     const thisSession = {
@@ -229,14 +325,6 @@ export default function SentenceOrderingPage() {
       },
     });
 
-    console.log(
-      "🎯 Next Sentence Ordering Difficulty:",
-      evaluation.nextDifficulty,
-      "| Error Tags:",
-      evaluation.tags,
-    );
-
-    // Update progress with evaluation results
     await updateProgress("sentence-ordering", {
       status: "in-progress",
       score,
@@ -249,10 +337,11 @@ export default function SentenceOrderingPage() {
   };
 
   const resetExercise = () => {
-    // Reset all local state to restart current exercises
+    clearSession();
+
     setCurrentQuestion(0);
     setShowResult(false);
-    setAnswers(Array(sessionExercises.length).fill(null));
+    setAnswers(Array(exercises.length).fill(null));
     setDetailedAnswers([]);
     setShowCompletion(false);
     setIsCorrect(null);
@@ -274,9 +363,6 @@ export default function SentenceOrderingPage() {
           <h1 className="text-xl md:text-2xl font-bold text-blue-900">
             Sentence Ordering
           </h1>
-          {/* <p className="text-xs text-blue-600 mt-1">
-            {dueExercises.length} exercises due for review
-          </p> */}
         </div>
 
         <button
@@ -292,11 +378,10 @@ export default function SentenceOrderingPage() {
       <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-5 max-w-7xl mx-auto w-full">
         <OrderingProgress
           currentQuestion={currentQuestion}
-          totalQuestions={sessionExercises.length}
+          totalQuestions={exercises.length}
           answers={answers}
         />
 
-        {/* Question Component with Animation */}
         <motion.div
           key={currentQuestion}
           initial={{ opacity: 0, x: 50 }}
@@ -306,7 +391,7 @@ export default function SentenceOrderingPage() {
         >
           <OrderingQuestion
             questionNumber={currentQuestion + 1}
-            totalQuestions={sessionExercises.length}
+            totalQuestions={exercises.length}
             words={shuffledWords}
             correctSentence={currentExercise.orderingCorrectSentence}
             onSubmit={handleSubmit}
@@ -338,11 +423,10 @@ export default function SentenceOrderingPage() {
       <OrderingCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length / sessionExercises.length) *
-            100,
+          (answers.filter((a) => a === true).length / exercises.length) * 100,
         )}
         correctCount={answers.filter((a) => a === true).length}
-        totalQuestions={sessionExercises.length}
+        totalQuestions={exercises.length}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}
       />

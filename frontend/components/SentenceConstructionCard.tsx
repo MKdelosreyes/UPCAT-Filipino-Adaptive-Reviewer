@@ -47,7 +47,7 @@ export default function SentenceConstructionCard({
     const date = new Date(lastTimestamp);
     const now = new Date();
     const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (diffDays === 0) return "Today";
@@ -102,10 +102,10 @@ export default function SentenceConstructionCard({
               <div className="text-xs space-y-2">
                 {progressLoading ? (
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-gray-600">
+                    {/* <div className="flex items-center gap-2 text-gray-600">
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Updating progress…</span>
-                    </div>
+                    </div> */}
                     <div className="space-y-2 animate-pulse">
                       <div className="h-3 bg-gray-200 rounded w-40" />
                       <div className="h-3 bg-gray-200 rounded w-28" />
