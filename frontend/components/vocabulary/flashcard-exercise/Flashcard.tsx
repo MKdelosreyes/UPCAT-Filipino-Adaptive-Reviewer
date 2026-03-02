@@ -32,6 +32,7 @@ export default function Flashcard({
   const [isAnimating, setIsAnimating] = useState(false);
   const [enhancedContent, setEnhancedContent] =
     useState<ParsedEnhancedContent | null>(null);
+  const [enhancedRaw, setEnhancedRaw] = useState<string | null>(null);
   const [isLoadingEnhanced, setIsLoadingEnhanced] = useState(false);
   const [enhancementError, setEnhancementError] = useState<string | null>(null);
 
@@ -57,48 +58,52 @@ export default function Flashcard({
   };
 
   const parseEnhancedContent = (content: string): ParsedEnhancedContent => {
-    const lines = content.split("\n").filter((line) => line.trim());
+    const lines = content
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
 
     let easyDefinition = "";
     let formalDefinition = "";
     let bilingualGloss = "";
     let examples: string[] = [];
 
+    const takeAfterColon = (line: string) => {
+      const idx = line.indexOf(":");
+      return idx >= 0 ? cleanText(line.slice(idx + 1)) : "";
+    };
+
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
+      const line = lines[i];
 
-      if (line.includes("Easy definition")) {
-        const colonIndex = line.lastIndexOf(":");
-        if (colonIndex !== -1) {
-          easyDefinition = cleanText(line.substring(colonIndex + 1));
-        }
+      if (/^easy definition\s*:/i.test(line)) {
+        easyDefinition = takeAfterColon(line);
+        continue;
       }
 
-      if (line.includes("Brief formal definition")) {
-        const colonIndex = line.lastIndexOf(":");
-        if (colonIndex !== -1) {
-          formalDefinition = cleanText(line.substring(colonIndex + 1));
-        }
+      if (
+        /^(brief\s+formal\s+definition|formal\s+definition)\s*:/i.test(line)
+      ) {
+        formalDefinition = takeAfterColon(line);
+        continue;
       }
 
-      if (line.includes("Bilingual gloss")) {
-        const colonIndex = line.lastIndexOf(":");
-        if (colonIndex !== -1) {
-          bilingualGloss = cleanText(line.substring(colonIndex + 1));
-        }
+      if (/^bilingual gloss\s*:/i.test(line)) {
+        bilingualGloss = takeAfterColon(line);
+        continue;
       }
 
-      if (line.includes("Example sentences")) {
+      if (/^example sentences\s*:/i.test(line)) {
+        // Collect numbered examples on subsequent lines: "1. ..." "2. ..."
         for (let j = i + 1; j < lines.length; j++) {
-          const exampleLine = lines[j].trim();
-          if (exampleLine.match(/^\d+\./)) {
-            examples.push(cleanText(exampleLine.replace(/^\d+\.\s*/, "")));
-          } else if (
-            exampleLine.includes("**") ||
-            exampleLine.startsWith("-")
-          ) {
-            break;
+          const exLine = lines[j];
+          const m = exLine.match(/^\d+\.\s*(.+)$/);
+          if (m) {
+            examples.push(cleanText(m[1]));
+            continue;
           }
+          // stop when we hit a new labeled section
+          if (/^[A-Za-z][A-Za-z\s]+:\s*/.test(exLine)) break;
         }
       }
     }
@@ -123,16 +128,36 @@ export default function Flashcard({
 
       console.log("✅ Enhanced definition received");
 
-      if (response.content) {
-        const parsed = parseEnhancedContent(response.content);
-        setEnhancedContent(parsed);
+      const raw = response.content || "";
+      setEnhancedRaw(raw);
+
+      if (!raw.trim()) {
+        setEnhancementError("No response from AI service. Please try again.");
+        return;
       }
+
+      const parsed = parseEnhancedContent(raw);
+
+      const isEmptyParsed =
+        !parsed.easyDefinition &&
+        !parsed.formalDefinition &&
+        !parsed.bilingualGloss &&
+        parsed.examples.length === 0;
+
+      if (isEmptyParsed) {
+        // Keep raw so user still sees something instead of a blank card
+        setEnhancementError(
+          "AI response received but could not be parsed. Showing raw output.",
+        );
+      }
+
+      setEnhancedContent(parsed);
     } catch (error) {
       console.error("❌ Failed to fetch enhanced definition:", error);
       setEnhancementError(
         error instanceof Error
           ? error.message
-          : "Failed to enhance definition. Please try again."
+          : "Failed to enhance definition. Please try again.",
       );
     } finally {
       setIsLoadingEnhanced(false);
@@ -260,6 +285,16 @@ export default function Flashcard({
                   {isLoadingEnhanced ? "Improving..." : "Improve definition"}
                 </button>
               )}
+
+              {enhancedContent &&
+                !enhancedContent.easyDefinition &&
+                !enhancedContent.formalDefinition &&
+                enhancedContent.examples.length === 0 &&
+                enhancedRaw && (
+                  <pre className="mt-3 text-left text-xs bg-yellow-50 border border-yellow-200 rounded-lg p-2 whitespace-pre-wrap">
+                    {enhancedRaw}
+                  </pre>
+                )}
 
               <p className="text-yellow-500 text-xs md:text-sm animate-pulse">
                 ← Click to flip back

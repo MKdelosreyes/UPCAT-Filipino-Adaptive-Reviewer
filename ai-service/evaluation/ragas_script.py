@@ -22,12 +22,12 @@ if not groq_key:
 
 # Create Groq LLM for RAGAS
 evaluator_llm = ChatGroq(
-    model="llama-3.1-8b-instant",
+    model="meta-llama/llama-4-maverick-17b-128e-instruct",
     temperature=0.0,
     groq_api_key=groq_key
 )
 
-print(f"✅ Using Groq (llama-3.1-8b-instant) for RAGAS evaluation")
+print(f"✅ Using Groq (meta-llama/llama-4-maverick-17b-128e-instruct) for RAGAS evaluation")
 
 
 def prepare_ragas_dataset(evaluation_data):

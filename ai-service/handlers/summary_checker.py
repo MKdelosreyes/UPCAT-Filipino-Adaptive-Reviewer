@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
@@ -27,17 +28,16 @@ except Exception as e:
 
 # These models are now defined in main.py to avoid import issues with FastAPI
 # We'll use TYPE_CHECKING to import them for type hints only
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pydantic import BaseModel as _BaseModel
-    
+
     class SummaryCheckRequest(_BaseModel):
         passage_text: str
         user_summary: str
         passage_title: Optional[str] = "Reading Passage"
         difficulty: Optional[str] = "medium"
-    
+
     class SummaryCheckResponse(_BaseModel):
         overall_score: int
         feedback: str
@@ -54,7 +54,7 @@ else:
         main_idea: str
         passage_title: Optional[str] = "Reading Passage"
         difficulty: Optional[str] = "medium"
-    
+
     class SummaryCheckResponse(BaseModel):
         quality_level: str  # "needs-work", "developing", "good", "excellent"
         feedback: str
@@ -122,7 +122,8 @@ Be descriptive, specific, and ENCOURAGING. No numbers or percentages.
 async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResponse:
     """Evaluate user summary using Groq AI"""
     try:
-        print(f"📝 Summary check request - Passage: {request.passage_title[:50]}...")
+        print(
+            f"📝 Summary check request - Passage: {request.passage_title[:50]}...")
 
         if not groq_client:
             raise HTTPException(
@@ -133,7 +134,7 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
         # Build evaluation prompt
         # Use main_idea if provided, otherwise use passage_text
         main_idea = request.main_idea if request.main_idea else request.passage_text
-        
+
         system_instruction, user_prompt = build_summary_evaluation_prompt({
             "main_idea": main_idea,
             "user_summary": request.user_summary,
@@ -149,7 +150,7 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
 
         # Call Groq API
         completion = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="meta-llama/llama-4-maverick-17b-128e-instruct",
             messages=messages,
             temperature=0.3,  # Lower temp for consistent evaluation
             max_tokens=600,
@@ -164,23 +165,26 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
         try:
             # Clean potential markdown code blocks
             if "```json" in response_text:
-                response_text = response_text.split("```json")[1].split("```")[0].strip()
+                response_text = response_text.split(
+                    "```json")[1].split("```")[0].strip()
             elif "```" in response_text:
-                response_text = response_text.split("```")[1].split("```")[0].strip()
-            
+                response_text = response_text.split(
+                    "```")[1].split("```")[0].strip()
+
             result = json.loads(response_text)
-            
+
             quality_level = result.get("quality_level", "needs-work")
-            
+
             # Ensure strengths and improvements are always lists
             strengths = result.get("strengths", [])
             if not isinstance(strengths, list):
-                strengths = [strengths] if strengths and strengths.lower() not in ["no", "none", "n/a", "wala"] else []
-            
+                strengths = [strengths] if strengths and strengths.lower() not in [
+                    "no", "none", "n/a", "wala"] else []
+
             improvements = result.get("improvements", [])
             if not isinstance(improvements, list):
                 improvements = [improvements] if improvements else []
-            
+
             return SummaryCheckResponse(
                 quality_level=quality_level,
                 feedback=result.get("feedback", ""),
@@ -194,7 +198,7 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
         except json.JSONDecodeError as e:
             print(f"⚠️ Failed to parse JSON response: {e}")
             print(f"Raw response: {response_text}")
-            
+
             # Fallback: Indicate AI error
             raise HTTPException(
                 status_code=503,

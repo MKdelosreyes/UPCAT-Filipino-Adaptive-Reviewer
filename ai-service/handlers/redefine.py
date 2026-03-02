@@ -74,24 +74,27 @@ def build_redefine_prompt_with_rag(data: dict) -> str:
         print("⚠️ RAG not available for redefine")
 
     system_instruction = """You are a Filipino language educator creating multiple learning perspectives for UPCAT students. Be concise and educational."""
-    prompt = f"""{system_instruction}
-
+    user_prompt = f"""
 {rag_context if rag_context else ""}
 
-**Word to Redefine:** {word}
-**Base Meaning:** {base_meaning}
-**Base Example:** {example}
+Word: {word}
+Base meaning: {base_meaning}
+Base example: {example}
 
-Using the reference materials above (if provided), create:
+Output format (follow EXACTLY these labels; one per line):
+Easy definition: <casual English for beginners>
+Brief formal definition: <academic Filipino>
+Bilingual gloss: <short Tagalog/English gloss>
+Example sentences:
+1. <Filipino sentence>
+2. <Filipino sentence>
 
-1. **Easy Definition** (casual, English, for beginners)
-2. **Formal Definition** (academic, in Filipino)
-3. **2 New Example Sentences** (Filipino, showing different contexts)
-4. **Usage Notes** (when/how to use, common collocations)
+Notes:
+- Keep each line concise.
+- Do not add extra sections or change labels.
+""".strip()
 
-Be concise and educational."""
-
-    return (system_instruction, prompt)
+    return (system_instruction, user_prompt)
 
 
 # ============================================================
@@ -123,7 +126,7 @@ async def handle_redefine(request: RedefineRequest) -> RedefineResponse:
         print(f"🤖 Calling Groq with RAG-enhanced prompt for redefinition...")
 
         completion = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="meta-llama/llama-4-maverick-17b-128e-instruct",
             messages=messages,
             temperature=0.3,
             max_tokens=300,

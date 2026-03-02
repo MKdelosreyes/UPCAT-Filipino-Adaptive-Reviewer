@@ -493,7 +493,7 @@ Guidelines:
             })
 
         completion = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="meta-llama/llama-4-maverick-17b-128e-instruct",
             messages=messages,
             temperature=0.7,
             max_tokens=200,
