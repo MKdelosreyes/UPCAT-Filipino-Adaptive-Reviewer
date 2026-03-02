@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import ErrorQuestion from "@/components/grammar/error-identification/ErrorQuestion";
 import ErrorProgress from "@/components/grammar/error-identification/ErrorProgress";
@@ -333,6 +333,8 @@ export default function ErrorIdentificationPage() {
   const [showCompletion, setShowCompletion] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [isFinishing, setIsFinishing] = useState(false);
+
   const sessionStorageKey = authLoading
     ? null
     : makeUserScopedStorageKey(
@@ -415,6 +417,8 @@ export default function ErrorIdentificationPage() {
       // If we restored a session, do not override it.
       if (didRestore) return;
 
+      if (isFinishing || showCompletion) return;
+
       if (srsLoading || sessionExercises.length === 0) return;
 
       try {
@@ -442,7 +446,14 @@ export default function ErrorIdentificationPage() {
     }
 
     loadQuestions();
-  }, [didRestore, srsLoading, sessionExercises, difficultyToServe]);
+  }, [
+    didRestore,
+    srsLoading,
+    sessionExercises,
+    difficultyToServe,
+    isFinishing,
+    showCompletion,
+  ]);
 
   if (authLoading) {
     return (
@@ -535,6 +546,8 @@ export default function ErrorIdentificationPage() {
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
       void completeExercise();
     } else {
@@ -545,56 +558,63 @@ export default function ErrorIdentificationPage() {
   };
 
   const completeExercise = async () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const sessionScore = Math.round(
-      (correctCount / errorQuestions.length) * 100,
-    );
+    if (isFinishing) return;
+    setIsFinishing(true);
 
-    let similarChoiceErrors = detailedAnswers.filter(
-      (a) => !a.isCorrect,
-    ).length;
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const sessionScore = Math.round(
+        (correctCount / errorQuestions.length) * 100,
+      );
 
-    const history = getPerformanceHistory("grammar", "error-identification");
-    const thisSession = {
-      difficulty: currentDifficulty,
-      score: sessionScore,
-      missedLowFreq: 0,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
+      const similarChoiceErrors = detailedAnswers.filter(
+        (a) => !a.isCorrect,
+      ).length;
 
-    const evaluation = evaluateUserPerformance([...history, thisSession]);
+      setShowCompletion(true);
 
-    console.log(
-      "🎯 Next Error ID Difficulty:",
-      evaluation.nextDifficulty,
-      "| Error Tags:",
-      evaluation.tags,
-    );
-
-    await updateExerciseProgress("grammar", "error-identification", {
-      status: "in-progress",
-      score: sessionScore,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      performanceMetrics: {
+      const history = getPerformanceHistory("grammar", "error-identification");
+      const thisSession = {
         difficulty: currentDifficulty,
         score: sessionScore,
         missedLowFreq: 0,
         similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
+
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
+
+      console.log(
+        "🎯 Next Error ID Difficulty:",
+        evaluation.nextDifficulty,
+        "| Error Tags:",
+        evaluation.tags,
+      );
+
+      await updateExerciseProgress("grammar", "error-identification", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        performanceMetrics: {
+          difficulty: currentDifficulty,
+          score: sessionScore,
+          missedLowFreq: 0,
+          similarChoiceErrors,
+          errorTags: evaluation.tags,
+        },
+      });
+
+      updateProgress("error-identification", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
         errorTags: evaluation.tags,
-      },
-    });
-
-    updateProgress("error-identification", {
-      status: "in-progress",
-      score: sessionScore,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
-
-    setShowCompletion(true);
+      });
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const resetExercise = () => {
@@ -672,13 +692,24 @@ export default function ErrorIdentificationPage() {
             className="flex justify-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+              whileTap={{ scale: isFinishing ? 1 : 0.95 }}
               onClick={handleNext}
-              className="flex items-center mt-5 gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              disabled={isFinishing}
+              aria-busy={isFinishing}
+              className="flex items-center mt-5 gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isLastQuestion ? "Finish Exercise" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
+              {isFinishing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finishing...
+                </>
+              ) : (
+                <>
+                  {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
           </motion.div>
         ) : (

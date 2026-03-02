@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import FillBlanksQuestion from "@/components/grammar/fill-the-blanks/FillBlanksQuestion";
 import FillBlanksProgress from "@/components/grammar/fill-the-blanks/FillBlanksProgress";
@@ -178,6 +178,8 @@ export default function GrammarFillBlanksPage() {
 
   const [finalScore, setFinalScore] = useState(0);
   const [finalCorrectCount, setFinalCorrectCount] = useState(0);
+
+  const [isFinishing, setIsFinishing] = useState(false);
 
   // NEW: local loading flag so we don't show "no items" while lexicon fetch/processing runs
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
@@ -436,43 +438,51 @@ export default function GrammarFillBlanksPage() {
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
+      setIsFinishing(true);
       void completeExercise();
-      return;
+    } else {
+      setCurrentQuestion((prev) => prev + 1);
+      setSelectedAnswer(null);
+      setShowResult(false);
     }
-    setCurrentQuestion((prev) => prev + 1);
-    setSelectedAnswer(null);
-    setShowResult(false);
   };
 
   const completeExercise = async () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / fillBlanksQuestions.length) * 100);
+    if (isFinishing) return;
 
-    setFinalScore(score);
-    setFinalCorrectCount(correctCount);
-
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect) similarChoiceErrors++;
-    });
-
+    setIsFinishing(true);
     setIsCompleting(true);
-    setShowCompletion(true);
-
-    const history = getPerformanceHistory("grammar", "fill-blanks");
-    const thisSession = {
-      difficulty: currentDifficulty,
-      score,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
-
-    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
     try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const score = Math.round(
+        (correctCount / fillBlanksQuestions.length) * 100,
+      );
+
+      setFinalScore(score);
+      setFinalCorrectCount(correctCount);
+
+      let missedLowFreq = 0;
+      let similarChoiceErrors = 0;
+      detailedAnswers.forEach((answer) => {
+        if (!answer.isCorrect) similarChoiceErrors++;
+      });
+
+      setShowCompletion(true);
+
+      const history = getPerformanceHistory("grammar", "fill-blanks");
+      const thisSession = {
+        difficulty: currentDifficulty,
+        score,
+        missedLowFreq,
+        similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
+
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
       await updateExerciseProgress("grammar", "fill-blanks", {
         status: "in-progress",
         score,
@@ -496,6 +506,7 @@ export default function GrammarFillBlanksPage() {
       });
     } finally {
       setIsCompleting(false);
+      setIsFinishing(false);
     }
   };
 
@@ -568,13 +579,24 @@ export default function GrammarFillBlanksPage() {
               className="flex justify-center"
             >
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+                whileTap={{ scale: isFinishing ? 1 : 0.95 }}
                 onClick={handleNext}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+                disabled={isFinishing}
+                aria-busy={isFinishing}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
               >
-                {isLastQuestion ? "Finish Exercise" : "Next Question"}
-                <ChevronRight className="w-5 h-5" />
+                {isFinishing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Finishing...
+                  </>
+                ) : (
+                  <>
+                    {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                    <ChevronRight className="w-5 h-5" />
+                  </>
+                )}
               </motion.button>
             </motion.div>
           ) : (
