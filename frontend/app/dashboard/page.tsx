@@ -184,8 +184,8 @@ export default function Dashboard() {
           {progressLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">
+                <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
+                <p className="text-gray-600 font-xs">
                   Loading your learning path...
                 </p>
               </div>
@@ -260,7 +260,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Tab Content */}
-                <div className="flex w-full flex-1 bg-white rounded-b-2xl p-5 overflow-hidden border-b border-x border-gray-300 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <div className="flex w-full flex-1 bg-white rounded-b-2xl p-5 overflow-y-auto scrollbar-hide border-b border-x border-gray-300">
                   {progressLoading ? (
                     <AnalyticsPanelSkeleton tab={activeTab} />
                   ) : progressError ? (

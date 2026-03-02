@@ -21,7 +21,8 @@ export default function ProgressStepper() {
 
   const quizExercises = steps.filter((step) => !isLessonExercise(step.id));
   const completedQuizzes = quizExercises.filter(
-    (step) => (progress[step.id] as QuizProgress).performanceHistory?.length > 0
+    (step) =>
+      (progress[step.id] as QuizProgress).performanceHistory?.length > 0,
   ).length;
 
   return (
@@ -51,7 +52,10 @@ export default function ProgressStepper() {
               : null;
 
           return (
-            <div key={step.id} className="flex flex-col items-center relative w-full">
+            <div
+              key={step.id}
+              className="flex flex-col items-center relative w-full"
+            >
               {/* Circle */}
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 ${
@@ -82,9 +86,9 @@ export default function ProgressStepper() {
                   <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-semibold capitalize">
                     {mastery.level}
                   </span>
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold capitalize">
+                  {/* <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold capitalize">
                     {mastery.difficulty}
-                  </span>
+                  </span> */}
                 </div>
               )}
 
@@ -93,7 +97,7 @@ export default function ProgressStepper() {
                 <div className="mt-1">
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
                     {Math.floor(
-                      (exerciseProgress as LessonProgress).timeSpent / 60
+                      (exerciseProgress as LessonProgress).timeSpent / 60,
                     )}
                     m studied
                   </span>

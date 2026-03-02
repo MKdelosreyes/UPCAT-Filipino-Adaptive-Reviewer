@@ -32,7 +32,7 @@ export default function VocabularyPage() {
     <div className="w-full min-h-screen flex items-start justify-center py-4 px-6 md:p-7 bg-gray-50">
       <div className="w-full md:max-w-7xl">
         {/* Top Bar - Back Button & Mastery Display */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
           {/* Back Button - Left */}
           <Link
             href="/dashboard"
@@ -59,7 +59,7 @@ export default function VocabularyPage() {
                 </p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 text-right max-w-xs">
+            <p className="text-xs text-gray-600 text-right max-w-sm">
               {mastery.description} • Focus:{" "}
               <span className="font-semibold capitalize">
                 {mastery.difficulty}
