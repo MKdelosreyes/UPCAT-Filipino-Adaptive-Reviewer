@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import ChooseSentenceQuestion from "@/components/sentence-construction/choose-sentence-exercise/ChooseSentenceQuestion";
 import ChooseSentenceProgress from "@/components/sentence-construction/choose-sentence-exercise/ChooseSentenceProgress";
@@ -88,7 +88,6 @@ export default function ChooseSentencePage() {
     fetchLimit: 20,
   });
 
-  // NEW: stable list so we don't get reset if sessionExercises changes mid-session
   const [exercises, setExercises] = useState<
     SentenceConstructionExerciseItem[]
   >([]);
@@ -102,7 +101,8 @@ export default function ChooseSentencePage() {
   >([]);
   const [showCompletion, setShowCompletion] = useState(false);
 
-  // Persisted session (like Closest Meaning)
+  const [isFinishing, setIsFinishing] = useState(false);
+
   const sessionStorageKey = authLoading
     ? null
     : makeUserScopedStorageKey(
@@ -296,6 +296,8 @@ export default function ChooseSentencePage() {
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
       void completeExercise();
     } else {
@@ -306,49 +308,56 @@ export default function ChooseSentencePage() {
   };
 
   const completeExercise = async () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / exercises.length) * 100);
+    if (isFinishing) return;
+    setIsFinishing(true);
 
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const score = Math.round((correctCount / exercises.length) * 100);
 
-    detailedAnswers.forEach((a) => {
-      if (!a.isCorrect) similarChoiceErrors++;
-    });
+      let missedLowFreq = 0;
+      let similarChoiceErrors = 0;
 
-    const thisSession = {
-      difficulty: currentDifficulty,
-      score,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
+      detailedAnswers.forEach((a) => {
+        if (!a.isCorrect) similarChoiceErrors++;
+      });
 
-    const evaluation = evaluateUserPerformance([...history, thisSession]);
+      setShowCompletion(true);
 
-    await updateExerciseProgress("sentence-construction", "choose-sentence", {
-      status: "in-progress",
-      score,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      performanceMetrics: {
+      const thisSession = {
         difficulty: currentDifficulty,
         score,
         missedLowFreq,
         similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
+
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
+
+      await updateExerciseProgress("sentence-construction", "choose-sentence", {
+        status: "in-progress",
+        score,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        performanceMetrics: {
+          difficulty: currentDifficulty,
+          score,
+          missedLowFreq,
+          similarChoiceErrors,
+          errorTags: evaluation.tags,
+        },
+      });
+
+      await updateProgress("choose-sentence", {
+        status: "in-progress",
+        score,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
         errorTags: evaluation.tags,
-      },
-    });
-
-    await updateProgress("choose-sentence", {
-      status: "in-progress",
-      score,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
-
-    setShowCompletion(true);
+      });
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const resetExercise = () => {
@@ -417,13 +426,24 @@ export default function ChooseSentencePage() {
             className="flex justify-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+              whileTap={{ scale: isFinishing ? 1 : 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              disabled={isFinishing}
+              aria-busy={isFinishing}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isLastQuestion ? "Finish Exercise" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
+              {isFinishing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finishing...
+                </>
+              ) : (
+                <>
+                  {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
           </motion.div>
         )}

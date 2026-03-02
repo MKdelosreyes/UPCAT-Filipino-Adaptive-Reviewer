@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import OrderingQuestion from "@/components/sentence-construction/sentence-ordering-exercise/OrderingQuestion";
 import OrderingProgress from "@/components/sentence-construction/sentence-ordering-exercise/OrderingProgress";
@@ -90,7 +90,6 @@ export default function SentenceOrderingPage() {
     fetchLimit: 20,
   });
 
-  // NEW: local stable list of exercises (restored or freshly fetched)
   const [exercises, setExercises] = useState<
     SentenceConstructionExerciseItem[]
   >([]);
@@ -102,7 +101,8 @@ export default function SentenceOrderingPage() {
   const [showCompletion, setShowCompletion] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  // NEW: persisted session (like Closest Meaning)
+  const [isFinishing, setIsFinishing] = useState(false);
+
   const sessionStorageKey = authLoading
     ? null
     : makeUserScopedStorageKey(
@@ -182,6 +182,8 @@ export default function SentenceOrderingPage() {
 
     const list = (sessionExercises ?? []) as SentenceConstructionExerciseItem[];
     if (list.length === 0) return;
+
+    hasSeededSessionRef.current = true;
 
     setExercises(list);
     setAnswers(Array(list.length).fill(null));
@@ -286,6 +288,8 @@ export default function SentenceOrderingPage() {
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
       void completeExercise();
     } else {
@@ -296,49 +300,60 @@ export default function SentenceOrderingPage() {
   };
 
   const completeExercise = async () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / exercises.length) * 100);
+    if (isFinishing) return;
+    setIsFinishing(true);
 
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const score = Math.round((correctCount / exercises.length) * 100);
 
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect) similarChoiceErrors++;
-    });
+      let missedLowFreq = 0;
+      let similarChoiceErrors = 0;
 
-    const thisSession = {
-      difficulty: currentDifficulty,
-      score,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
+      detailedAnswers.forEach((answer) => {
+        if (!answer.isCorrect) similarChoiceErrors++;
+      });
 
-    const evaluation = evaluateUserPerformance([...history, thisSession]);
+      setShowCompletion(true);
 
-    await updateExerciseProgress("sentence-construction", "sentence-ordering", {
-      status: "in-progress",
-      score,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      performanceMetrics: {
+      const thisSession = {
         difficulty: currentDifficulty,
         score,
         missedLowFreq,
         similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
+
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
+
+      await updateExerciseProgress(
+        "sentence-construction",
+        "sentence-ordering",
+        {
+          status: "in-progress",
+          score,
+          completedAt: new Date().toISOString(),
+          lastDifficulty: evaluation.nextDifficulty,
+          performanceMetrics: {
+            difficulty: currentDifficulty,
+            score,
+            missedLowFreq,
+            similarChoiceErrors,
+            errorTags: evaluation.tags,
+          },
+        },
+      );
+
+      await updateProgress("sentence-ordering", {
+        status: "in-progress",
+        score,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
         errorTags: evaluation.tags,
-      },
-    });
-
-    await updateProgress("sentence-ordering", {
-      status: "in-progress",
-      score,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
-
-    setShowCompletion(true);
+      });
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const resetExercise = () => {
@@ -417,13 +432,24 @@ export default function SentenceOrderingPage() {
             className="flex justify-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+              whileTap={{ scale: isFinishing ? 1 : 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              disabled={isFinishing}
+              aria-busy={isFinishing}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isLastQuestion ? "Finish Exercise" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
+              {isFinishing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finishing...
+                </>
+              ) : (
+                <>
+                  {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
           </motion.div>
         )}
