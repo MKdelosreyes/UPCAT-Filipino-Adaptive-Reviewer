@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight, Lightbulb } from "lucide-react";
+import {
+  ArrowLeft,
+  RotateCcw,
+  ChevronRight,
+  Lightbulb,
+  Loader2,
+} from "lucide-react";
 import Link from "next/link";
 import QuizQuestion from "@/components/vocabulary/closest-meaning-exercise/QuizQuestion";
 import QuizProgress from "@/components/vocabulary/closest-meaning-exercise/QuizProgress";
@@ -212,6 +218,7 @@ export default function ClosestMeaningQuizPage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
+  const [isFinishing, setIsFinishing] = useState(false);
 
   const sessionStorageKey = authLoading
     ? null
@@ -439,7 +446,9 @@ export default function ClosestMeaningQuizPage() {
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
     if (isLastQuestion) {
+      setIsFinishing(true);
       void completeQuiz();
     } else {
       setCurrentQuestion((prev) => prev + 1);
@@ -449,62 +458,66 @@ export default function ClosestMeaningQuizPage() {
   };
 
   const completeQuiz = async () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const sessionScore = Math.round((correctCount / questions.length) * 100);
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const sessionScore = Math.round((correctCount / questions.length) * 100);
 
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
+      let missedLowFreq = 0;
+      let similarChoiceErrors = 0;
 
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect && isLowFrequencyWord(answer.word)) {
-        missedLowFreq++;
-      }
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
-    });
+      detailedAnswers.forEach((answer) => {
+        if (!answer.isCorrect && isLowFrequencyWord(answer.word)) {
+          missedLowFreq++;
+        }
+        if (!answer.isCorrect) {
+          similarChoiceErrors++;
+        }
+      });
 
-    const history = getPerformanceHistory("vocabulary", "quiz");
-    const thisSession = {
-      difficulty: currentDifficulty,
-      score: sessionScore,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
-
-    const evaluation = evaluateUserPerformance([...history, thisSession]);
-
-    console.log(
-      "🎯 Next Quiz Difficulty:",
-      evaluation.nextDifficulty,
-      "| Error Tags:",
-      evaluation.tags,
-    );
-
-    await updateExerciseProgress("vocabulary", "quiz", {
-      status: "in-progress",
-      score: sessionScore,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      performanceMetrics: {
+      const history = getPerformanceHistory("vocabulary", "quiz");
+      const thisSession = {
         difficulty: currentDifficulty,
         score: sessionScore,
         missedLowFreq,
         similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
+
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
+
+      console.log(
+        "🎯 Next Quiz Difficulty:",
+        evaluation.nextDifficulty,
+        "| Error Tags:",
+        evaluation.tags,
+      );
+
+      await updateExerciseProgress("vocabulary", "quiz", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        performanceMetrics: {
+          difficulty: currentDifficulty,
+          score: sessionScore,
+          missedLowFreq,
+          similarChoiceErrors,
+          errorTags: evaluation.tags,
+        },
+      });
+
+      updateProgress("quiz", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
         errorTags: evaluation.tags,
-      },
-    });
+      });
 
-    updateProgress("quiz", {
-      status: "in-progress",
-      score: sessionScore,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
-
-    setShowCompletion(true);
+      setShowCompletion(true);
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const resetQuiz = async () => {
@@ -595,13 +608,24 @@ export default function ClosestMeaningQuizPage() {
             className="flex justify-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+              whileTap={{ scale: isFinishing ? 1 : 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              disabled={isFinishing}
+              aria-busy={isFinishing}
+              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isLastQuestion ? "Finish Quiz" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
+              {isFinishing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finishing...
+                </>
+              ) : (
+                <>
+                  {isLastQuestion ? "Finish Quiz" : "Next Question"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
           </motion.div>
         )}

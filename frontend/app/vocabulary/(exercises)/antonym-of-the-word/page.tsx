@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import AntonymQuestion from "@/components/vocabulary/antonym-exercise/AntonymQuestion";
 import AntonymProgress from "@/components/vocabulary/antonym-exercise/AntonymProgress";
@@ -218,6 +218,7 @@ export default function AntonymExercisePage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
+  const [isFinishing, setIsFinishing] = useState(false);
 
   const sessionStorageKey = authLoading
     ? null
@@ -447,7 +448,10 @@ export default function AntonymExercisePage() {
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
+      setIsFinishing(true);
       void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
@@ -457,62 +461,66 @@ export default function AntonymExercisePage() {
   };
 
   const completeExercise = async () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const sessionScore = Math.round((correctCount / questions.length) * 100);
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const sessionScore = Math.round((correctCount / questions.length) * 100);
 
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
+      let missedLowFreq = 0;
+      let similarChoiceErrors = 0;
 
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect && isLowFrequencyWord(answer.word)) {
-        missedLowFreq++;
-      }
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
-    });
+      detailedAnswers.forEach((answer) => {
+        if (!answer.isCorrect && isLowFrequencyWord(answer.word)) {
+          missedLowFreq++;
+        }
+        if (!answer.isCorrect) {
+          similarChoiceErrors++;
+        }
+      });
 
-    const history = getPerformanceHistory("vocabulary", "antonym");
-    const thisSession = {
-      difficulty: currentDifficulty,
-      score: sessionScore,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
-
-    const evaluation = evaluateUserPerformance([...history, thisSession]);
-
-    console.log(
-      "🎯 Next Antonym Difficulty:",
-      evaluation.nextDifficulty,
-      "| Error Tags:",
-      evaluation.tags,
-    );
-
-    await updateExerciseProgress("vocabulary", "antonym", {
-      status: "in-progress",
-      score: sessionScore,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      performanceMetrics: {
+      const history = getPerformanceHistory("vocabulary", "antonym");
+      const thisSession = {
         difficulty: currentDifficulty,
         score: sessionScore,
         missedLowFreq,
         similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
+
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
+
+      console.log(
+        "🎯 Next Antonym Difficulty:",
+        evaluation.nextDifficulty,
+        "| Error Tags:",
+        evaluation.tags,
+      );
+
+      await updateExerciseProgress("vocabulary", "antonym", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        performanceMetrics: {
+          difficulty: currentDifficulty,
+          score: sessionScore,
+          missedLowFreq,
+          similarChoiceErrors,
+          errorTags: evaluation.tags,
+        },
+      });
+
+      updateProgress("antonym", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
         errorTags: evaluation.tags,
-      },
-    });
+      });
 
-    updateProgress("antonym", {
-      status: "in-progress",
-      score: sessionScore,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
-
-    setShowCompletion(true);
+      setShowCompletion(true);
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const resetExercise = async () => {
@@ -608,13 +616,24 @@ export default function AntonymExercisePage() {
             className="flex justify-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+              whileTap={{ scale: isFinishing ? 1 : 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              disabled={isFinishing}
+              aria-busy={isFinishing}
+              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isLastQuestion ? "Finish Exercise" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
+              {isFinishing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finishing...
+                </>
+              ) : (
+                <>
+                  {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
           </motion.div>
         )}
