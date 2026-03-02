@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Circle } from "lucide-react";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
 import type {
@@ -27,22 +26,20 @@ export default function GrammarProgressStepper() {
       0,
   ).length;
 
+  const percent =
+    quizSteps.length === 0 ? 0 : (completedQuizzes / quizSteps.length) * 100;
+
   return (
-    <div className="w-full max-w-7xl mx-auto mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative">
-        {/* Progress Line */}
-        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10 hidden md:block">
-          <motion.div
-            className="h-full bg-green-500"
-            initial={{ width: "0%" }}
-            animate={{
-              width: `${(completedQuizzes / quizSteps.length) * 100}%`,
-            }}
-            transition={{ duration: 0.5 }}
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="relative grid grid-cols-3 gap-2 sm:gap-4 md:gap-6">
+        {/* Progress Line (visible on mobile too) */}
+        <div className="absolute top-4 sm:top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
+          <div
+            className="h-full bg-green-600 transition-all duration-500"
+            style={{ width: `${percent}%` }}
           />
         </div>
 
-        {/* Steps */}
         {steps.map((step) => {
           const progress = getExerciseProgress(step.key);
           const isLesson = isLessonExercise("grammar", step.key);
@@ -59,38 +56,41 @@ export default function GrammarProgressStepper() {
           return (
             <div
               key={step.id}
-              className="flex flex-col items-center w-full relative"
+              className="flex flex-col items-center relative w-full px-1"
             >
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
+              <div
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-base sm:text-lg font-bold transition-all duration-300 ${
                   hasStarted
-                    ? "bg-green-800 border-green-800 text-white"
-                    : "bg-white border-green-700 text-green-600"
+                    ? "bg-green-700 text-white"
+                    : "bg-green-50 text-green-700 border-2 border-green-300"
                 }`}
               >
                 {hasStarted && mastery ? (
                   <span>{mastery.icon}</span>
                 ) : (
-                  <Circle size={16} />
+                  <Circle size={14} />
                 )}
-              </motion.div>
-              <p
-                className={`mt-2 text-xs md:text-sm font-medium text-center w-full ${
+              </div>
+
+              <span
+                className={`mt-1 sm:mt-2 text-[10px] sm:text-xs md:text-sm leading-tight font-medium text-center w-full ${
                   hasStarted ? "text-green-900" : "text-gray-600"
                 }`}
               >
                 {step.name}
-              </p>
+              </span>
 
+              {/* Hide badges on very small screens to keep it compact */}
               {isLesson && hasStarted && (
-                <span className="mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
-                  {Math.floor((progress as LessonProgress).timeSpent / 60)}m
-                </span>
+                <div className="mt-1 hidden sm:block">
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                    {Math.floor((progress as LessonProgress).timeSpent / 60)}m
+                  </span>
+                </div>
               )}
 
               {!isLesson && hasStarted && mastery && (
-                <div className="mt-1 flex flex-col items-center gap-1">
+                <div className="mt-1 hidden sm:flex flex-col items-center gap-1">
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold capitalize">
                     {mastery.level}
                   </span>

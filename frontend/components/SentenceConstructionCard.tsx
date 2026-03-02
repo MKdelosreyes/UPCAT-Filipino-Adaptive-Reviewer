@@ -5,11 +5,8 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
-import type {
-  SentenceExercise,
-  QuizProgress,
-} from "@/contexts/LearningProgressContext";
-import { Play, TrendingUp, Clock, Loader2 } from "lucide-react";
+import type { SentenceExercise } from "@/contexts/LearningProgressContext";
+import { Play, TrendingUp, Clock } from "lucide-react";
 
 interface SentenceConstructionCardProps {
   name: string;
@@ -40,7 +37,6 @@ export default function SentenceConstructionCard({
   const getLastAttempted = (): string | null => {
     const candidates: string[] = [];
 
-    // Prefer newest of completedAt and performanceHistory timestamp
     if (exerciseProgress.completedAt)
       candidates.push(exerciseProgress.completedAt);
 
@@ -71,14 +67,15 @@ export default function SentenceConstructionCard({
   const lastAttempted = getLastAttempted();
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <motion.div
+        className="h-full"
         whileHover={{ scale: 1.03, y: -4 }}
         whileTap={{ scale: 0.98 }}
       >
-        <Link href={url} className="block">
+        <Link href={url} className="block h-full">
           <div
-            className={`relative rounded-3xl shadow-lg overflow-hidden border-2 transition-all ${
+            className={`relative h-full rounded-3xl shadow-lg overflow-hidden border-2 transition-all flex flex-col ${
               hasStarted
                 ? "border-blue-400 bg-blue-50"
                 : "border-blue-200 hover:border-blue-400"
@@ -94,8 +91,8 @@ export default function SentenceConstructionCard({
               </div>
             )}
 
-            {/* Image */}
-            <div className="relative h-40 w-full bg-white/50">
+            {/* Image (fixed height) */}
+            <div className="relative h-40 w-full bg-white/50 shrink-0">
               <Image
                 src={imagePath}
                 alt={name}
@@ -105,24 +102,21 @@ export default function SentenceConstructionCard({
               />
             </div>
 
-            {/* Content */}
-            <div className="p-5 bg-white/80 backdrop-blur-sm">
+            {/* Content (fills remaining height) */}
+            <div className="p-5 bg-white/80 backdrop-blur-sm flex-1 flex flex-col">
               <h3 className="text-xl font-bold text-blue-900 mb-2">{name}</h3>
-              <p className="text-sm text-gray-700 mb-3">{description}</p>
 
-              {/* Progress Info */}
-              <div className="text-xs space-y-2">
+              <p className="text-sm text-gray-700 mb-3 leading-snug min-h-[40px]">
+                {description}
+              </p>
+
+              {/* Progress Info pinned to bottom */}
+              <div className="text-xs space-y-2 mt-auto">
                 {progressLoading ? (
-                  <div className="space-y-2">
-                    {/* <div className="flex items-center gap-2 text-gray-600">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Updating progress…</span>
-                    </div> */}
-                    <div className="space-y-2 animate-pulse">
-                      <div className="h-3 bg-gray-200 rounded w-40" />
-                      <div className="h-3 bg-gray-200 rounded w-28" />
-                      <div className="h-3 bg-gray-200 rounded w-32" />
-                    </div>
+                  <div className="space-y-2 animate-pulse">
+                    <div className="h-3 bg-gray-200 rounded w-40" />
+                    <div className="h-3 bg-gray-200 rounded w-28" />
+                    <div className="h-3 bg-gray-200 rounded w-32" />
                   </div>
                 ) : hasStarted && exerciseMastery ? (
                   <div className="space-y-2">

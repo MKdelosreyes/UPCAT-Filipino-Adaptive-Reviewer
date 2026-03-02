@@ -36,17 +36,17 @@ export default function ReadingCard({
     ? getExerciseMastery(exerciseProgress as QuizProgress)
     : null;
 
-  // Calculate last attempted date
   const getLastAttempted = (): string | null => {
     const quiz = exerciseProgress as QuizProgress;
     if (quiz.performanceHistory.length === 0) return null;
 
     const lastTimestamp =
       quiz.performanceHistory[quiz.performanceHistory.length - 1].timestamp;
+
     const date = new Date(lastTimestamp);
     const now = new Date();
     const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (diffDays === 0) return "Today";
@@ -58,20 +58,21 @@ export default function ReadingCard({
   const lastAttempted = getLastAttempted();
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <motion.div
+        className="h-full"
         whileHover={{ scale: 1.03, y: -4 }}
         whileTap={{ scale: 0.98 }}
       >
-        <Link href={url} className="block">
+        <Link href={url} className="block h-full">
           <div
-            className={`relative rounded-3xl shadow-lg overflow-hidden border-2 transition-all ${
+            className={`relative h-full rounded-3xl shadow-lg overflow-hidden border-2 transition-all flex flex-col ${
               hasStarted
                 ? "border-purple-400 bg-purple-50"
                 : "border-purple-200 hover:border-purple-400"
             } ${color}`}
           >
-            {/* Mastery Badge - Top Right */}
+            {/* Mastery Badge */}
             {exerciseMastery && (
               <div className="absolute top-3 right-3 z-10">
                 <div className="bg-purple-500 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs font-semibold">
@@ -81,8 +82,8 @@ export default function ReadingCard({
               </div>
             )}
 
-            {/* Image */}
-            <div className="relative h-40 w-full bg-white/50">
+            {/* Image (fixed height) */}
+            <div className="relative h-40 w-full bg-white/50 shrink-0">
               <Image
                 src={imagePath || "/art/reading-icon.png"}
                 alt={name}
@@ -92,15 +93,17 @@ export default function ReadingCard({
               />
             </div>
 
-            {/* Content */}
-            <div className="p-5 bg-white/80 backdrop-blur-sm">
+            {/* Content (fills remaining height) */}
+            <div className="p-5 bg-white/80 backdrop-blur-sm flex-1 flex flex-col">
               <h3 className="text-xl font-bold text-purple-900 mb-2">{name}</h3>
-              <p className="text-sm text-gray-700 mb-3">{description}</p>
 
-              {/* Progress Info */}
-              <div className="text-xs space-y-2">
+              <p className="text-sm text-gray-700 mb-3 leading-snug min-h-[40px]">
+                {description}
+              </p>
+
+              {/* Progress Info pinned to bottom */}
+              <div className="text-xs space-y-2 mt-auto">
                 {hasStarted && exerciseMastery ? (
-                  // Quiz Progress Display
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -128,6 +131,7 @@ export default function ReadingCard({
                         </p>
                       </div>
                     </div>
+
                     {lastAttempted && (
                       <p className="text-gray-500 text-xs flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -136,7 +140,6 @@ export default function ReadingCard({
                     )}
                   </div>
                 ) : (
-                  // Not Started
                   <div className="flex items-center gap-2">
                     <Play className="w-5 h-5 text-purple-600" />
                     <div>
@@ -155,4 +158,3 @@ export default function ReadingCard({
     </div>
   );
 }
-
