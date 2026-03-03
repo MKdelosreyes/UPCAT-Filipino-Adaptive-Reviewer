@@ -17,31 +17,37 @@ import {
 import { checkSummary, type SummaryCheckResponse } from "@/lib/api/ai-service";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 export default function SummaryExercisePage() {
   const { updateProgress, getExerciseProgress } = useReadingProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } = useLearningProgress();
+  const { addPerformanceMetrics, getPerformanceHistory } =
+    useLearningProgress();
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
-  
+
   const [passages, setPassages] = useState<ReadingPassage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
+  const loadingQuote = useMotivationalQuote(authLoading || isLoading, 3000);
   const [usedPassageIds, setUsedPassageIds] = useState<Set<string>>(new Set());
   const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
   const [summary, setSummary] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
-  const [feedbacks, setFeedbacks] = useState<(SummaryCheckResponse | null)[]>([null, null, null]);
+  const [feedbacks, setFeedbacks] = useState<(SummaryCheckResponse | null)[]>([
+    null,
+    null,
+    null,
+  ]);
   const [completedPassages, setCompletedPassages] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [showingFeedback, setShowingFeedback] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
 
-  // ✅ Load passages with adaptive difficulty
   useEffect(() => {
     async function loadPassages() {
       try {
@@ -49,7 +55,7 @@ export default function SummaryExercisePage() {
 
         const performanceHistory = getPerformanceHistory(
           "reading-comprehension",
-          "summary-exercise"
+          "summary-exercise",
         );
         const exerciseProgress = getExerciseProgress("summary-exercise");
 
@@ -65,7 +71,7 @@ export default function SummaryExercisePage() {
             "🎯 Evaluated Target Difficulty:",
             targetDifficulty,
             "| Tags:",
-            evaluation.tags
+            evaluation.tags,
           );
         } else {
           if ("lastDifficulty" in exerciseProgress) {
@@ -81,7 +87,7 @@ export default function SummaryExercisePage() {
 
         console.log(
           "🔄 Fetching adaptive summary passages with difficulty:",
-          targetDifficulty
+          targetDifficulty,
         );
 
         const readingPassages = await getReadingComprehensionExercisesAdaptive({
@@ -97,21 +103,21 @@ export default function SummaryExercisePage() {
         }
 
         setPassages(readingPassages);
-        
+
         // Track passage IDs to avoid duplicates
-        setUsedPassageIds(prev => {
+        setUsedPassageIds((prev) => {
           const newSet = new Set(prev);
-          readingPassages.forEach(p => newSet.add(p.passage_id));
+          readingPassages.forEach((p) => newSet.add(p.passage_id));
           return newSet;
         });
-        
+
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load summary passages:", err);
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load passages. Please try again."
+            : "Failed to load passages. Please try again.",
         );
       } finally {
         setIsLoading(false);
@@ -122,14 +128,61 @@ export default function SummaryExercisePage() {
 
   // Update word count when summary changes
   useEffect(() => {
-    const words = summary.trim().split(/\s+/).filter(word => word.length > 0);
+    const words = summary
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
     setWordCount(words.length);
   }, [summary]);
 
   if (authLoading) {
     return (
-      <div className="h-screen bg-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
+
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-700 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
+          </div>
+
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Preparing your exercise
+            </span>
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-10 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-200 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-400 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -137,34 +190,50 @@ export default function SummaryExercisePage() {
   // Show loading state while initializing
   if (isLoading) {
     return (
-      <div className="h-screen bg-purple-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
-          <Link
-            href="/reading-comprehension"
-            className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
 
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
-              Summary Exercise
-            </h1>
-            <p className="text-xs text-gray-500 mt-1">
-              Difficulty:{" "}
-              <span className="font-semibold capitalize">
-                {currentDifficulty}
-              </span>
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-900 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
             </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
           </div>
 
-          <div className="w-20"></div>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-purple-600 font-semibold">Loading passages...</p>
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Loading exercise
+            </span>
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-0 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-150 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-300 text-yellow-600">
+                .
+              </span>
+            </span>
           </div>
         </div>
       </div>
@@ -212,13 +281,13 @@ export default function SummaryExercisePage() {
 
   const handleSubmit = async () => {
     if (summary.trim().length === 0) return;
-    
+
     setIsChecking(true);
     setError(null);
-    
+
     try {
       const currentPassage = passages[currentPassageIndex];
-      
+
       // ✅ Call AI service to check summary
       const result = await checkSummary({
         passage_text: currentPassage.text,
@@ -226,16 +295,15 @@ export default function SummaryExercisePage() {
         main_idea: currentPassage.mainIdea,
         passage_title: currentPassage.title,
       });
-      
+
       // Store feedback for this passage
       const newFeedbacks = [...feedbacks];
       newFeedbacks[currentPassageIndex] = result;
       setFeedbacks(newFeedbacks);
-      
-      setCompletedPassages(prev => prev + 1);
+
+      setCompletedPassages((prev) => prev + 1);
       setIsSubmitted(true);
       setShowingFeedback(true);
-      
     } catch (err) {
       console.error("Failed to check summary:", err);
       setError("Failed to evaluate summary. Please try again.");
@@ -248,7 +316,7 @@ export default function SummaryExercisePage() {
 
   const handleNextPassage = () => {
     // Move to next passage
-    setCurrentPassageIndex(prev => prev + 1);
+    setCurrentPassageIndex((prev) => prev + 1);
     setSummary("");
     setIsSubmitted(false);
     setWordCount(0);
@@ -258,16 +326,23 @@ export default function SummaryExercisePage() {
 
   const handleFinishExercise = () => {
     // All passages complete - calculate quality metrics
-    const qualityLevels = feedbacks.filter(f => f !== null).map(f => f!.quality_level);
-    const excellentCount = qualityLevels.filter(q => q === 'excellent').length;
-    const goodCount = qualityLevels.filter(q => q === 'good').length;
-    const developingCount = qualityLevels.filter(q => q === 'developing').length;
-    
+    const qualityLevels = feedbacks
+      .filter((f) => f !== null)
+      .map((f) => f!.quality_level);
+    const excellentCount = qualityLevels.filter(
+      (q) => q === "excellent",
+    ).length;
+    const goodCount = qualityLevels.filter((q) => q === "good").length;
+    const developingCount = qualityLevels.filter(
+      (q) => q === "developing",
+    ).length;
+
     // Convert to approximate score for compatibility
     const avgScore = Math.round(
-      (excellentCount * 95 + goodCount * 80 + developingCount * 65) / passages.length
+      (excellentCount * 95 + goodCount * 80 + developingCount * 65) /
+        passages.length,
     );
-    
+
     const finalMetrics = {
       difficulty: currentDifficulty,
       score: avgScore,
@@ -278,7 +353,10 @@ export default function SummaryExercisePage() {
 
     // addPerformanceMetrics("reading-comprehension", "summary-exercise", finalMetrics);
 
-    const history = getPerformanceHistory("reading-comprehension", "summary-exercise");
+    const history = getPerformanceHistory(
+      "reading-comprehension",
+      "summary-exercise",
+    );
     const allHistory = [...history, finalMetrics];
     // const evaluation = evaluateUserPerformance(allHistory);
 
@@ -288,7 +366,7 @@ export default function SummaryExercisePage() {
     //   "| Error Tags:",
     //   evaluation.tags
     // );
-    
+
     // updateProgress("summary-exercise", {
     //   status: "in-progress",
     //   score: avgScore,
@@ -297,7 +375,7 @@ export default function SummaryExercisePage() {
     //   lastDifficulty: evaluation.nextDifficulty,
     //   errorTags: evaluation.tags,
     // });
-    
+
     // Show completion modal
     setShowCompletion(true);
   };
@@ -305,20 +383,24 @@ export default function SummaryExercisePage() {
   const resetExercise = async () => {
     try {
       setIsLoading(true);
-      
+
       // Fetch new passages, excluding ones we've already used
       let readingPassages = await getReadingComprehensionExercisesAdaptive({
         userId: user?.id,
         targetDifficulty: currentDifficulty,
         limit: 10, // Fetch more to filter from
       });
-      
+
       // Filter out passages we've already seen
-      const newPassages = readingPassages.filter(p => !usedPassageIds.has(p.passage_id));
-      
+      const newPassages = readingPassages.filter(
+        (p) => !usedPassageIds.has(p.passage_id),
+      );
+
       // If we've seen all passages at this difficulty, reset the used IDs
       if (newPassages.length < 3) {
-        console.log("⚠️ Not enough new passages, resetting used passage tracking");
+        console.log(
+          "⚠️ Not enough new passages, resetting used passage tracking",
+        );
         setUsedPassageIds(new Set());
         readingPassages = await getReadingComprehensionExercisesAdaptive({
           userId: user?.id,
@@ -328,16 +410,16 @@ export default function SummaryExercisePage() {
       } else {
         readingPassages = newPassages.slice(0, 3);
       }
-      
+
       setPassages(readingPassages);
-      
+
       // Track new passage IDs
-      setUsedPassageIds(prev => {
+      setUsedPassageIds((prev) => {
         const newSet = new Set(prev);
-        readingPassages.forEach(p => newSet.add(p.passage_id));
+        readingPassages.forEach((p) => newSet.add(p.passage_id));
         return newSet;
       });
-      
+
       setCurrentPassageIndex(0);
       setSummary("");
       setIsSubmitted(false);
@@ -368,25 +450,26 @@ export default function SummaryExercisePage() {
           className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          <span className="hidden md:inline">Back</span>
         </Link>
 
         <div className="text-center flex-1 px-4">
           <div className="flex items-center justify-center gap-2">
             <BookOpen className="w-5 h-5 text-purple-600" />
-            <h1 className="text-xl md:text-2xl font-bold text-purple-900">
+            <h1 className="text-base md:text-2xl font-bold text-purple-900">
               Summary Exercise
             </h1>
           </div>
-          <p className="text-xs text-gray-600 mt-1">
-            {currentPassage.title} • Passage {currentPassageIndex + 1} of {passages.length}
+          {/* <p className="text-xs text-gray-600 mt-1">
+            {currentPassage.title} • Passage {currentPassageIndex + 1} of{" "}
+            {passages.length}
           </p>
           <p className="text-xs text-gray-500">
             Difficulty:{" "}
             <span className="font-semibold capitalize">
               {currentDifficulty}
             </span>
-          </p>
+          </p> */}
         </div>
 
         <button
@@ -448,7 +531,9 @@ export default function SummaryExercisePage() {
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(completedPassages / passages.length) * 100}%` }}
+                  style={{
+                    width: `${(completedPassages / passages.length) * 100}%`,
+                  }}
                 />
               </div>
               <p className="text-xs text-gray-600 mt-2">
@@ -467,7 +552,8 @@ export default function SummaryExercisePage() {
                   Summarize the Passage
                 </h2>
                 <p className="text-sm text-gray-600">
-                  Write a brief summary of what you read. Include the main ideas and key points.
+                  Write a brief summary of what you read. Include the main ideas
+                  and key points.
                 </p>
               </div>
 
@@ -490,23 +576,37 @@ export default function SummaryExercisePage() {
               <div className="mb-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">
-                    Word count: <span className="font-semibold text-purple-600">{wordCount}</span>
+                    Word count:{" "}
+                    <span className="font-semibold text-purple-600">
+                      {wordCount}
+                    </span>
                   </span>
                   {isSubmitted && currentFeedback && (
                     <motion.span
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       className={`font-semibold flex items-center gap-1 capitalize ${
-                        currentFeedback.quality_level === 'excellent' ? 'text-green-600' :
-                        currentFeedback.quality_level === 'good' ? 'text-purple-600' :
-                        currentFeedback.quality_level === 'developing' ? 'text-amber-600' :
-                        'text-amber-600'
+                        currentFeedback.quality_level === "excellent"
+                          ? "text-green-600"
+                          : currentFeedback.quality_level === "good"
+                            ? "text-purple-600"
+                            : currentFeedback.quality_level === "developing"
+                              ? "text-amber-600"
+                              : "text-amber-600"
                       }`}
                     >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
                       </svg>
-                      {currentFeedback.quality_level.replace('-', ' ')}
+                      {currentFeedback.quality_level.replace("-", " ")}
                     </motion.span>
                   )}
                 </div>
@@ -581,7 +681,10 @@ export default function SummaryExercisePage() {
                       </p>
                       <ul className="space-y-1">
                         {currentFeedback.strengths.map((strength, idx) => (
-                          <li key={idx} className="text-sm text-green-800 flex items-start gap-2">
+                          <li
+                            key={idx}
+                            className="text-sm text-green-800 flex items-start gap-2"
+                          >
                             <span className="text-green-600">•</span>
                             <span>{strength}</span>
                           </li>
@@ -597,12 +700,17 @@ export default function SummaryExercisePage() {
                         📈 Areas for Improvement
                       </p>
                       <ul className="space-y-1">
-                        {currentFeedback.improvements.map((improvement, idx) => (
-                          <li key={idx} className="text-sm text-amber-800 flex items-start gap-2">
-                            <span className="text-amber-600">•</span>
-                            <span>{improvement}</span>
-                          </li>
-                        ))}
+                        {currentFeedback.improvements.map(
+                          (improvement, idx) => (
+                            <li
+                              key={idx}
+                              className="text-sm text-amber-800 flex items-start gap-2"
+                            >
+                              <span className="text-amber-600">•</span>
+                              <span>{improvement}</span>
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   )}
@@ -645,8 +753,16 @@ export default function SummaryExercisePage() {
                   onClick={handleFinishExercise}
                   className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-green-600 to-purple-600 hover:from-green-700 hover:to-purple-700 text-white shadow-lg transition-all duration-200"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Finish Exercise
                 </motion.button>
@@ -658,8 +774,18 @@ export default function SummaryExercisePage() {
                   className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-lg bg-purple-600 hover:bg-purple-700 text-white shadow-lg transition-all duration-200"
                 >
                   Next Passage
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </motion.button>
               )}
@@ -671,16 +797,32 @@ export default function SummaryExercisePage() {
       <ReadingCompletionModal
         isOpen={showCompletion}
         score={
-          feedbacks.filter(f => f !== null).length > 0
+          feedbacks.filter((f) => f !== null).length > 0
             ? Math.round(
-                (feedbacks.filter(f => f !== null).map(f => {
-                  const level = f!.quality_level;
-                  return level === 'excellent' ? 95 : level === 'good' ? 80 : level === 'developing' ? 65 : 30;
-                }).reduce((sum, s) => sum + s, 0) / feedbacks.filter(f => f !== null).length)
+                feedbacks
+                  .filter((f) => f !== null)
+                  .map((f) => {
+                    const level = f!.quality_level;
+                    return level === "excellent"
+                      ? 95
+                      : level === "good"
+                        ? 80
+                        : level === "developing"
+                          ? 65
+                          : 30;
+                  })
+                  .reduce((sum, s) => sum + s, 0) /
+                  feedbacks.filter((f) => f !== null).length,
               )
             : 0
         }
-        correctCount={feedbacks.filter(f => f !== null && (f.quality_level === 'excellent' || f.quality_level === 'good')).length}
+        correctCount={
+          feedbacks.filter(
+            (f) =>
+              f !== null &&
+              (f.quality_level === "excellent" || f.quality_level === "good"),
+          ).length
+        }
         totalQuestions={passages.length}
         passageTitle={`${passages.length} Summary Exercises`}
         onClose={() => setShowCompletion(false)}

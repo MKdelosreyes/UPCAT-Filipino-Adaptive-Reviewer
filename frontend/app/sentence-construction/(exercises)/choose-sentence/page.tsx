@@ -424,7 +424,7 @@ export default function ChooseSentencePage() {
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+          <h1 className="text-base md:text-2xl font-bold text-blue-900">
             Choose the Best Sentence
           </h1>
         </div>
