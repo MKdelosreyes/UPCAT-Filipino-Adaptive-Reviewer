@@ -22,6 +22,7 @@ import {
   makeUserScopedStorageKey,
   usePersistedQuizSession,
 } from "@/hooks/usePersistedQuizSession";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 interface ErrorAnswer {
   isCorrect: boolean;
@@ -412,6 +413,8 @@ export default function ErrorIdentificationPage() {
       },
     });
 
+  const loadingQuote = useMotivationalQuote(authLoading || srsLoading, 3000);
+
   useEffect(() => {
     async function loadQuestions() {
       // If we restored a session, do not override it.
@@ -455,48 +458,53 @@ export default function ErrorIdentificationPage() {
     showCompletion,
   ]);
 
-  if (authLoading) {
+  if (authLoading || srsLoading || errorQuestions.length === 0) {
     return (
-      <div className="h-screen bg-green-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
-    );
-  }
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
 
-  if (srsLoading || errorQuestions.length === 0) {
-    return (
-      <div className="h-screen bg-green-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
-          <Link
-            href="/grammar"
-            className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-700 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
 
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-green-900">
-              Error Identification
-            </h1>
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
           </div>
 
-          <div className="w-20"></div>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center">
-          {srsLoading ? (
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-          ) : (
-            <div className="text-center">
-              <p className="text-lg text-green-900 mb-2">
-                🎉 No items available right now!
-              </p>
-              <p className="text-sm text-green-600">
-                Come back later for more practice.
-              </p>
-            </div>
-          )}
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            {/* <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Preparing your exercise
+            </span> */}
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-10 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-200 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-400 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -714,8 +722,8 @@ export default function ErrorIdentificationPage() {
           </motion.div>
         ) : (
           <div className="text-center text-xs text-green-600">
-            🔍 Identify the part of the sentence that contains a grammatical
-            error
+            {/* 🔍 Identify the part of the sentence that contains a grammatical
+            error */}
           </div>
         )}
       </div>

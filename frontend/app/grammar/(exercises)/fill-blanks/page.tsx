@@ -28,6 +28,7 @@ import {
   makeUserScopedStorageKey,
   usePersistedQuizSession,
 } from "@/hooks/usePersistedQuizSession";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 interface FillBlanksAnswer {
   isCorrect: boolean;
@@ -181,10 +182,13 @@ export default function GrammarFillBlanksPage() {
 
   const [isFinishing, setIsFinishing] = useState(false);
 
-  // NEW: local loading flag so we don't show "no items" while lexicon fetch/processing runs
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
 
-  // NEW: persisted session
+  const loadingQuote = useMotivationalQuote(
+    authLoading || srsLoading || isLoadingQuestions,
+    3000,
+  );
+
   const sessionStorageKey = authLoading
     ? null
     : makeUserScopedStorageKey(user, "far:quizSession:grammar:fill-blanks");
@@ -314,40 +318,105 @@ export default function GrammarFillBlanksPage() {
     loadQuestions();
   }, [didRestore, srsLoading, sessionExercises, isCompleting, showCompletion]);
 
-  if (authLoading) {
+  if (authLoading || srsLoading) {
     return (
-      <div className="h-screen bg-green-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
+
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-700 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
+          </div>
+
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            {/* <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Preparing your exercise
+            </span> */}
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-10 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-200 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-400 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Loading state (SRS + local question-building)
-  if (srsLoading || isLoadingQuestions) {
+  // Show loading state
+  if (isLoadingQuestions) {
     return (
-      <div className="h-screen bg-green-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
-          <Link
-            href="/grammar"
-            className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
 
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-green-900">
-              Fill the Blank
-            </h1>
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-900 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
           </div>
 
-          <div className="w-20"></div>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-green-700 font-semibold">Loading exercises...</p>
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Loading exercise
+            </span>
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-0 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-150 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-300 text-yellow-600">
+                .
+              </span>
+            </span>
           </div>
         </div>
       </div>
@@ -601,7 +670,7 @@ export default function GrammarFillBlanksPage() {
             </motion.div>
           ) : (
             <div className="text-center text-xs text-green-600">
-              📝 Fill in the blank with the correct word
+              {/* 📝 Fill in the blank with the correct word */}
             </div>
           )}
         </div>
