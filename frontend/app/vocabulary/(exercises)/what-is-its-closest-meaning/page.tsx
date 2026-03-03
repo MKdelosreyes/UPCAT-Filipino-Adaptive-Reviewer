@@ -624,7 +624,7 @@ export default function ClosestMeaningQuizPage() {
           className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          {/* Back */}
+          <span className="hidden md:inline">Back</span>
         </Link>
 
         <div className="text-center flex-1 px-4">

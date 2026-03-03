@@ -594,11 +594,11 @@ export default function GrammarFillBlanksPage() {
           className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          <span className="hidden md:inline">Back</span>
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-green-900">
+          <h1 className="text-base md:text-2xl font-bold text-green-900">
             Complete the Sentence
           </h1>
         </div>
