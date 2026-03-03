@@ -24,7 +24,7 @@ import {
   makeUserScopedStorageKey,
   usePersistedQuizSession,
 } from "@/hooks/usePersistedQuizSession";
-import { set } from "zod";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 interface OrderingAnswer {
   isCorrect: boolean;
@@ -102,6 +102,7 @@ export default function SentenceOrderingPage() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   const [isFinishing, setIsFinishing] = useState(false);
+  const loadingQuote = useMotivationalQuote(authLoading || srsLoading, 3000);
 
   const sessionStorageKey = authLoading
     ? null
@@ -205,8 +206,52 @@ export default function SentenceOrderingPage() {
 
   if (authLoading || srsLoading) {
     return (
-      <div className="h-screen bg-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
+
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-700 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
+          </div>
+
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Preparing your exercise
+            </span>
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-10 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-200 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-400 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -380,7 +425,7 @@ export default function SentenceOrderingPage() {
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          <span className="hidden md:inline">Back</span>
         </Link>
 
         <div className="text-center flex-1 px-4">
