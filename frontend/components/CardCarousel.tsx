@@ -225,8 +225,8 @@ const CardCarousel = ({
                       ? 1
                       : 1.1
                     : isMobile
-                    ? 0.8
-                    : 0.85,
+                      ? 0.8
+                      : 0.85,
                   opacity: isActive ? 1 : isMobile ? 0.3 : 0.5,
                   y: isActive ? 0 : isMobile ? 10 : 20,
                   filter: isActive ? "blur(0px)" : `blur(${distance * 2}px)`,

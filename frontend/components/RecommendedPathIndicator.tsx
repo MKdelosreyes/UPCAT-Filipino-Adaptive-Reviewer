@@ -63,7 +63,7 @@ export default function RecommendedPathIndicator({
 
   const getExerciseProgress = (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ): LessonProgress | QuizProgress | null => {
     const moduleData = progress[module];
 
@@ -164,7 +164,7 @@ export default function RecommendedPathIndicator({
     module: ModuleType,
     isCompleted: boolean,
     isRecommended: boolean,
-    hasProgress: boolean
+    hasProgress: boolean,
   ) => {
     const colorMap = {
       vocabulary: {
@@ -204,7 +204,7 @@ export default function RecommendedPathIndicator({
     module: ModuleType,
     isCompleted: boolean,
     isRecommended: boolean,
-    hasProgress: boolean
+    hasProgress: boolean,
   ) => {
     const colorMap = {
       vocabulary: {
@@ -296,10 +296,10 @@ export default function RecommendedPathIndicator({
 
   return (
     <div
-      className={`w-full bg-gradient-to-r ${bgGradient} rounded-xl p-4 shadow-md ${borderClass}`}
+      className={`w-full bg-gradient-to-r ${bgGradient} rounded-xl p-3 sm:p-4 shadow-md ${borderClass}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
         <h3
           className={`text-sm font-bold ${headerTextClass} flex items-center gap-2`}
         >
@@ -308,23 +308,25 @@ export default function RecommendedPathIndicator({
       </div>
 
       {/* Horizontal Stepper */}
-      <div className="relative">
-        {/* Progress Line */}
-        <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 -z-10">
-          <div
-            className="h-full bg-gradient-to-r from-green-500 to-blue-500 transition-all duration-500"
-            style={{
-              width: `${
-                (steps.findIndex((s) => s === recommended) /
-                  (steps.length - 1)) *
-                100
-              }%`,
-            }}
-          />
+      <div className="relative -mx-2 px-2 overflow-x-auto scrollbar-hide">
+        <div className="relative min-w-[420px] sm:min-w-0">
+          {/* Progress Line */}
+          <div className="absolute top-5 sm:top-6 left-0 right-0 h-1 bg-gray-200 -z-10">
+            <div
+              className="h-full bg-gradient-to-r from-green-500 to-blue-500 transition-all duration-500"
+              style={{
+                width: `${
+                  (steps.findIndex((s) => s === recommended) /
+                    (steps.length - 1)) *
+                  100
+                }%`,
+              }}
+            />
+          </div>
         </div>
 
         {/* Module Steps */}
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between gap-1.5 sm:gap-2">
           {steps.map((module, index) => {
             const status = getModuleStatus(module);
 
@@ -335,11 +337,11 @@ export default function RecommendedPathIndicator({
               >
                 {/* Module Circle */}
                 <div
-                  className={`relative w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 z-10 ${getModuleCircleColors(
+                  className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-base sm:text-lg font-bold transition-all duration-300 z-10 ${getModuleCircleColors(
                     module,
                     status.isCompleted,
                     status.isRecommended,
-                    status.completedCount > 0
+                    status.completedCount > 0,
                   )}`}
                 >
                   {status.isCompleted ? (
@@ -352,7 +354,6 @@ export default function RecommendedPathIndicator({
                     <span className="text-base">{moduleIcons[module]}</span>
                   )}
 
-                  {/* Recommended Sparkle Badge */}
                   {status.isRecommended && !status.isCompleted && (
                     <div className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 rounded-full w-5 h-5 flex items-center justify-center">
                       <Sparkles size={12} />
@@ -361,23 +362,23 @@ export default function RecommendedPathIndicator({
                 </div>
 
                 {/* Module Name */}
-                <div className="mt-2 text-center">
+                <div className="mt-1.5 sm:mt-2 text-center">
                   <p
-                    className={`text-xs font-semibold leading-tight ${getModuleTextColors(
+                    className={`text-[11px] sm:text-xs font-semibold leading-tight ${getModuleTextColors(
                       module,
                       status.isCompleted,
                       status.isRecommended,
-                      status.completedCount > 0
+                      status.completedCount > 0,
                     )}`}
                   >
                     {moduleNames[module]}
                   </p>
 
-                  {/* Progress Counts */}
-                  <div className="flex items-center justify-center gap-2 mt-1 text-[10px] text-gray-600">
+                  {/* Progress Counts (hide lessons on mobile to reduce clutter) */}
+                  <div className="flex items-center justify-center gap-2 mt-1 text-[9px] sm:text-[10px] text-gray-600">
                     {status.totalLessons > 0 && (
                       <div
-                        className={`flex items-center gap-0.5 ${
+                        className={`hidden sm:flex items-center gap-0.5 ${
                           status.completedLessons === status.totalLessons
                             ? "text-green-600"
                             : ""
@@ -389,6 +390,7 @@ export default function RecommendedPathIndicator({
                         </span>
                       </div>
                     )}
+
                     <div
                       className={`flex items-center gap-0.5 ${
                         status.completedQuizzes === status.totalQuizzes
@@ -426,12 +428,12 @@ export default function RecommendedPathIndicator({
                     </div>
                   )}
 
-                  {/* Mastery Badge */}
+                  {/* Mastery Badge (hide on xs, show on sm+) */}
                   {!status.isCompleted &&
                     status.completedCount > 0 &&
                     !status.isRecommended &&
                     status.mastery.level !== "beginner" && (
-                      <div className="mt-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 bg-blue-50 text-blue-700 border border-blue-200">
+                      <div className="mt-1 hidden sm:inline-flex text-[9px] font-semibold px-1.5 py-0.5 rounded-full items-center gap-0.5 bg-blue-50 text-blue-700 border border-blue-200">
                         <span className="capitalize">
                           {status.mastery.level}
                         </span>
@@ -442,13 +444,13 @@ export default function RecommendedPathIndicator({
                 {/* Arrow Between Steps */}
                 {index < steps.length - 1 && (
                   <ArrowRight
-                    size={16}
-                    className={`absolute -right-3 top-5 ${
+                    size={14}
+                    className={`absolute -right-2 sm:-right-3 top-4 sm:top-5 ${
                       status.isCompleted
                         ? "text-green-500"
                         : status.isRecommended
-                        ? recommendedArrowClass
-                        : "text-gray-300"
+                          ? recommendedArrowClass
+                          : "text-gray-300"
                     }`}
                   />
                 )}
