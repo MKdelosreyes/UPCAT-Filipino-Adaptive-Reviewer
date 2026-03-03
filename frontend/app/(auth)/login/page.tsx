@@ -16,13 +16,14 @@ import {
 } from "lucide-react";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { signIn, signInWithGoogle } from "@/lib/api/supabaseAuth";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const quote = useMotivationalQuote(isLoading, 5000);
   const {
     register,
     handleSubmit,

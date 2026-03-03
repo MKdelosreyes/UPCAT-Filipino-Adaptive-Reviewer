@@ -150,7 +150,7 @@ export default function QuizQuestion({
           Ano ang pinakamalapit sa kahulugan ng salitang may{" "}
           <u className="decoration-yellow-800 decoration-2">salungguhit</u>?
         </h2>
-        <div className="bg-yellow-100 rounded-xl py-6 border-2 border-yellow-300">
+        <div className="bg-yellow-100 rounded-xl py-6 border-2 border-yellow-300 px-5">
           <p
             className="text-lg md:text-xl text-yellow-800 font-bold leading-relaxed"
             dangerouslySetInnerHTML={{ __html: sentence }}
