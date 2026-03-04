@@ -137,8 +137,8 @@ export default function ChooseSentenceCompletionModal({
                         score >= 70
                           ? "bg-green-100"
                           : score >= 60
-                          ? "bg-yellow-100"
-                          : "bg-red-100"
+                            ? "bg-yellow-100"
+                            : "bg-red-100"
                       }`}
                     >
                       {score >= 70 ? (
@@ -212,10 +212,10 @@ export default function ChooseSentenceCompletionModal({
                   {/* Action Buttons */}
                   <div className="flex flex-col gap-3 mt-auto">
                     <Link
-                      href="/sentence-construction/create"
+                      href="/sentence-construction"
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
                     >
-                      Continue to Create a Sentence →
+                      Back to Sentence Construction →
                     </Link>
                     <button
                       onClick={handleRetake}
@@ -223,12 +223,12 @@ export default function ChooseSentenceCompletionModal({
                     >
                       Retake Exercise
                     </button>
-                    <Link
+                    {/* <Link
                       href="/sentence-construction"
                       className="w-full text-center text-gray-600 hover:text-gray-800 py-2 text-sm"
                     >
                       Back to Sentence Construction
-                    </Link>
+                    </Link> */}
                   </div>
                 </div>
               </motion.div>

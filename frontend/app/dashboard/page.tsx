@@ -65,13 +65,81 @@ const cards: Card[] = [
   },
 ];
 
+function AnalyticsPanelSkeleton({ tab }: { tab: "progress" | "skills" }) {
+  return (
+    <div className="w-full space-y-4 animate-pulse">
+      {/* Title */}
+      <div className="space-y-2">
+        <div className="h-6 w-40 bg-gray-200 rounded" />
+        <div className="h-3 w-64 bg-gray-200 rounded" />
+      </div>
+
+      {/* Quick stats (2 cards) */}
+      <div className="grid grid-cols-2 gap-3">
+        {[0, 1].map((i) => (
+          <div
+            key={i}
+            className="bg-gray-100 border border-gray-200 rounded-lg p-3"
+          >
+            <div className="h-3 w-24 bg-gray-200 rounded mb-3" />
+            <div className="h-7 w-16 bg-gray-200 rounded" />
+          </div>
+        ))}
+      </div>
+
+      {/* Main list */}
+      <div className="space-y-3">
+        <div className="h-4 w-32 bg-gray-200 rounded" />
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-28 bg-gray-200 rounded" />
+              <div className="h-4 w-10 bg-gray-200 rounded" />
+            </div>
+            <div className="h-2 w-full bg-gray-200 rounded" />
+            <div className="flex items-center justify-between">
+              <div className="h-3 w-24 bg-gray-200 rounded" />
+              <div className="h-5 w-16 bg-gray-200 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Skills tab gets a slightly different feel (extra blocks) */}
+      {tab === "skills" && (
+        <div className="space-y-3">
+          <div className="h-4 w-28 bg-gray-200 rounded" />
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-2"
+            >
+              <div className="flex items-center justify-between">
+                <div className="h-4 w-36 bg-gray-200 rounded" />
+                <div className="h-6 w-12 bg-gray-200 rounded-full" />
+              </div>
+              <div className="h-2 w-full bg-gray-200 rounded" />
+              <div className="h-3 w-56 bg-gray-200 rounded" />
+              <div className="h-3 w-44 bg-gray-200 rounded" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"progress" | "skills">("progress");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const { user, isLoading: authLoading } = useAuthGuard();
-  const { isLoading: progressLoading } = useLearningProgress();
+  const { isLoading: progressLoading, error: progressError } =
+    useLearningProgress();
 
   useEffect(() => {
     const handleResize = () => {
@@ -104,20 +172,20 @@ export default function Dashboard() {
             isPanelOpen ? "hidden lg:flex" : "flex"
           } flex-col flex-[2] h-full bg-white rounded-2xl overflow-hidden border-7 ${(() => {
             const map: Record<string, string> = {
-              vocabulary: 'border-yellow-300',
-              grammar: 'border-green-300',
-              'sentence-construction': 'border-blue-300',
-              'reading-comprehension': 'border-purple-300',
+              vocabulary: "border-yellow-300",
+              grammar: "border-green-300",
+              "sentence-construction": "border-blue-300",
+              "reading-comprehension": "border-purple-300",
             };
-            const moduleType = cards[carouselIndex]?.moduleType || 'vocabulary';
-            return map[moduleType] ?? 'border-blue-300';
+            const moduleType = cards[carouselIndex]?.moduleType || "vocabulary";
+            return map[moduleType] ?? "border-blue-300";
           })()}`}
         >
           {progressLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">
+                <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
+                <p className="text-gray-600 font-xs">
                   Loading your learning path...
                 </p>
               </div>
@@ -125,9 +193,14 @@ export default function Dashboard() {
           ) : (
             <>
               <div className="w-auto z-30 bg-white md:mx-3 md:mt-3 px-3 pt-3">
-                <RecommendedPathIndicator activeModule={cards[carouselIndex]?.moduleType} />
+                <RecommendedPathIndicator
+                  activeModule={cards[carouselIndex]?.moduleType}
+                />
               </div>
-              <CardCarousel skill_cards={cards} onIndexChange={setCarouselIndex} />
+              <CardCarousel
+                skill_cards={cards}
+                onIndexChange={setCarouselIndex}
+              />
             </>
           )}
         </div>
@@ -166,7 +239,7 @@ export default function Dashboard() {
                 <div className="flex w-full h-12 flex-row items-center">
                   <button
                     onClick={() => setActiveTab("progress")}
-                    className={`flex w-[50%] mr-[-5px] h-full font-semibold text-xs p-3 text-center items-center justify-center rounded-tl-2xl rounded-tr-4xl transition-all border-t border-x border-gray-300 ${
+                    className={`flex w-[55%] mr-[-5px] h-full font-semibold text-xs p-3 text-center items-center justify-center rounded-tl-2xl rounded-tr-4xl transition-all border-t border-x border-gray-300 ${
                       activeTab === "progress"
                         ? "z-10 bg-white"
                         : "bg-gray-300 text-gray-600 shadow-[inset_0_-8px_12px_-8px_rgba(0,0,0,0.15)]"
@@ -176,7 +249,7 @@ export default function Dashboard() {
                   </button>
                   <button
                     onClick={() => setActiveTab("skills")}
-                    className={`flex w-[50%] ml-[-5px] h-full font-semibold text-xs p-3 text-center items-center justify-center rounded-tr-2xl rounded-tl-4xl transition-all border-t border-x border-gray-300 ${
+                    className={`flex w-[55%] ml-[-5px] h-full font-semibold text-xs p-3 text-center items-center justify-center rounded-tr-2xl rounded-tl-4xl transition-all border-t border-x border-gray-300 ${
                       activeTab === "skills"
                         ? "z-10 bg-white"
                         : "bg-gray-300 text-gray-600 shadow-[inset_0_-8px_12px_-8px_rgba(0,0,0,0.15)]"
@@ -187,14 +260,16 @@ export default function Dashboard() {
                 </div>
 
                 {/* Tab Content */}
-                <div className="flex w-full flex-1 bg-white rounded-b-2xl p-5 overflow-y-auto border-b border-x border-gray-300 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <div className="flex w-full flex-1 bg-white rounded-b-2xl p-5 overflow-y-auto scrollbar-hide border-b border-x border-gray-300">
                   {progressLoading ? (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <div className="text-center">
-                        <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-3" />
-                        <p className="text-gray-600 text-sm font-medium">
-                          Loading analytics...
+                    <AnalyticsPanelSkeleton tab={activeTab} />
+                  ) : progressError ? (
+                    <div className="w-full">
+                      <div className="border border-red-200 bg-red-50 text-red-700 rounded-lg p-4 text-sm">
+                        <p className="font-semibold mb-1">
+                          Unable to load analytics
                         </p>
+                        <p className="opacity-90">{progressError}</p>
                       </div>
                     </div>
                   ) : (

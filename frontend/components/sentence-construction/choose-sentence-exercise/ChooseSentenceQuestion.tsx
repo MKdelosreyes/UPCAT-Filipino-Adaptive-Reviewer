@@ -30,7 +30,7 @@ export default function ChooseSentenceQuestion({
 }: ChooseSentenceQuestionProps) {
   const [aiExplanation, setAiExplanation] = useState<string>("");
   const [loadingExplanation, setLoadingExplanation] = useState(false);
-  
+
   const showExplanation =
     showResult && selectedAnswer && selectedAnswer !== correctAnswer;
 
@@ -42,7 +42,7 @@ export default function ChooseSentenceQuestion({
 
   const fetchAIExplanation = async () => {
     if (!selectedAnswer) return;
-    
+
     setLoadingExplanation(true);
     try {
       const data = await getExplanation({
@@ -53,11 +53,13 @@ export default function ChooseSentenceQuestion({
         sentence: context,
         explanation: explanation,
       });
-      
+
       setAiExplanation(data.explanation);
     } catch (error) {
       console.error("Error fetching AI explanation:", error);
-      setAiExplanation("Pasensya na, may problema sa pagkuha ng AI explanation.");
+      setAiExplanation(
+        "Pasensya na, may problema sa pagkuha ng AI explanation."
+      );
     } finally {
       setLoadingExplanation(false);
     }

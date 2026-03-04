@@ -4,10 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
-import type {
-  SentenceExercise,
-  QuizProgress,
-} from "@/contexts/LearningProgressContext";
+import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import type { SentenceExercise } from "@/contexts/LearningProgressContext";
 import { Play, TrendingUp, Clock } from "lucide-react";
 
 interface SentenceConstructionCardProps {
@@ -28,6 +26,7 @@ export default function SentenceConstructionCard({
   exerciseType,
 }: SentenceConstructionCardProps) {
   const { progress, getExerciseMastery } = useSentenceConstructionProgress();
+  const { isLoading: progressLoading } = useLearningProgress();
 
   const exerciseProgress = progress[exerciseType];
   const hasStarted = exerciseProgress.attempts > 0;
@@ -36,16 +35,27 @@ export default function SentenceConstructionCard({
     : null;
 
   const getLastAttempted = (): string | null => {
-    if (exerciseProgress.performanceHistory.length === 0) return null;
+    const candidates: string[] = [];
 
-    const lastTimestamp =
-      exerciseProgress.performanceHistory[
-        exerciseProgress.performanceHistory.length - 1
-      ].timestamp;
-    const date = new Date(lastTimestamp);
+    if (exerciseProgress.completedAt)
+      candidates.push(exerciseProgress.completedAt);
+
+    const hist = exerciseProgress.performanceHistory;
+    if (hist.length > 0) {
+      const lastHistTs = hist[hist.length - 1]?.timestamp;
+      if (lastHistTs) candidates.push(lastHistTs);
+    }
+
+    if (candidates.length === 0) return null;
+
+    const newestIso = candidates.reduce((best, cur) => {
+      return new Date(cur).getTime() > new Date(best).getTime() ? cur : best;
+    });
+
+    const date = new Date(newestIso);
     const now = new Date();
     const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (diffDays === 0) return "Today";
@@ -57,14 +67,15 @@ export default function SentenceConstructionCard({
   const lastAttempted = getLastAttempted();
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <motion.div
+        className="h-full"
         whileHover={{ scale: 1.03, y: -4 }}
         whileTap={{ scale: 0.98 }}
       >
-        <Link href={url} className="block">
+        <Link href={url} className="block h-full">
           <div
-            className={`relative rounded-3xl shadow-lg overflow-hidden border-2 transition-all ${
+            className={`relative h-full rounded-3xl shadow-lg overflow-hidden border-2 transition-all flex flex-col ${
               hasStarted
                 ? "border-blue-400 bg-blue-50"
                 : "border-blue-200 hover:border-blue-400"
@@ -80,8 +91,8 @@ export default function SentenceConstructionCard({
               </div>
             )}
 
-            {/* Image */}
-            <div className="relative h-40 w-full bg-white/50">
+            {/* Image (fixed height) */}
+            <div className="relative h-40 w-full bg-white/50 shrink-0">
               <Image
                 src={imagePath}
                 alt={name}
@@ -91,14 +102,23 @@ export default function SentenceConstructionCard({
               />
             </div>
 
-            {/* Content */}
-            <div className="p-5 bg-white/80 backdrop-blur-sm">
+            {/* Content (fills remaining height) */}
+            <div className="p-5 bg-white/80 backdrop-blur-sm flex-1 flex flex-col">
               <h3 className="text-xl font-bold text-blue-900 mb-2">{name}</h3>
-              <p className="text-sm text-gray-700 mb-3">{description}</p>
 
-              {/* Progress Info */}
-              <div className="text-xs space-y-2">
-                {hasStarted && exerciseMastery ? (
+              <p className="text-sm text-gray-700 mb-3 leading-snug min-h-[40px]">
+                {description}
+              </p>
+
+              {/* Progress Info pinned to bottom */}
+              <div className="text-xs space-y-2 mt-auto">
+                {progressLoading ? (
+                  <div className="space-y-2 animate-pulse">
+                    <div className="h-3 bg-gray-200 rounded w-40" />
+                    <div className="h-3 bg-gray-200 rounded w-28" />
+                    <div className="h-3 bg-gray-200 rounded w-32" />
+                  </div>
+                ) : hasStarted && exerciseMastery ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

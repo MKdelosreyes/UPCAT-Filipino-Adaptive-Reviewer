@@ -51,7 +51,7 @@ export default function OrderingCompletionModal({
     try {
       const history = getPerformanceHistory(
         "sentence-construction",
-        "flashcards"
+        "flashcards",
       );
       const latestMetrics = history[history.length - 1];
 
@@ -140,8 +140,8 @@ export default function OrderingCompletionModal({
                         score >= 70
                           ? "bg-green-100"
                           : score >= 60
-                          ? "bg-yellow-100"
-                          : "bg-red-100"
+                            ? "bg-yellow-100"
+                            : "bg-red-100"
                       }`}
                     >
                       {score >= 70 ? (
@@ -215,10 +215,10 @@ export default function OrderingCompletionModal({
                   {/* Action Buttons */}
                   <div className="flex flex-col gap-3 mt-auto">
                     <Link
-                      href="/sentence-construction/fill-missing"
+                      href="/sentence-construction/choose-sentence"
                       className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-center"
                     >
-                      Continue to Fill Missing Words →
+                      Continue to Choose the Best Sentence →
                     </Link>
                     <button
                       onClick={handleRetake}

@@ -43,12 +43,15 @@ export default function FlashcardsPage() {
 
   const {
     dueExercises,
+    newExercises,
+    sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
   } = useSRSWithExercises({
     module: "vocabulary",
     targetDifficulty: "easy",
-    limit: 15,
+    sessionSize: 15,
+    fetchLimit: 30,
   });
 
   const [deck, setDeck] = useState<FlashcardData[]>([]);
@@ -70,7 +73,7 @@ export default function FlashcardsPage() {
       try {
         const lexiconData = await getLexiconData();
         const lexiconMap = new Map(
-          lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
+          lexiconData.map((item: LexiconItem) => [item.lemma_id, item]),
         );
 
         const combinedData: FlashcardData[] = dueExercises
@@ -80,7 +83,7 @@ export default function FlashcardsPage() {
 
             const numericId = parseInt(
               vocabItem.lemma_id.replace(/\D/g, ""),
-              10
+              10,
             );
             if (!numericId) return null;
 
@@ -109,7 +112,7 @@ export default function FlashcardsPage() {
             id: w.id,
             status: "unseen",
             flips: 0,
-          }))
+          })),
         );
 
         deckInitializedRef.current = true;
@@ -156,10 +159,10 @@ export default function FlashcardsPage() {
   const isLastCard = currentIndex === deck.length - 1;
 
   const masteredCount = cardStates.filter(
-    (c) => c.status === "mastered"
+    (c) => c.status === "mastered",
   ).length;
   const learningCount = cardStates.filter(
-    (c) => c.status === "learning"
+    (c) => c.status === "learning",
   ).length;
 
   const handleFlip = () => {
@@ -362,8 +365,8 @@ export default function FlashcardsPage() {
               {isProcessing
                 ? "Processing..."
                 : isLastCard
-                ? "Finish"
-                : "I Know This"}
+                  ? "Finish"
+                  : "I Know This"}
             </span>
           </motion.button>
         </div>

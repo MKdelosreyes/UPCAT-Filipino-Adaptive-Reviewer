@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play, BookOpen, TrendingUp, Clock } from "lucide-react";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
+import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type {
   GrammarExercise,
   QuizProgress,
@@ -30,6 +31,7 @@ export default function GrammarCard({
 }: GrammarCardProps) {
   const { getExerciseProgress, getExerciseMastery, isLessonExercise } =
     useGrammarProgress();
+  const { isLoading: progressLoading } = useLearningProgress();
 
   const exerciseProgress = getExerciseProgress(exerciseType);
   const isLesson = isLessonExercise(exerciseType);
@@ -44,15 +46,14 @@ export default function GrammarCard({
 
   const getLastAttempted = (): string | null => {
     if (isLesson) return null;
-    const quiz = exerciseProgress as QuizProgress;
-    if (quiz.performanceHistory.length === 0) return null;
 
-    const lastTimestamp =
-      quiz.performanceHistory[quiz.performanceHistory.length - 1].timestamp;
-    const date = new Date(lastTimestamp);
+    const quiz = exerciseProgress as QuizProgress;
+    if (!quiz.completedAt) return null;
+
+    const date = new Date(quiz.completedAt);
     const now = new Date();
     const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (diffDays === 0) return "Today";
@@ -64,19 +65,20 @@ export default function GrammarCard({
   const lastAttempted = getLastAttempted();
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <motion.div
+        className="h-full"
         whileHover={{ scale: 1.03, y: -4 }}
         whileTap={{ scale: 0.98 }}
       >
-        <Link href={url} className="block">
+        <Link href={url} className="block h-full">
           <div
-            className={`relative rounded-3xl shadow-lg overflow-hidden border-2 transition-all ${
+            className={`relative h-full rounded-3xl shadow-lg overflow-hidden border-2 transition-all flex flex-col ${
               isLesson
                 ? "border-green-500 ring-4 ring-green-300"
                 : hasStarted
-                ? "border-green-400 bg-green-50"
-                : "border-green-200 hover:border-green-400"
+                  ? "border-green-400 bg-green-50"
+                  : "border-green-200 hover:border-green-400"
             } ${color}`}
           >
             {/* Lesson Badge */}
@@ -99,8 +101,8 @@ export default function GrammarCard({
               </div>
             )}
 
-            {/* Image */}
-            <div className="relative h-40 w-full bg-white/50">
+            {/* Image (fixed height) */}
+            <div className="relative h-40 w-full bg-white/50 shrink-0">
               <Image
                 src={imagePath || "/art/grammar-icon.png"}
                 alt={name}
@@ -110,14 +112,23 @@ export default function GrammarCard({
               />
             </div>
 
-            {/* Content */}
-            <div className="p-5 bg-white/80 backdrop-blur-sm">
+            {/* Content (fills remaining height) */}
+            <div className="p-5 bg-white/80 backdrop-blur-sm flex-1 flex flex-col">
               <h3 className="text-xl font-bold text-green-700 mb-2">{name}</h3>
-              <p className="text-sm text-gray-700 mb-3">{description}</p>
 
-              {/* Progress Info */}
-              <div className="text-xs space-y-2">
-                {isLesson ? (
+              <p className="text-sm text-gray-700 mb-3 leading-snug min-h-[40px]">
+                {description}
+              </p>
+
+              {/* Progress Info pinned to bottom */}
+              <div className="text-xs space-y-2 mt-auto">
+                {progressLoading ? (
+                  <div className="space-y-2 animate-pulse">
+                    <div className="h-3 bg-gray-200 rounded w-40" />
+                    <div className="h-3 bg-gray-200 rounded w-28" />
+                    <div className="h-3 bg-gray-200 rounded w-32" />
+                  </div>
+                ) : isLesson ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -130,7 +141,7 @@ export default function GrammarCard({
                         <span className="text-gray-600 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {Math.floor(
-                            (exerciseProgress as LessonProgress).timeSpent / 60
+                            (exerciseProgress as LessonProgress).timeSpent / 60,
                           )}
                           m
                         </span>

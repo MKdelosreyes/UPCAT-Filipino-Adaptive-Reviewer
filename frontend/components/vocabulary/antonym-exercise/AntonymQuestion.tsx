@@ -61,7 +61,7 @@ export default function AntonymQuestion({
           // Try to get AI explanation with timeout
           try {
             const timeoutPromise = new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error("AI timeout")), 5000)
+              setTimeout(() => reject(new Error("AI timeout")), 5000),
             );
 
             const aiPromise = getExplanation({
@@ -90,7 +90,7 @@ export default function AntonymQuestion({
           const simpleExplanation = buildSimpleExplanation(
             underlinedWord,
             correctAnswer,
-            entry.base_definition
+            entry.base_definition,
           );
           setExplanation(simpleExplanation);
           setIsAIExplanation(false);
@@ -98,7 +98,7 @@ export default function AntonymQuestion({
       } catch (error) {
         console.error("Failed to load explanation:", error);
         setExplanation(
-          "Unable to load explanation. Please try again or click the 'Explain' button below for help."
+          "Unable to load explanation. Please try again or click the 'Explain' button below for help.",
         );
         setIsAIExplanation(false);
       } finally {
@@ -112,7 +112,7 @@ export default function AntonymQuestion({
   const buildSimpleExplanation = (
     word: string,
     antonym: string,
-    base_definition: string
+    base_definition: string,
   ): string => {
     const sentenceCaseWord =
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
@@ -154,7 +154,7 @@ export default function AntonymQuestion({
           Ano ang kasalungat ng salitang may{" "}
           <u className="decoration-yellow-600 decoration-2">salungguhit</u>?
         </h2>
-        <div className="bg-yellow-100 rounded-xl py-6 border-2 border-yellow-300">
+        <div className="bg-yellow-100 rounded-xl py-6 border-2 border-yellow-300 px-5">
           <p
             className="text-lg md:text-xl text-yellow-600 font-bold leading-relaxed"
             dangerouslySetInnerHTML={{ __html: sentence }}
@@ -170,7 +170,7 @@ export default function AntonymQuestion({
             flex: showExplanation ? "0 0 42%" : "1 1 100%",
           }}
           transition={{ duration: 0.3 }}
-          className={`w-full mx-3 ${
+          className={`w-full ${
             showExplanation ? "lg:flex-[0_0_42%]" : "lg:mx-60"
           }`}
         >
@@ -192,10 +192,10 @@ export default function AntonymQuestion({
                     showCorrect
                       ? "bg-green-100 border-green-500"
                       : showWrong
-                      ? "bg-red-100 border-red-400"
-                      : isSelected
-                      ? "bg-yellow-500 text-white"
-                      : "bg-yellow-100 text-yellow-800"
+                        ? "bg-red-100 border-red-400"
+                        : isSelected
+                          ? "bg-yellow-500 text-white"
+                          : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -205,10 +205,10 @@ export default function AntonymQuestion({
                         showCorrect
                           ? "bg-green-500 text-white"
                           : showWrong
-                          ? "bg-red-500 text-white"
-                          : isSelected
-                          ? "bg-yellow-600 text-white"
-                          : "bg-yellow-200 text-yellow-700"
+                            ? "bg-red-500 text-white"
+                            : isSelected
+                              ? "bg-yellow-600 text-white"
+                              : "bg-yellow-200 text-yellow-700"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}

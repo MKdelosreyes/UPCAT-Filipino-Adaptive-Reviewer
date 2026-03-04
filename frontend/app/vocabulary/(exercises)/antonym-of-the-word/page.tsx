@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import AntonymQuestion from "@/components/vocabulary/antonym-exercise/AntonymQuestion";
 import AntonymProgress from "@/components/vocabulary/antonym-exercise/AntonymProgress";
@@ -10,6 +10,10 @@ import AntonymCompletionModal from "@/components/vocabulary/antonym-exercise/Ant
 import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type { QuizProgress } from "@/contexts/LearningProgressContext";
+import {
+  underlineWordInSentence,
+  sentenceContainsWord,
+} from "@/utils/textFormatting";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getVocabularyExercisesAdaptive,
@@ -17,6 +21,7 @@ import {
   type VocabularyExerciseItem,
   type LexiconItem,
 } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import {
   isLowFrequencyWord,
   areSimilarWords,
@@ -26,6 +31,11 @@ import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { SRS_GRADES } from "@/utils/srs";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 interface AntonymItem {
   id: string;
@@ -43,32 +53,29 @@ interface AntonymAnswer {
   word: string;
 }
 
-// Helper function to underline a word in a sentence
-function underlineWordInSentence(
-  sentence: string,
-  wordToUnderline: string
-): string {
-  const escapedWord = wordToUnderline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(
-    `(?<=\\s|^)(${escapedWord})(?=\\s|$|[.,!?;:])`,
-    "gi"
-  );
-  return sentence.replace(regex, "<u>$1</u>");
-}
+type PersistedAntonymSessionV1 = {
+  questions: AntonymItem[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: AntonymAnswer[];
+  currentDifficulty: "easy" | "medium" | "hard";
+};
 
 // Generate antonym questions from AI service data
 async function generateAntonymQuestionsFromService(
-  vocabExercises: VocabularyExerciseItem[],
-  lexiconData: LexiconItem[]
+  sessionExercises: VocabularyExerciseItem[],
+  lexiconData: LexiconItem[],
 ): Promise<AntonymItem[]> {
   const lexiconMap = new Map(
-    lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
+    lexiconData.map((item: LexiconItem) => [item.lemma_id, item]),
   );
 
-  console.log("📚 Vocab Exercises:", vocabExercises.length);
+  console.log("📚 Vocab Exercises:", sessionExercises.length);
   console.log("📖 Lexicon Data:", lexiconData.length);
 
-  const itemsWithAntonyms = vocabExercises.filter((vocabItem) => {
+  const itemsWithAntonyms = sessionExercises.filter((vocabItem) => {
     const lexiconEntry = lexiconMap.get(vocabItem.lemma_id);
     return (
       lexiconEntry &&
@@ -100,10 +107,7 @@ async function generateAntonymQuestionsFromService(
 
       let underlinedWord = lexiconEntry.lemma;
       for (const word of wordsToConsider) {
-        const lowerSentence = sentence.toLowerCase();
-        const lowerWord = word.toLowerCase();
-        const wordRegex = new RegExp(`\\b${lowerWord}\\b`, "i");
-        if (wordRegex.test(lowerSentence)) {
+        if (sentenceContainsWord(sentence, word)) {
           underlinedWord = word;
           break;
         }
@@ -115,7 +119,7 @@ async function generateAntonymQuestionsFromService(
         (lex: LexiconItem) =>
           lex.lemma_id !== vocabItem.lemma_id &&
           lex.lemma !== correctAnswer &&
-          !antonyms.includes(lex.lemma)
+          !antonyms.includes(lex.lemma),
       );
       const shuffledLexicons = otherLexicons.sort(() => Math.random() - 0.5);
 
@@ -128,8 +132,8 @@ async function generateAntonymQuestionsFromService(
         if (lex.lemma_id !== vocabItem.lemma_id && lex.relations?.synonyms) {
           otherSynonyms.push(
             ...lex.relations.synonyms.filter(
-              (syn) => syn !== correctAnswer && !antonyms.includes(syn)
-            )
+              (syn) => syn !== correctAnswer && !antonyms.includes(syn),
+            ),
           );
         }
       });
@@ -152,12 +156,12 @@ async function generateAntonymQuestionsFromService(
       }
 
       const allOptions = [correctAnswer, ...uniqueDistractors].sort(
-        () => Math.random() - 0.5
+        () => Math.random() - 0.5,
       );
 
       const sentenceWithUnderline = underlineWordInSentence(
         sentence,
-        underlinedWord
+        underlinedWord,
       );
 
       return {
@@ -177,14 +181,30 @@ async function generateAntonymQuestionsFromService(
 
 export default function AntonymExercisePage() {
   const { updateProgress, getExerciseProgress } = useVocabularyProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
-  const { user } = useAuth();
+  const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory("vocabulary", "antonym");
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
-  const { grade: gradeSRS } = useSRSWithExercises({
+  const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
+
+  const exerciseProgress = getExerciseProgress("antonym");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+
+  const {
+    sessionExercises,
+    grade: gradeSRS,
+    isLoading: srsLoading,
+  } = useSRSWithExercises({
     module: "vocabulary",
-    targetDifficulty: "easy",
-    limit: 15,
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 40,
   });
 
   const [questions, setQuestions] = useState<AntonymItem[]>([]);
@@ -199,91 +219,158 @@ export default function AntonymExercisePage() {
   const [currentDifficulty, setCurrentDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("easy");
-  const { isLoading: authLoading } = useAuthGuard();
+  const [isFinishing, setIsFinishing] = useState(false);
+  const loadingQuote = useMotivationalQuote(
+    authLoading || srsLoading || isLoading,
+    3000,
+  );
+
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(user, "far:quizSession:vocabulary:antonym");
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedAntonymSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: questions.length > 0 && !isLoading && !error,
+      snapshot: () => ({
+        questions,
+        currentQuestion,
+        selectedAnswer,
+        showResult,
+        answers,
+        detailedAnswers,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setQuestions(payload.questions);
+        setCurrentQuestion(payload.currentQuestion);
+        setSelectedAnswer(payload.selectedAnswer);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setCurrentDifficulty(payload.currentDifficulty);
+        setError(null);
+        setIsLoading(false);
+        setShowCompletion(false);
+      },
+      validate: (p: any): p is PersistedAntonymSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+        if (!Array.isArray(p.questions)) return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (
+          !(p.selectedAnswer === null || typeof p.selectedAnswer === "string")
+        )
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (!Array.isArray(p.answers)) return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+        if (p.questions.length === 0) return false;
+        if (p.answers.length !== p.questions.length) return false;
+        if (p.currentQuestion >= p.questions.length) return false;
+        return true;
+      },
+    });
 
   useEffect(() => {
     async function loadQuestions() {
+      if (didRestore) return;
+      if (srsLoading) return;
+      if (!sessionExercises || sessionExercises.length === 0) return;
+
       try {
         setIsLoading(true);
 
-        const performanceHistory = getPerformanceHistory(
-          "vocabulary",
-          "antonym"
-        );
-        const exerciseProgress = getExerciseProgress("antonym");
+        setCurrentDifficulty(difficultyToServe);
 
-        console.log("📊 Antonym Performance History:", performanceHistory);
-        console.log("📈 Antonym Exercise Progress:", exerciseProgress);
-
-        let targetDifficulty: "easy" | "medium" | "hard" = "easy";
-
-        if (performanceHistory.length > 0) {
-          const evaluation = evaluateUserPerformance(performanceHistory);
-          targetDifficulty = evaluation.nextDifficulty;
-          console.log(
-            "🎯 Evaluated Target Difficulty:",
-            targetDifficulty,
-            "| Tags:",
-            evaluation.tags
-          );
-        } else {
-          if ("lastDifficulty" in exerciseProgress) {
-            targetDifficulty =
-              (exerciseProgress as QuizProgress).lastDifficulty || "easy";
-          } else {
-            targetDifficulty = "easy";
-          }
-          console.log("🆕 First Session - Using difficulty:", targetDifficulty);
-        }
-
-        setCurrentDifficulty(targetDifficulty);
-
-        console.log(
-          "🔄 Fetching adaptive antonym exercises with difficulty:",
-          targetDifficulty
-        );
-
-        const [vocabExercises, lexiconData] = await Promise.all([
-          getVocabularyExercisesAdaptive({
-            userId: user?.id,
-            targetDifficulty,
-            limit: 15,
-          }),
-          getLexiconData(),
-        ]);
-
-        console.log("📚 Adaptive Antonym Exercises:", vocabExercises.length);
+        const lexiconData = await getLexiconData();
 
         const qs = await generateAntonymQuestionsFromService(
-          vocabExercises,
-          lexiconData
+          sessionExercises as VocabularyExerciseItem[],
+          lexiconData,
         );
 
         if (qs.length === 0) {
-          throw new Error("No antonym items available for this difficulty");
+          throw new Error("No antonym items available for this session");
         }
 
         setQuestions(qs);
         setAnswers(Array(qs.length).fill(null));
+        setDetailedAnswers([]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load antonym items:", err);
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load antonym items. Please try again."
+            : "Failed to load antonym items. Please try again.",
         );
       } finally {
         setIsLoading(false);
       }
     }
     loadQuestions();
-  }, [user?.id]);
+  }, [didRestore, srsLoading, sessionExercises, difficultyToServe]);
 
-  if (authLoading) {
+  if (authLoading || srsLoading) {
     return (
-      <div className="h-screen bg-yellow-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
+
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-700 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
+          </div>
+
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            {/* <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Preparing your exercise
+            </span> */}
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-10 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-200 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-400 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -291,41 +378,55 @@ export default function AntonymExercisePage() {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="h-screen bg-yellow-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
-          <Link
-            href="/vocabulary"
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
 
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-red-900">
-              Antonym Exercise
-            </h1>
-            <p className="text-xs text-gray-500 mt-1">
-              Difficulty:{" "}
-              <span className="font-semibold capitalize">
-                {currentDifficulty}
-              </span>
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-900 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
             </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
           </div>
 
-          <div className="w-20"></div>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-            <p className="text-yellow-600 font-semibold">Loading exercise...</p>
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Loading exercise
+            </span>
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-0 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-150 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-300 text-yellow-600">
+                .
+              </span>
+            </span>
           </div>
         </div>
       </div>
     );
   }
-
   // Show error state
   if (error || questions.length === 0) {
     return (
@@ -407,20 +508,14 @@ export default function AntonymExercisePage() {
 
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentAntonym.lemma_id, srsGrade);
-
-    // Update metrics with CURRENT difficulty
-    addPerformanceMetrics("vocabulary", "antonym", {
-      score,
-      difficulty: currentDifficulty,
-      missedLowFreq: !isCorrect && lowFreq ? 1 : 0,
-      similarChoiceErrors: !isCorrect ? 1 : 0,
-      timestamp: new Date().toISOString(),
-    });
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
-      completeExercise();
+      setIsFinishing(true);
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -428,71 +523,77 @@ export default function AntonymExercisePage() {
     }
   };
 
-  const completeExercise = () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const sessionScore = Math.round((correctCount / questions.length) * 100);
+  const completeExercise = async () => {
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const sessionScore = Math.round((correctCount / questions.length) * 100);
 
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
+      let missedLowFreq = 0;
+      let similarChoiceErrors = 0;
 
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect && isLowFrequencyWord(answer.word)) {
-        missedLowFreq++;
-      }
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
-    });
+      detailedAnswers.forEach((answer) => {
+        if (!answer.isCorrect && isLowFrequencyWord(answer.word)) {
+          missedLowFreq++;
+        }
+        if (!answer.isCorrect) {
+          similarChoiceErrors++;
+        }
+      });
 
-    const finalMetrics = {
-      difficulty: currentDifficulty,
-      score: sessionScore,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
+      const history = getPerformanceHistory("vocabulary", "antonym");
+      const thisSession = {
+        difficulty: currentDifficulty,
+        score: sessionScore,
+        missedLowFreq,
+        similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
 
-    console.log("📊 Antonym Session Completed - Metrics:", finalMetrics);
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    addPerformanceMetrics("vocabulary", "antonym", finalMetrics);
+      console.log(
+        "🎯 Next Antonym Difficulty:",
+        evaluation.nextDifficulty,
+        "| Error Tags:",
+        evaluation.tags,
+      );
 
-    const history = getPerformanceHistory("vocabulary", "antonym");
-    const allHistory = [...history, finalMetrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+      await updateExerciseProgress("vocabulary", "antonym", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        performanceMetrics: {
+          difficulty: currentDifficulty,
+          score: sessionScore,
+          missedLowFreq,
+          similarChoiceErrors,
+          errorTags: evaluation.tags,
+        },
+      });
 
-    console.log(
-      "🎯 Next Antonym Difficulty:",
-      evaluation.nextDifficulty,
-      "| Error Tags:",
-      evaluation.tags
-    );
+      updateProgress("antonym", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        errorTags: evaluation.tags,
+      });
 
-    updateProgress("antonym", {
-      status: "in-progress",
-      score: sessionScore,
-      completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
-
-    setShowCompletion(true);
+      setShowCompletion(true);
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const resetExercise = async () => {
+    clearSession();
     try {
       setIsLoading(true);
-      const [vocabExercises, lexiconData] = await Promise.all([
-        getVocabularyExercisesAdaptive({
-          userId: user?.id,
-          targetDifficulty: currentDifficulty,
-          limit: 15,
-        }),
-        getLexiconData(),
-      ]);
+      const [lexiconData] = await Promise.all([getLexiconData()]);
       const qs = await generateAntonymQuestionsFromService(
-        vocabExercises,
-        lexiconData
+        sessionExercises,
+        lexiconData,
       );
       setQuestions(qs);
       setCurrentQuestion(0);
@@ -509,7 +610,7 @@ export default function AntonymExercisePage() {
   };
 
   return (
-    <div className="h-screen bg-yellow-50 overflow-auto flex flex-col scrollbar-yellow">
+    <div className="h-screen bg-white overflow-auto flex flex-col scrollbar-yellow">
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-yellow-200">
         <Link
@@ -517,19 +618,19 @@ export default function AntonymExercisePage() {
           className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          <span className="hidden md:inline">Back</span>
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-yellow-900">
+          <h1 className="text-base md:text-2xl font-bold text-yellow-900">
             Antonym Exercise
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          {/* <p className="text-xs text-gray-500 mt-1">
             Difficulty:{" "}
             <span className="font-semibold capitalize">
               {currentDifficulty}
             </span>
-          </p>
+          </p> */}
         </div>
 
         <button
@@ -578,13 +679,24 @@ export default function AntonymExercisePage() {
             className="flex justify-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+              whileTap={{ scale: isFinishing ? 1 : 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              disabled={isFinishing}
+              aria-busy={isFinishing}
+              className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isLastQuestion ? "Finish Exercise" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
+              {isFinishing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finishing...
+                </>
+              ) : (
+                <>
+                  {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
           </motion.div>
         )}
@@ -593,7 +705,7 @@ export default function AntonymExercisePage() {
       <AntonymCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length / questions.length) * 100
+          (answers.filter((a) => a === true).length / questions.length) * 100,
         )}
         correctCount={answers.filter((a) => a === true).length}
         totalQuestions={questions.length}

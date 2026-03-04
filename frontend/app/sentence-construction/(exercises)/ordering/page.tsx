@@ -1,19 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import OrderingQuestion from "@/components/sentence-construction/sentence-ordering-exercise/OrderingQuestion";
 import OrderingProgress from "@/components/sentence-construction/sentence-ordering-exercise/OrderingProgress";
 import OrderingCompletionModal from "@/components/sentence-construction/sentence-ordering-exercise/OrderingCompletionModal";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
-import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import {
+  useLearningProgress,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import type { SentenceConstructionExerciseItem } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { SRS_GRADES } from "@/utils/srs";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 interface OrderingAnswer {
   isCorrect: boolean;
@@ -21,6 +32,17 @@ interface OrderingAnswer {
   correctSentence: string;
   lemmaId: string;
 }
+
+type PersistedSentenceOrderingSessionV1 = {
+  exercises: SentenceConstructionExerciseItem[];
+  currentQuestion: number;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: OrderingAnswer[];
+  showCompletion: boolean;
+  isCorrect: boolean | null;
+  currentDifficulty: "easy" | "medium" | "hard";
+};
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -32,20 +54,45 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function SentenceOrderingPage() {
-  const { updateProgress } = useSentenceConstructionProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { updateProgress, getExerciseProgress } =
+    useSentenceConstructionProgress();
+  const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory(
+    "sentence-construction",
+    "sentence-ordering",
+  );
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
+
+  const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
+
+  const exerciseProgress = getExerciseProgress("sentence-ordering");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+
+  const [currentDifficulty] = useState(difficultyToServe);
 
   const {
     dueExercises,
+    newExercises,
+    sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
   } = useSRSWithExercises({
     module: "sentence-construction",
-    exerciseType: "ordering",
-    targetDifficulty: "easy", // Dynamic based on performance
-    limit: 10,
+    exerciseType: "sentence-ordering",
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 20,
   });
+
+  const [exercises, setExercises] = useState<
+    SentenceConstructionExerciseItem[]
+  >([]);
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showResult, setShowResult] = useState(false);
@@ -54,13 +101,162 @@ export default function SentenceOrderingPage() {
   const [showCompletion, setShowCompletion] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    if (dueExercises.length > 0) {
-      setAnswers(Array(dueExercises.length).fill(null));
-    }
-  }, [dueExercises.length]);
+  const [isFinishing, setIsFinishing] = useState(false);
+  const loadingQuote = useMotivationalQuote(authLoading || srsLoading, 3000);
 
-  if (srsLoading || dueExercises.length === 0) {
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(
+        user,
+        "far:quizSession:sentence-construction:sentence-ordering",
+      );
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedSentenceOrderingSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: exercises.length > 0,
+      snapshot: () => ({
+        exercises,
+        currentQuestion,
+        showResult,
+        answers,
+        detailedAnswers,
+        showCompletion,
+        isCorrect,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setExercises(payload.exercises);
+        setCurrentQuestion(payload.currentQuestion);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setShowCompletion(payload.showCompletion);
+        setIsCorrect(payload.isCorrect);
+      },
+      validate: (p: any): p is PersistedSentenceOrderingSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+        if (!Array.isArray(p.exercises) || p.exercises.length === 0)
+          return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (!Array.isArray(p.answers)) return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (typeof p.showCompletion !== "boolean") return false;
+        if (!(p.isCorrect === null || typeof p.isCorrect === "boolean"))
+          return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+
+        if (p.currentQuestion >= p.exercises.length) return false;
+        if (p.answers.length !== p.exercises.length) return false;
+
+        // light shape check
+        const e0 = p.exercises[0];
+        if (
+          !e0 ||
+          typeof e0 !== "object" ||
+          typeof e0.lemma_id !== "string" ||
+          typeof e0.orderingCorrectSentence !== "string"
+        ) {
+          return false;
+        }
+
+        return true;
+      },
+    });
+
+  const hasSeededSessionRef = useRef(false);
+
+  // Initialize exercises from SRS only if we didn't restore
+  useEffect(() => {
+    if (didRestore) return;
+    if (srsLoading) return;
+
+    if (hasSeededSessionRef.current) return;
+
+    const list = (sessionExercises ?? []) as SentenceConstructionExerciseItem[];
+    if (list.length === 0) return;
+
+    hasSeededSessionRef.current = true;
+
+    setExercises(list);
+    setAnswers(Array(list.length).fill(null));
+    setCurrentQuestion(0);
+    setShowResult(false);
+    setDetailedAnswers([]);
+    setShowCompletion(false);
+    setIsCorrect(null);
+  }, [didRestore, srsLoading, sessionExercises]);
+
+  const currentExercise = exercises[currentQuestion];
+  const isLastQuestion = currentQuestion === Math.max(0, exercises.length - 1);
+
+  const shuffledWords = useMemo(() => {
+    const sentence = currentExercise?.orderingCorrectSentence;
+    if (!sentence) return [];
+    return shuffleArray(sentence.split(" "));
+  }, [currentExercise?.lemma_id, currentExercise?.orderingCorrectSentence]);
+
+  if (authLoading || srsLoading) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
+
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-700 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
+          </div>
+
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Preparing your exercise
+            </span>
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-10 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-200 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-400 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (exercises.length === 0) {
     return (
       <div className="h-screen bg-blue-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
@@ -87,7 +283,7 @@ export default function SentenceOrderingPage() {
           ) : (
             <div className="text-center">
               <p className="text-lg text-blue-900 mb-2">
-                🎉 No exercises due right now!
+                🎉 No items available right now!
               </p>
               <p className="text-sm text-blue-600">
                 Come back later for more practice.
@@ -99,15 +295,6 @@ export default function SentenceOrderingPage() {
     );
   }
 
-  const currentExercise = dueExercises[
-    currentQuestion
-  ] as SentenceConstructionExerciseItem;
-  const isLastQuestion = currentQuestion === dueExercises.length - 1;
-
-  const shuffledWords = shuffleArray(
-    currentExercise.orderingCorrectSentence.split(" ")
-  );
-
   // Report performance + Grade SRS
   const handleSubmit = async (userSentence: string, correct: boolean) => {
     setIsCorrect(correct);
@@ -117,7 +304,6 @@ export default function SentenceOrderingPage() {
     newAnswers[currentQuestion] = correct;
     setAnswers(newAnswers);
 
-    // Store detailed answer for analysis
     setDetailedAnswers([
       ...detailedAnswers,
       {
@@ -128,23 +314,29 @@ export default function SentenceOrderingPage() {
       },
     ]);
 
-    await reportLexicalItemPerformance({
-      module: "sentence-construction",
-      exerciseType: "flashcards", // Mapped to ordering
-      lemmaId: currentExercise.lemma_id,
-      correctAnswer: currentExercise.orderingCorrectSentence,
-      userAnswer: userSentence,
-      difficultyShown: "medium",
-      score: correct ? 100 : 0,
-    });
+    try {
+      await reportLexicalItemPerformance({
+        module: "sentence-construction",
+        exerciseType: "sentence-ordering",
+        lemmaId: currentExercise.lemma_id,
+        correctAnswer: currentExercise.orderingCorrectSentence,
+        userAnswer: userSentence,
+        difficultyShown: currentDifficulty,
+        score: correct ? 100 : 0,
+      });
+    } catch (e) {
+      console.error("Failed to record lexical performance", e);
+    }
 
     const srsGrade = correct ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentExercise.lemma_id, srsGrade);
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setShowResult(false);
@@ -153,74 +345,72 @@ export default function SentenceOrderingPage() {
   };
 
   const completeExercise = async () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / dueExercises.length) * 100);
+    if (isFinishing) return;
+    setIsFinishing(true);
 
-    // Calculate performance metrics
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const score = Math.round((correctCount / exercises.length) * 100);
 
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
-    });
+      let missedLowFreq = 0;
+      let similarChoiceErrors = 0;
 
-    // Get current difficulty
-    const history = getPerformanceHistory(
-      "sentence-construction",
-      "sentence-ordering"
-    );
-    const currentDifficulty =
-      history.length > 0 ? history[history.length - 1].difficulty : "easy";
+      detailedAnswers.forEach((answer) => {
+        if (!answer.isCorrect) similarChoiceErrors++;
+      });
 
-    // Create performance metrics
-    const metrics = {
-      difficulty: currentDifficulty,
-      score,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
+      setShowCompletion(true);
 
-    console.log("📊 Sentence Ordering Session Completed - Metrics:", metrics);
+      const thisSession = {
+        difficulty: currentDifficulty,
+        score,
+        missedLowFreq,
+        similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
 
-    // Add to performance history
-    await addPerformanceMetrics(
-      "sentence-construction",
-      "sentence-ordering",
-      metrics
-    );
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    // Evaluate and get next difficulty + tags
-    const allHistory = [...history, metrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+      await updateExerciseProgress(
+        "sentence-construction",
+        "sentence-ordering",
+        {
+          status: "in-progress",
+          score,
+          completedAt: new Date().toISOString(),
+          lastDifficulty: evaluation.nextDifficulty,
+          performanceMetrics: {
+            difficulty: currentDifficulty,
+            score,
+            missedLowFreq,
+            similarChoiceErrors,
+            errorTags: evaluation.tags,
+          },
+        },
+      );
 
-    console.log(
-      "🎯 Next Sentence Ordering Difficulty:",
-      evaluation.nextDifficulty,
-      "| Error Tags:",
-      evaluation.tags
-    );
-
-    // Update progress with evaluation results
-    await updateProgress("sentence-ordering", {
-      status: "in-progress",
-      score,
-      completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
-
-    setShowCompletion(true);
+      await updateProgress("sentence-ordering", {
+        status: "in-progress",
+        score,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        errorTags: evaluation.tags,
+      });
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const resetExercise = () => {
-    // Reset all local state to restart current exercises
+    clearSession();
+
+    hasSeededSessionRef.current = false;
+
+    setExercises([]);
+
     setCurrentQuestion(0);
     setShowResult(false);
-    setAnswers(Array(dueExercises.length).fill(null));
+    setAnswers(Array(exercises.length).fill(null));
     setDetailedAnswers([]);
     setShowCompletion(false);
     setIsCorrect(null);
@@ -235,16 +425,13 @@ export default function SentenceOrderingPage() {
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          <span className="hidden md:inline">Back</span>
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+          <h1 className="text-base md:text-2xl font-bold text-blue-900">
             Sentence Ordering
           </h1>
-          <p className="text-xs text-blue-600 mt-1">
-            {dueExercises.length} exercises due for review
-          </p>
         </div>
 
         <button
@@ -257,14 +444,13 @@ export default function SentenceOrderingPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
+      <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-5 max-w-7xl mx-auto w-full">
         <OrderingProgress
           currentQuestion={currentQuestion}
-          totalQuestions={dueExercises.length}
+          totalQuestions={exercises.length}
           answers={answers}
         />
 
-        {/* Question Component with Animation */}
         <motion.div
           key={currentQuestion}
           initial={{ opacity: 0, x: 50 }}
@@ -274,7 +460,7 @@ export default function SentenceOrderingPage() {
         >
           <OrderingQuestion
             questionNumber={currentQuestion + 1}
-            totalQuestions={dueExercises.length}
+            totalQuestions={exercises.length}
             words={shuffledWords}
             correctSentence={currentExercise.orderingCorrectSentence}
             onSubmit={handleSubmit}
@@ -291,13 +477,24 @@ export default function SentenceOrderingPage() {
             className="flex justify-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+              whileTap={{ scale: isFinishing ? 1 : 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              disabled={isFinishing}
+              aria-busy={isFinishing}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isLastQuestion ? "Finish Exercise" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
+              {isFinishing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finishing...
+                </>
+              ) : (
+                <>
+                  {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
           </motion.div>
         )}
@@ -306,10 +503,10 @@ export default function SentenceOrderingPage() {
       <OrderingCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length / dueExercises.length) * 100
+          (answers.filter((a) => a === true).length / exercises.length) * 100,
         )}
         correctCount={answers.filter((a) => a === true).length}
-        totalQuestions={dueExercises.length}
+        totalQuestions={exercises.length}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}
       />

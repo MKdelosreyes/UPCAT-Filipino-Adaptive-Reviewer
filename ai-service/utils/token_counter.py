@@ -1,5 +1,5 @@
 """
-Token counting and rate limit diagnostics for Gemini API
+Token counting and rate limit diagnostics for Groq API
 """
 import time
 from typing import Dict, List
@@ -16,7 +16,7 @@ class TokenCounter:
     def count_tokens(self, text: str) -> int:
         """
         Approximate token count (rough estimate)
-        Gemini uses ~4 chars per token on average for English
+        Groq uses ~4 chars per token on average for English
         Filipino might be similar or slightly more
         """
         return len(text) // 4
@@ -82,7 +82,7 @@ class TokenCounter:
         status = self.get_rate_limit_status()
 
         print(f"\n{'='*60}")
-        print(f"📊 GEMINI API SESSION SUMMARY")
+        print(f"📊 Groq API SESSION SUMMARY")
         print(f"{'='*60}")
         print(f"🔢 Total Requests: {status['total_session_requests']}")
         print(f"💰 Total Tokens: {status['total_session_tokens']:,}")

@@ -1,0 +1,8 @@
+exercise_type,n_samples,faithfulness,answer_relevancy,context_precision,context_recall
+antonym,5,0.5179,,,0.8889
+choose-sentence,5,0.4476,,0.75,0.0
+error-identification,5,0.2321,,,0.0
+fill-blanks,5,0.3067,,,0.6667
+quiz,5,0.6875,,1.0,1.0
+reading-comprehension,5,0.2429,,0.0,0.5
+sentence-ordering,5,0.4048,,,1.0

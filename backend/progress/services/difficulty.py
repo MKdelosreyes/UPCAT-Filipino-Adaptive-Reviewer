@@ -71,6 +71,7 @@ def update_lexical_difficulty_for_event(
     """
     Update per-user and global difficulty based on one exercise event.
     """
+    lemma_id = (lemma_id or "").strip()
 
     # --- Per-user ---
     ld, _created = LexicalDifficulty.objects.get_or_create(

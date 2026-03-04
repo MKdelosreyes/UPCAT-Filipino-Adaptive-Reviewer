@@ -1,26 +1,34 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import FillBlanksQuestion from "@/components/grammar/fill-the-blanks/FillBlanksQuestion";
 import FillBlanksProgress from "@/components/grammar/fill-the-blanks/FillBlanksProgress";
 import FillBlanksCompletionModal from "@/components/grammar/fill-the-blanks/FillBlanksCompletionModal";
 import { useGrammarProgress } from "@/hooks/useGrammarProgress";
-import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import {
+  useLearningProgress,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { SRS_GRADES } from "@/utils/srs";
 import {
-  getGrammarExercisesAdaptive,
   getLexiconData,
   GrammarExerciseItem,
   LexiconItem,
 } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 interface FillBlanksAnswer {
   isCorrect: boolean;
@@ -39,11 +47,21 @@ interface ProcessedFillBlanksItem {
   explanation: string;
 }
 
+type PersistedFillBlanksSessionV1 = {
+  fillBlanksQuestions: ProcessedFillBlanksItem[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: FillBlanksAnswer[];
+  currentDifficulty: "easy" | "medium" | "hard";
+};
+
 // Generate distractors from surface forms
 function generateDistractorsFromSurfaceForms(
   lemmaId: string,
   correctAnswer: string,
-  lexiconMap: Map<string, LexiconItem>
+  lexiconMap: Map<string, LexiconItem>,
 ): string[] | null {
   const lexiconEntry = lexiconMap.get(lemmaId);
 
@@ -57,15 +75,15 @@ function generateDistractorsFromSurfaceForms(
     new Set(
       allWords
         .map((word) => word.toLowerCase())
-        .filter((word) => word !== correctAnswer.toLowerCase())
-    )
+        .filter((word) => word !== correctAnswer.toLowerCase()),
+    ),
   ).map((lowerWord) => {
     return allWords.find((w) => w.toLowerCase() === lowerWord) || lowerWord;
   });
 
   if (uniqueWords.length < 2) {
     console.warn(
-      `Insufficient surface forms for lemma_id ${lemmaId}. Need at least 2, got ${uniqueWords.length}. Skipping.`
+      `Insufficient surface forms for lemma_id ${lemmaId}. Need at least 2, got ${uniqueWords.length}. Skipping.`,
     );
     return null;
   }
@@ -80,7 +98,7 @@ function generateDistractorsFromSurfaceForms(
 // Convert grammar items to fill-in-the-blanks format
 function convertToFillBlanksFormat(
   items: GrammarExerciseItem[],
-  lexiconMap: Map<string, LexiconItem>
+  lexiconMap: Map<string, LexiconItem>,
 ): ProcessedFillBlanksItem[] {
   const processedItems: ProcessedFillBlanksItem[] = [];
 
@@ -89,7 +107,7 @@ function convertToFillBlanksFormat(
     const distractors = generateDistractorsFromSurfaceForms(
       item.lemma_id,
       correctAnswer,
-      lexiconMap
+      lexiconMap,
     );
 
     if (!distractors || distractors.length < 2) {
@@ -97,7 +115,7 @@ function convertToFillBlanksFormat(
     }
 
     const choices = [correctAnswer, ...distractors].sort(
-      () => Math.random() - 0.5
+      () => Math.random() - 0.5,
     );
 
     processedItems.push({
@@ -114,21 +132,36 @@ function convertToFillBlanksFormat(
 }
 
 export default function GrammarFillBlanksPage() {
-  const { updateProgress } = useGrammarProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { updateProgress, getExerciseProgress } = useGrammarProgress();
+  const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory("grammar", "fill-blanks");
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
+
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
+  const exerciseProgress = getExerciseProgress("fill-blanks");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+
+  const [currentDifficulty, setCurrentDifficulty] = useState<
+    "easy" | "medium" | "hard"
+  >(difficultyToServe);
+
   const {
-    dueExercises,
+    sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
   } = useSRSWithExercises({
     module: "grammar",
     exerciseType: "fill-blanks",
-    targetDifficulty: "easy",
-    limit: 15,
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 20,
   });
 
   const [fillBlanksQuestions, setFillBlanksQuestions] = useState<
@@ -139,38 +172,124 @@ export default function GrammarFillBlanksPage() {
   const [showResult, setShowResult] = useState(false);
   const [answers, setAnswers] = useState<(boolean | null)[]>([]);
   const [detailedAnswers, setDetailedAnswers] = useState<FillBlanksAnswer[]>(
-    []
+    [],
   );
   const [showCompletion, setShowCompletion] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentDifficulty, setCurrentDifficulty] = useState<
-    "easy" | "medium" | "hard"
-  >("easy");
 
   const [finalScore, setFinalScore] = useState(0);
   const [finalCorrectCount, setFinalCorrectCount] = useState(0);
 
+  const [isFinishing, setIsFinishing] = useState(false);
+
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+
+  const loadingQuote = useMotivationalQuote(
+    authLoading || srsLoading || isLoadingQuestions,
+    3000,
+  );
+
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(user, "far:quizSession:grammar:fill-blanks");
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedFillBlanksSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading && !isLoadingQuestions,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: fillBlanksQuestions.length > 0 && !error,
+      snapshot: () => ({
+        fillBlanksQuestions,
+        currentQuestion,
+        selectedAnswer,
+        showResult,
+        answers,
+        detailedAnswers,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setFillBlanksQuestions(payload.fillBlanksQuestions);
+        setCurrentQuestion(payload.currentQuestion);
+        setSelectedAnswer(payload.selectedAnswer);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setCurrentDifficulty(payload.currentDifficulty);
+
+        setError(null);
+        setShowCompletion(false);
+        setIsLoadingQuestions(false);
+      },
+      validate: (p: any): p is PersistedFillBlanksSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+
+        if (
+          !Array.isArray(p.fillBlanksQuestions) ||
+          p.fillBlanksQuestions.length === 0
+        )
+          return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (
+          !(p.selectedAnswer === null || typeof p.selectedAnswer === "string")
+        )
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (!Array.isArray(p.answers)) return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+
+        if (p.answers.length !== p.fillBlanksQuestions.length) return false;
+        if (p.currentQuestion >= p.fillBlanksQuestions.length) return false;
+
+        const q0 = p.fillBlanksQuestions[0];
+        if (
+          !q0 ||
+          typeof q0 !== "object" ||
+          typeof q0.item_id !== "string" ||
+          typeof q0.lemma_id !== "string" ||
+          typeof q0.sentence !== "string" ||
+          !Array.isArray(q0.choices) ||
+          typeof q0.correct_answer !== "string" ||
+          typeof q0.explanation !== "string"
+        ) {
+          return false;
+        }
+
+        return true;
+      },
+    });
+
+  const hasSeededQuestionsRef = useRef(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+
   useEffect(() => {
     async function loadQuestions() {
-      if (srsLoading || dueExercises.length === 0) return;
+      if (didRestore) return;
+      if (srsLoading) return;
+      if (isCompleting || showCompletion) return;
+
+      // ✅ only seed once (avoid resetting to Q1 when difficulty/progress changes)
+      if (hasSeededQuestionsRef.current) return;
+
+      if (!sessionExercises || sessionExercises.length === 0) return;
 
       try {
-        const history = getPerformanceHistory("grammar", "fill-blanks");
-        const targetDifficulty =
-          history.length > 0 ? history[history.length - 1].difficulty : "easy";
+        setIsLoadingQuestions(true);
 
-        setCurrentDifficulty(targetDifficulty);
-
-        // Fetch lexicon data for distractors
         const lexiconData = await getLexiconData();
         const lexiconMap = new Map(
-          lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
+          lexiconData.map((item: LexiconItem) => [item.lemma_id, item]),
         );
 
-        // Convert due exercises to fill-blanks format
         const processedItems = convertToFillBlanksFormat(
-          dueExercises as GrammarExerciseItem[],
-          lexiconMap
+          sessionExercises as GrammarExerciseItem[],
+          lexiconMap,
         );
 
         if (processedItems.length === 0) {
@@ -178,27 +297,134 @@ export default function GrammarFillBlanksPage() {
           return;
         }
 
+        // mark seeded BEFORE setting state to avoid any rapid double-run
+        hasSeededQuestionsRef.current = true;
+
         setFillBlanksQuestions(processedItems);
         setAnswers(Array(processedItems.length).fill(null));
+        setDetailedAnswers([]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load exercises:", err);
         setError("Failed to load exercises");
+      } finally {
+        setIsLoadingQuestions(false);
       }
     }
 
     loadQuestions();
-  }, [srsLoading, dueExercises]);
+  }, [didRestore, srsLoading, sessionExercises, isCompleting, showCompletion]);
 
-  if (authLoading) {
+  if (authLoading || srsLoading) {
     return (
-      <div className="h-screen bg-green-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
+
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-700 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
+          </div>
+
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            {/* <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Preparing your exercise
+            </span> */}
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-10 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-200 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-400 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (srsLoading || fillBlanksQuestions.length === 0) {
+  // Show loading state
+  if (isLoadingQuestions) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
+
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-900 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
+          </div>
+
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Loading exercise
+            </span>
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-0 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-150 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-300 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error / empty state
+  if (error || fillBlanksQuestions.length === 0) {
     return (
       <div className="h-screen bg-green-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
@@ -220,18 +446,20 @@ export default function GrammarFillBlanksPage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          {srsLoading ? (
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-          ) : (
-            <div className="text-center">
-              <p className="text-lg text-green-900 mb-2">
-                🎉 No exercises due right now!
-              </p>
-              <p className="text-sm text-green-600">
-                Come back later for more practice.
-              </p>
-            </div>
-          )}
+          <div className="text-center max-w-md px-4">
+            <p className="text-red-600 font-semibold mb-4">
+              {error || "No exercises available"}
+            </p>
+            <button
+              onClick={() => {
+                clearSession();
+                window.location.reload();
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -240,7 +468,6 @@ export default function GrammarFillBlanksPage() {
   const currentFillBlanks = fillBlanksQuestions[currentQuestion];
   const isLastQuestion = currentQuestion === fillBlanksQuestions.length - 1;
 
-  // Handle answer selection with performance tracking
   const handleSelectAnswer = async (answer: string) => {
     setSelectedAnswer(answer);
     setShowResult(true);
@@ -280,9 +507,11 @@ export default function GrammarFillBlanksPage() {
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
-      completeExercise();
-      return;
+      setIsFinishing(true);
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -290,49 +519,69 @@ export default function GrammarFillBlanksPage() {
     }
   };
 
-  const completeExercise = () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / fillBlanksQuestions.length) * 100);
+  const completeExercise = async () => {
+    if (isFinishing) return;
 
-    setFinalScore(score);
-    setFinalCorrectCount(correctCount);
+    setIsFinishing(true);
+    setIsCompleting(true);
 
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const score = Math.round(
+        (correctCount / fillBlanksQuestions.length) * 100,
+      );
 
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
-    });
+      setFinalScore(score);
+      setFinalCorrectCount(correctCount);
 
-    const metrics = {
-      difficulty: currentDifficulty,
-      score,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
+      let missedLowFreq = 0;
+      let similarChoiceErrors = 0;
+      detailedAnswers.forEach((answer) => {
+        if (!answer.isCorrect) similarChoiceErrors++;
+      });
 
-    addPerformanceMetrics("grammar", "fill-blanks", metrics);
+      setShowCompletion(true);
 
-    const history = getPerformanceHistory("grammar", "fill-blanks");
-    const allHistory = [...history, metrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+      const history = getPerformanceHistory("grammar", "fill-blanks");
+      const thisSession = {
+        difficulty: currentDifficulty,
+        score,
+        missedLowFreq,
+        similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
 
-    updateProgress("fill-blanks", {
-      status: "in-progress",
-      score,
-      completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
+      await updateExerciseProgress("grammar", "fill-blanks", {
+        status: "in-progress",
+        score,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        performanceMetrics: {
+          difficulty: currentDifficulty,
+          score,
+          missedLowFreq,
+          similarChoiceErrors,
+          errorTags: evaluation.tags,
+        },
+      });
 
-    setShowCompletion(true);
+      updateProgress("fill-blanks", {
+        status: "in-progress",
+        score,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        errorTags: evaluation.tags,
+      });
+    } finally {
+      setIsCompleting(false);
+      setIsFinishing(false);
+    }
   };
 
   const resetExercise = () => {
+    clearSession();
+    hasSeededQuestionsRef.current = false;
     window.location.reload();
   };
 
@@ -345,20 +594,13 @@ export default function GrammarFillBlanksPage() {
           className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          <span className="hidden md:inline">Back</span>
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-green-900">
+          <h1 className="text-base md:text-2xl font-bold text-green-900">
             Complete the Sentence
           </h1>
-          <p className="text-xs text-green-600 mt-1">
-            Difficulty:{" "}
-            <span className="font-semibold capitalize">
-              {currentDifficulty}
-            </span>{" "}
-            | {fillBlanksQuestions.length} exercises due
-          </p>
         </div>
 
         <button
@@ -406,18 +648,29 @@ export default function GrammarFillBlanksPage() {
               className="flex justify-center"
             >
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+                whileTap={{ scale: isFinishing ? 1 : 0.95 }}
                 onClick={handleNext}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+                disabled={isFinishing}
+                aria-busy={isFinishing}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
               >
-                {isLastQuestion ? "Finish Exercise" : "Next Question"}
-                <ChevronRight className="w-5 h-5" />
+                {isFinishing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Finishing...
+                  </>
+                ) : (
+                  <>
+                    {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                    <ChevronRight className="w-5 h-5" />
+                  </>
+                )}
               </motion.button>
             </motion.div>
           ) : (
             <div className="text-center text-xs text-green-600">
-              📝 Fill in the blank with the correct word
+              {/* 📝 Fill in the blank with the correct word */}
             </div>
           )}
         </div>

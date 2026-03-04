@@ -188,7 +188,7 @@ async def handle_tips(request: TipsRequest) -> TipsResponse:
 
         # ✅ Call Groq API
         completion = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="meta-llama/llama-4-maverick-17b-128e-instruct",
             messages=messages,
             temperature=0.3,
             max_tokens=400,

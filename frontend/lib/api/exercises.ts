@@ -27,7 +27,7 @@ export interface GrammarExerciseItem {
   fillCorrectAnswer: string;
   error_explanation: string;
   fill_explanation: string;
-  exercise_type: "error_identification" | "fill-blanks";
+  exercise_type: "error-identification" | "fill-blanks";
 }
 
 export interface SentenceConstructionExerciseItem {
@@ -49,13 +49,14 @@ export interface SentenceConstructionExerciseItem {
   sampleCompletions: string;
 }
 
-// ✅ ADD EXERCISE TYPE EXPORT
 export type ExerciseType = 
-  | "error_identification" 
+  | "error-identification" 
   | "fill-blanks" 
-  | "ordering" 
-  | "choose" 
-  | "complete";
+  | "sentence-ordering" 
+  | "choose-sentence" 
+  | "complete-sentence"
+  | "antonym"
+  | "quiz";
 
 export interface ReadingPassage {
   passage_id: string;
@@ -74,6 +75,11 @@ export interface ReadingPassage {
   }[];
 }
 
+export async function getLexiconData(): Promise<LexiconItem[]> {
+  const response = await aiServiceClient.get('/exercises/lexicon');
+  return response.data.exercises || [];
+}
+
 export async function getVocabularyExercises(): Promise<VocabularyExerciseItem[]> {
   const response = await aiServiceClient.get('/exercises/vocabulary');
   return response.data.exercises || [];
@@ -86,28 +92,34 @@ export async function getVocabularyExercisesAdaptive(params: {
   accessToken?: string;
 } = {}): Promise<VocabularyExerciseItem[]> {
   const userId = params.userId ? parseInt(String(params.userId)) : null;
-  
+
   const body = {
     user_id: userId,
     target_difficulty: params.targetDifficulty || null,
     limit: params.limit || 15,
   };
 
-  console.log('Vocabulary request body:', body);
+  const headers =
+    params.accessToken
+      ? { Authorization: `Bearer ${params.accessToken}` }
+      : undefined;
 
-  const response = await aiServiceClient.post('/exercises/vocabulary', body);
+  const response = await aiServiceClient.post("/exercises/vocabulary", body, {
+    headers,
+  });
+
   return response.data.exercises || [];
 }
 
 export async function getGrammarExercisesAdaptive(params: {
   userId?: string;
   targetDifficulty?: "easy" | "medium" | "hard";
-  exerciseType?: "error_identification" | "fill-blanks";
+  exerciseType?: "error-identification" | "fill-blanks";
   limit?: number;
   accessToken?: string;
 } = {}): Promise<GrammarExerciseItem[]> {
   const userId = params.userId ? parseInt(String(params.userId)) : null;
-  
+
   const body = {
     user_id: userId,
     target_difficulty: params.targetDifficulty || null,
@@ -115,27 +127,27 @@ export async function getGrammarExercisesAdaptive(params: {
     limit: params.limit || 15,
   };
 
-  console.log('Grammar request body:', body);
+  const headers =
+    params.accessToken
+      ? { Authorization: `Bearer ${params.accessToken}` }
+      : undefined;
 
-  try {
-    const response = await aiServiceClient.post('/exercises/grammar', body);
-    console.log('Grammar exercises loaded:', response.data.exercises?.length);
-    return response.data.exercises || [];
-  } catch (error: any) {
-    console.error('Grammar exercises error:', error.response?.data || error.message);
-    throw error;
-  }
+  const response = await aiServiceClient.post("/exercises/grammar", body, {
+    headers,
+  });
+
+  return response.data.exercises || [];
 }
 
 export async function getSentenceConstructionExercisesAdaptive(params: {
   userId?: string;
   targetDifficulty?: "easy" | "medium" | "hard";
-  exerciseType?: "ordering" | "choose" | "complete";
+  exerciseType?: "sentence-ordering" | "choose-sentence" | "complete-sentence";
   limit?: number;
   accessToken?: string;
 } = {}): Promise<SentenceConstructionExerciseItem[]> {
   const userId = params.userId ? parseInt(String(params.userId)) : null;
-  
+
   const body = {
     user_id: userId,
     target_difficulty: params.targetDifficulty || null,
@@ -143,20 +155,17 @@ export async function getSentenceConstructionExercisesAdaptive(params: {
     limit: params.limit || 15,
   };
 
-  console.log('Sentence Construction request body:', body);
+  const headers =
+    params.accessToken
+      ? { Authorization: `Bearer ${params.accessToken}` }
+      : undefined;
 
-  try {
-    const response = await aiServiceClient.post('/exercises/sentence-construction', body);
-    console.log('Sentence Construction exercises loaded:', response.data.exercises?.length);
-    return response.data.exercises || [];
-  } catch (error: any) {
-    console.error('Sentence Construction exercises error:', error.response?.data || error.message);
-    throw error;
-  }
-}
+  const response = await aiServiceClient.post(
+    "/exercises/sentence-construction",
+    body,
+    { headers }
+  );
 
-export async function getLexiconData(): Promise<LexiconItem[]> {
-  const response = await aiServiceClient.get('/exercises/lexicon');
   return response.data.exercises || [];
 }
 
@@ -167,21 +176,23 @@ export async function getReadingComprehensionExercisesAdaptive(params: {
   accessToken?: string;
 } = {}): Promise<ReadingPassage[]> {
   const userId = params.userId ? parseInt(String(params.userId)) : null;
-  
+
   const body = {
     user_id: userId,
     target_difficulty: params.targetDifficulty || null,
     limit: params.limit || 3,
   };
 
-  console.log('Reading Comprehension request body:', body);
+  const headers =
+    params.accessToken
+      ? { Authorization: `Bearer ${params.accessToken}` }
+      : undefined;
 
-  try {
-    const response = await aiServiceClient.post('/exercises/reading-comprehension', body);
-    console.log('Reading passages loaded:', response.data.passages?.length);
-    return response.data.passages || [];
-  } catch (error: any) {
-    console.error('Reading comprehension exercises error:', error.response?.data || error.message);
-    throw error;
-  }
+  const response = await aiServiceClient.post(
+    "/exercises/reading-comprehension",
+    body,
+    { headers }
+  );
+
+  return response.data.passages || [];
 }

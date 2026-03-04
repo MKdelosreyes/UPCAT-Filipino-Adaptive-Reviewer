@@ -19,10 +19,11 @@ annotated-types==0.6.0
 # NumPy for calculations
 numpy==1.26.3
 
-# langchain==0.1.0
-# langchain-openai==0.0.2
+langchain
+langchain-groq
 # chromadb==0.4.22
 sentence-transformers
 google-generativeai
 groq
+# ragas
 # pip install -U google-genai

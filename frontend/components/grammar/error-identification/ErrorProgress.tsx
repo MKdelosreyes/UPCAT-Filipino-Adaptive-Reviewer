@@ -21,13 +21,32 @@ export default function ErrorProgress({
   const wrongCount = answers.filter((a) => a === false).length;
 
   return (
-    <div className="w-full space-y-4">
-      {/* Progress Bar */}
+    <div className="w-full space-y-3">
+      {/* Progress Bar with Stats */}
       <div className="relative">
-        <div className="flex justify-between text-xs text-gray-600 mb-2">
-          <span className="font-semibold">Progress</span>
-          <span className="font-semibold">{Math.round(progress)}%</span>
+        <div className="flex justify-between items-center text-xs text-gray-600 mb-2">
+          <span className="font-semibold">
+            Question {currentQuestion + 1}/{totalQuestions}
+          </span>
+
+          {/* Mobile: Compact stats */}
+          <div className="flex gap-2 md:hidden">
+            <span className="flex items-center gap-1 text-green-600 font-semibold">
+              <Check size={12} />
+              {correctCount}
+            </span>
+            <span className="flex items-center gap-1 text-gray-600 font-semibold">
+              <X size={12} />
+              {wrongCount}
+            </span>
+          </div>
+
+          {/* Desktop: Show percentage */}
+          <span className="hidden md:inline font-semibold">
+            {Math.round(progress)}%
+          </span>
         </div>
+
         <div className="w-full h-2.5 bg-green-100 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-green-400 to-green-600"
@@ -38,9 +57,10 @@ export default function ErrorProgress({
         </div>
       </div>
 
-      <div className="flex flex-row items-center justify-between space-y-4">
+      {/* Desktop Only: Full Stats and Indicators */}
+      <div className="hidden md:flex md:flex-row justify-between items-center">
         {/* Stats */}
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-4">
           <div className="flex items-center gap-1.5 bg-green-100 px-3 py-1.5 rounded-full">
             <Check size={14} className="text-green-600" />
             <span className="text-xs font-semibold text-green-700">
@@ -69,10 +89,10 @@ export default function ErrorProgress({
                   isCurrent
                     ? "border-green-500 bg-green-100 text-green-700 scale-110"
                     : isCorrect
-                    ? "border-green-500 bg-green-100 text-green-700"
-                    : isAnswered
-                    ? "border-gray-500 bg-gray-100 text-gray-700"
-                    : "border-gray-300 bg-white text-gray-400"
+                      ? "border-green-500 bg-green-100 text-green-700"
+                      : isAnswered
+                        ? "border-gray-500 bg-gray-100 text-gray-700"
+                        : "border-gray-300 bg-white text-gray-400"
                 }`}
               >
                 {isCorrect ? (

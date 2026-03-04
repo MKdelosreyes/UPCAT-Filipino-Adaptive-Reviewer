@@ -1,8 +1,16 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { useAuth } from "./AuthContext";
 import * as ProgressAPI from "@/lib/api/progress";
+import { backendApiClient } from "@/lib/client/backendApiClient";
 
 // Distinguish between lesson and quiz exercises
 export type VocabularyLessonExercise = "flashcards";
@@ -16,9 +24,8 @@ export type GrammarQuizExercise = "error-identification" | "fill-blanks";
 export type GrammarExercise = GrammarLessonExercise | GrammarQuizExercise;
 
 export type SentenceExercise =
-  | "complete-sentence"
-  | "sentence-ordering"
-  | "choose-sentence";
+  // | "complete-sentence"
+  "sentence-ordering" | "choose-sentence";
 export type ReadingExercise = "passage-questions" | "summary-exercise";
 
 export type ExerciseType =
@@ -78,7 +85,7 @@ export interface GrammarProgress {
 }
 
 export interface SentenceProgress {
-  "complete-sentence": QuizProgress;
+  // "complete-sentence": QuizProgress;
   "sentence-ordering": QuizProgress;
   "choose-sentence": QuizProgress;
   lastAccessedAt: string | null;
@@ -126,7 +133,7 @@ interface LearningProgressContextType {
   updateLessonProgress: (
     module: ModuleType,
     exercise: VocabularyLessonExercise | GrammarLessonExercise,
-    data: Partial<LessonProgress>
+    data: Partial<LessonProgress>,
   ) => Promise<void>;
 
   updateQuizProgress: (
@@ -135,7 +142,7 @@ interface LearningProgressContextType {
       ExerciseType,
       VocabularyLessonExercise | GrammarLessonExercise
     >,
-    data: Partial<QuizProgress>
+    data: Partial<QuizProgress>,
   ) => Promise<void>;
 
   resetProgress: (module?: ModuleType) => Promise<void>;
@@ -154,11 +161,11 @@ interface LearningProgressContextType {
       ExerciseType,
       VocabularyLessonExercise | GrammarLessonExercise
     >,
-    metrics: PerformanceMetrics
+    metrics: PerformanceMetrics,
   ) => Promise<void>;
   getPerformanceHistory: (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ) => PerformanceMetrics[];
   getModuleExercises: (module: ModuleType) => ExerciseType[];
   isLessonExercise: (module: ModuleType, exercise: ExerciseType) => boolean;
@@ -195,7 +202,7 @@ const createDefaultGrammarProgress = (): GrammarProgress => ({
 });
 
 const createDefaultSentenceProgress = (): SentenceProgress => ({
-  "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
+  // "complete-sentence": { ...defaultQuizProgress, status: "not-started" },
   "sentence-ordering": { ...defaultQuizProgress, status: "not-started" },
   "choose-sentence": { ...defaultQuizProgress, status: "not-started" },
   lastAccessedAt: null,
@@ -235,9 +242,39 @@ export function LearningProgressProvider({
     last_study_date: null as string | null,
   });
 
+  useEffect(() => {
+    if (tokens?.access) {
+      backendApiClient.defaults.headers.common.Authorization = `Bearer ${tokens.access}`;
+    } else {
+      delete backendApiClient.defaults.headers.common.Authorization;
+    }
+  }, [tokens?.access]);
+
+  // Prevent "refresh-like" UI flapping and repeated sync storms
+  const hasInitializedRef = useRef(false);
+  const syncInFlightRef = useRef<Promise<void> | null>(null);
+  const backoffMsRef = useRef(0);
+  const nextAllowedSyncAtRef = useRef(0);
+
+  const safeLocalStorageGet = (key: string) => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  };
+
+  const safeLocalStorageSet = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // ignore storage errors
+    }
+  };
+
   const isLessonExercise = (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ): boolean => {
     if (module === "vocabulary") return exercise === "flashcards";
     if (module === "grammar") return exercise === "lesson-cards";
@@ -246,7 +283,7 @@ export function LearningProgressProvider({
 
   const getExerciseProgressTyped = (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ): LessonProgress | QuizProgress | null => {
     const moduleData = progress[module];
 
@@ -271,7 +308,7 @@ export function LearningProgressProvider({
     } else if (module === "sentence-construction") {
       const sentenceData = moduleData as SentenceProgress;
       if (
-        exercise === "complete-sentence" ||
+        // exercise === "complete-sentence" ||
         exercise === "sentence-ordering" ||
         exercise === "choose-sentence"
       ) {
@@ -290,7 +327,7 @@ export function LearningProgressProvider({
   const updateLessonProgress = async (
     module: ModuleType,
     exercise: VocabularyLessonExercise | GrammarLessonExercise,
-    data: Partial<LessonProgress>
+    data: Partial<LessonProgress>,
   ) => {
     setProgress((prev) => {
       if (module === "vocabulary" && exercise === "flashcards") {
@@ -343,85 +380,108 @@ export function LearningProgressProvider({
       ExerciseType,
       VocabularyLessonExercise | GrammarLessonExercise
     >,
-    data: Partial<QuizProgress>
+    data: Partial<QuizProgress>,
   ) => {
     setProgress((prev) => {
+      const applyUpdate = (moduleProgress: any) => {
+        const current = moduleProgress[exercise] as QuizProgress;
+        const next: QuizProgress = {
+          ...current,
+          ...data,
+          // keep required fields sane
+          attempts: current.attempts,
+          performanceHistory: current.performanceHistory ?? [],
+          errorTags: data.errorTags ?? current.errorTags ?? [],
+          lastDifficulty:
+            (data.lastDifficulty as any) ?? current.lastDifficulty ?? "easy",
+        };
+
+        // Increment attempts when a session completes (common call site)
+        if (data.attempts != null) {
+          next.attempts = data.attempts;
+        } else if (data.completedAt) {
+          next.attempts = (current.attempts ?? 0) + 1;
+        }
+
+        // If caller didn't provide performanceHistory, append a minimal metric
+        // so "Last attempted" updates even if syncProgress is slow.
+        if (data.completedAt && data.performanceHistory == null) {
+          const metric: PerformanceMetrics = {
+            difficulty: next.lastDifficulty,
+            score:
+              typeof data.score === "number"
+                ? data.score
+                : (current.score ?? 0),
+            missedLowFreq: 0,
+            similarChoiceErrors: 0,
+            timestamp: data.completedAt,
+          };
+
+          const last =
+            next.performanceHistory[next.performanceHistory.length - 1];
+          const isDuplicate =
+            last &&
+            last.timestamp === metric.timestamp &&
+            last.score === metric.score &&
+            last.difficulty === metric.difficulty;
+
+          if (!isDuplicate) {
+            next.performanceHistory = [...next.performanceHistory, metric];
+          }
+        } else if (data.performanceHistory) {
+          next.performanceHistory = data.performanceHistory;
+        }
+
+        moduleProgress[exercise] = next;
+        return moduleProgress;
+      };
+
       if (
         module === "vocabulary" &&
         (exercise === "quiz" || exercise === "antonym")
       ) {
         const moduleProgress = { ...prev[module] } as VocabularyProgress;
+        return { ...prev, [module]: applyUpdate(moduleProgress) };
+      }
 
-        moduleProgress[exercise] = {
-          ...moduleProgress[exercise],
-          ...data,
-        };
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      } else if (
+      if (
         module === "grammar" &&
         (exercise === "error-identification" || exercise === "fill-blanks")
       ) {
         const moduleProgress = { ...prev[module] } as GrammarProgress;
+        return { ...prev, [module]: applyUpdate(moduleProgress) };
+      }
 
-        moduleProgress[exercise] = {
-          ...moduleProgress[exercise],
-          ...data,
-        };
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      } else if (
+      if (
         module === "sentence-construction" &&
-        (exercise === "complete-sentence" ||
-          exercise === "sentence-ordering" ||
-          exercise === "choose-sentence")
+        (exercise === "sentence-ordering" || exercise === "choose-sentence")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
+        return { ...prev, [module]: applyUpdate(moduleProgress) };
+      }
 
-        moduleProgress[exercise] = {
-          ...moduleProgress[exercise],
-          ...data,
-        };
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
-      } else if (
+      if (
         module === "reading-comprehension" &&
         (exercise === "passage-questions" || exercise === "summary-exercise")
       ) {
         const moduleProgress = { ...prev[module] } as ReadingProgress;
-
-        moduleProgress[exercise] = {
-          ...moduleProgress[exercise],
-          ...data,
-        };
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
+        return { ...prev, [module]: applyUpdate(moduleProgress) };
       }
 
       return prev;
     });
 
+    // ✅ Then sync to backend if authenticated
     if (user && tokens) {
       try {
         await ProgressAPI.updateExerciseProgress(module, exercise, {
           status: data.status,
           score: data.score ?? undefined,
-          attempts: data.attempts,
           completedAt: data.completedAt ?? undefined,
           lastDifficulty: data.lastDifficulty,
         });
+
+        await syncProgress();
       } catch (err) {
         console.error("Failed to sync quiz progress:", err);
       }
@@ -429,7 +489,7 @@ export function LearningProgressProvider({
   };
 
   const convertBackendToFrontend = (
-    backendModules: ProgressAPI.ModuleProgress[]
+    backendModules: ProgressAPI.ModuleProgress[],
   ): AllModulesProgress => {
     const frontendProgress = { ...defaultProgress };
 
@@ -451,20 +511,27 @@ export function LearningProgressProvider({
               cardsReviewed: exercise.cards_reviewed || undefined,
             };
           } else if (exType === "quiz" || exType === "antonym") {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              }),
+            );
+
             vocabProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -488,20 +555,27 @@ export function LearningProgressProvider({
             exType === "error-identification" ||
             exType === "fill-blanks"
           ) {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              }),
+            );
+
             grammarProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -514,25 +588,28 @@ export function LearningProgressProvider({
         module.exercises.forEach((exercise) => {
           const exType = exercise.exercise_type;
 
-          if (
-            exType === "complete-sentence" ||
-            exType === "sentence-ordering" ||
-            exType === "choose-sentence"
-          ) {
+          if (exType === "sentence-ordering" || exType === "choose-sentence") {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              }),
+            );
+
             sentenceProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -546,20 +623,27 @@ export function LearningProgressProvider({
           const exType = exercise.exercise_type;
 
           if (exType === "passage-questions" || exType === "summary-exercise") {
+            const performanceHistory = (exercise.performance_history || []).map(
+              (p) => ({
+                difficulty: p.difficulty as "easy" | "medium" | "hard",
+                score: p.score,
+                missedLowFreq: p.missed_low_freq,
+                similarChoiceErrors: p.similar_choice_errors,
+                timestamp: p.timestamp,
+              }),
+            );
+
             readingProgress[exType] = {
               status: exercise.status as ExerciseStatus,
               score: exercise.best_score,
               completedAt: exercise.last_completed_at,
               attempts: exercise.attempts,
-              lastDifficulty: (exercise.last_difficulty || "easy") as any,
+              lastDifficulty: (exercise.last_difficulty || "easy") as
+                | "easy"
+                | "medium"
+                | "hard",
               errorTags: [],
-              performanceHistory: exercise.performance_history.map((p) => ({
-                difficulty: p.difficulty as any,
-                score: p.score,
-                missedLowFreq: p.missed_low_freq,
-                similarChoiceErrors: p.similar_choice_errors,
-                timestamp: p.timestamp,
-              })),
+              performanceHistory,
             };
           }
         });
@@ -572,57 +656,110 @@ export function LearningProgressProvider({
     return frontendProgress;
   };
 
-  const syncProgress = async () => {
+  const syncProgress = useCallback(async () => {
     if (!user || !tokens) {
       setProgress(defaultProgress);
       setStudyStreak({ current: 0, longest: 0, last_study_date: null });
+      setError(null);
       setIsLoading(false);
+
+      // IMPORTANT:
+      // If we mark initialized here, the first authenticated sync won't show loading,
+      // causing a "0%" flash. Keep this false until we attempt a real authenticated sync.
+      hasInitializedRef.current = false;
+
       return;
     }
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await ProgressAPI.getAllProgress();
-      const convertedProgress = convertBackendToFrontend(response.modules);
-      setProgress(convertedProgress);
-      setStudyStreak(response.study_streak);
-
-      localStorage.setItem(
-        "learning-progress-backup",
-        JSON.stringify({
-          progress: convertedProgress,
-          studyStreak: response.study_streak,
-        })
-      );
-    } catch (err: any) {
-      console.error("Failed to load progress from backend:", err);
-      setError(err.message);
-
-      const backup = localStorage.getItem("learning-progress-backup");
-      if (backup) {
-        try {
-          const parsed = JSON.parse(backup);
-          setProgress(parsed.progress || defaultProgress);
-          setStudyStreak(
-            parsed.studyStreak || {
-              current: 0,
-              longest: 0,
-              last_study_date: null,
-            }
-          );
-        } catch {
-          setProgress(defaultProgress);
-        }
-      }
-    } finally {
-      setIsLoading(false);
+    // Avoid concurrent syncs
+    if (syncInFlightRef.current) {
+      return syncInFlightRef.current;
     }
-  };
+
+    const run = (async () => {
+      const now = Date.now();
+
+      // Backoff gate: if last failures happened, don't hammer backend
+      if (now < nextAllowedSyncAtRef.current) {
+        return;
+      }
+
+      // Only show global loading spinner on the first-ever sync
+      if (!hasInitializedRef.current) {
+        setIsLoading(true);
+      }
+      setError(null);
+
+      try {
+        const response = await ProgressAPI.getAllProgress({
+          initial: !hasInitializedRef.current, // long timeout only for first load
+        });
+        const convertedProgress = convertBackendToFrontend(response.modules);
+
+        setProgress(convertedProgress);
+        setStudyStreak(response.study_streak);
+
+        safeLocalStorageSet(
+          "learning-progress-backup",
+          JSON.stringify({
+            progress: convertedProgress,
+            studyStreak: response.study_streak,
+          }),
+        );
+
+        // Success resets backoff
+        backoffMsRef.current = 0;
+        nextAllowedSyncAtRef.current = 0;
+        hasInitializedRef.current = true;
+      } catch (err: any) {
+        // Failure: increase backoff but DO NOT "refresh" UI
+        const message =
+          typeof err?.message === "string"
+            ? err.message
+            : "Failed to sync progress.";
+
+        setError(message);
+
+        // Exponential backoff: 15s, 30s, 60s, ... max 5 min
+        const next =
+          backoffMsRef.current === 0
+            ? 15000
+            : Math.min(backoffMsRef.current * 2, 300000);
+        backoffMsRef.current = next;
+        nextAllowedSyncAtRef.current = Date.now() + next;
+
+        console.error("Failed to load progress from backend:", err);
+
+        // Try restoring backup WITHOUT throwing
+        const backup = safeLocalStorageGet("learning-progress-backup");
+        if (backup) {
+          try {
+            const parsed = JSON.parse(backup);
+            if (parsed?.progress) setProgress(parsed.progress);
+            if (parsed?.studyStreak) setStudyStreak(parsed.studyStreak);
+          } catch {
+            // If backup is corrupt, keep current in-memory progress instead of resetting
+          }
+        }
+
+        // Consider app "initialized" even on failure so we don't keep toggling big loaders
+        hasInitializedRef.current = true;
+      } finally {
+        // After first attempt, stop global loading spinner
+        setIsLoading(false);
+      }
+    })();
+    syncInFlightRef.current = run;
+    try {
+      await run;
+    } finally {
+      syncInFlightRef.current = null;
+    }
+  }, [user, tokens]);
 
   useEffect(() => {
-    syncProgress();
-  }, [user?.id]);
+    void syncProgress();
+  }, [syncProgress, user?.id, tokens?.access]);
 
   const resetProgress = async (module?: ModuleType) => {
     if (user && tokens) {
@@ -640,10 +777,10 @@ export function LearningProgressProvider({
             module === "vocabulary"
               ? createDefaultVocabularyProgress()
               : module === "grammar"
-              ? createDefaultGrammarProgress()
-              : module === "sentence-construction"
-              ? createDefaultSentenceProgress()
-              : createDefaultReadingProgress(),
+                ? createDefaultGrammarProgress()
+                : module === "sentence-construction"
+                  ? createDefaultSentenceProgress()
+                  : createDefaultReadingProgress(),
         }));
       } else {
         setProgress(defaultProgress);
@@ -658,7 +795,7 @@ export function LearningProgressProvider({
       case "grammar":
         return ["lesson-cards", "error-identification", "fill-blanks"];
       case "sentence-construction":
-        return ["complete-sentence", "sentence-ordering", "choose-sentence"];
+        return ["sentence-ordering", "choose-sentence"];
       case "reading-comprehension":
         return ["passage-questions", "summary-exercise"];
       default:
@@ -670,7 +807,7 @@ export function LearningProgressProvider({
     const exercises = getModuleExercises(module);
 
     let totalMasteryScore = 0;
-    const maxMasteryPerExercise = 5; // master = 5, advanced = 4, etc.
+    const maxMasteryPerExercise = 5;
 
     exercises.forEach((ex) => {
       const exerciseProgress = getExerciseProgressTyped(module, ex);
@@ -678,14 +815,21 @@ export function LearningProgressProvider({
       if (!exerciseProgress) return;
 
       if (isLessonExercise(module, ex)) {
-        // Lessons: score based on time spent
+        // Lessons use completion metrics, not scores
         const lesson = exerciseProgress as LessonProgress;
-        if (lesson.timeSpent >= 600) totalMasteryScore += 5; // 10+ min = max
-        else if (lesson.timeSpent >= 300)
-          totalMasteryScore += 3; // 5+ min = mid
-        else if (lesson.timeSpent > 0) totalMasteryScore += 1; // started
+
+        if (ex === "flashcards" && lesson.cardsReviewed) {
+          const reviewRate = Math.min(1, lesson.cardsReviewed / 50);
+          const timeRate = Math.min(1, lesson.timeSpent / 600);
+          totalMasteryScore += (reviewRate + timeRate) * 2.5;
+        } else if (ex === "lesson-cards" && lesson.lessonsViewed) {
+          const viewRate = Math.min(1, lesson.lessonsViewed / 15); // 15 lessons = full mastery
+          const timeRate = Math.min(1, lesson.timeSpent / 600);
+          totalMasteryScore += (viewRate + timeRate) * 2.5;
+        } else if (lesson.timeSpent >= 600) totalMasteryScore += 5;
+        else if (lesson.timeSpent >= 300) totalMasteryScore += 3;
+        else if (lesson.timeSpent > 0) totalMasteryScore += 1;
       } else {
-        // Quizzes: score based on mastery level
         const quiz = exerciseProgress as QuizProgress;
         if (quiz.performanceHistory.length === 0) return;
 
@@ -694,14 +838,13 @@ export function LearningProgressProvider({
           quiz.performanceHistory.length;
         const difficulty = quiz.lastDifficulty;
 
-        if (difficulty === "hard" && avgScore >= 90)
-          totalMasteryScore += 5; // master
+        if (difficulty === "hard" && avgScore >= 90) totalMasteryScore += 5;
         else if (difficulty === "hard" && avgScore >= 75)
-          totalMasteryScore += 4; // advanced
+          totalMasteryScore += 4;
         else if (difficulty === "medium" && avgScore >= 75)
-          totalMasteryScore += 3; // proficient
-        else if (avgScore >= 60) totalMasteryScore += 2; // developing
-        else totalMasteryScore += 1; // beginner
+          totalMasteryScore += 3;
+        else if (avgScore >= 60) totalMasteryScore += 2;
+        else totalMasteryScore += 1;
       }
     });
 
@@ -752,17 +895,66 @@ export function LearningProgressProvider({
 
   const canAccessExercise = (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ): boolean => {
     return true;
   };
 
   const isModuleCompleted = (module: ModuleType): boolean => {
-    return getModuleProgress(module) >= 90; // 90%+ mastery = "completed"
+    return getModuleProgress(module) >= 90;
   };
 
   const getRecommendedModule = (): ModuleType => {
-    return progress.recommendedModule;
+    const modules: ModuleType[] = [
+      "vocabulary",
+      "grammar",
+      "sentence-construction",
+      "reading-comprehension",
+    ];
+
+    // 1. Check if user just started - recommend vocabulary first
+    const allProgress = modules.map((m) => getModuleProgress(m));
+    const hasAnyProgress = allProgress.some((p) => p > 0);
+
+    if (!hasAnyProgress) {
+      return "vocabulary"; // Default: start with vocabulary
+    }
+
+    // 2. Find module with lowest progress (needs most work)
+    let lowestProgress = 100;
+    let recommendedModule: ModuleType = "vocabulary";
+
+    modules.forEach((module) => {
+      const moduleProgress = getModuleProgress(module);
+
+      // Skip completed modules
+      if (moduleProgress >= 90) return;
+
+      if (moduleProgress < lowestProgress) {
+        lowestProgress = moduleProgress;
+        recommendedModule = module;
+      }
+    });
+
+    // 3. If all modules are completed, recommend most recently accessed
+    if (lowestProgress >= 90) {
+      let mostRecent: ModuleType = "vocabulary";
+      let mostRecentDate = "";
+
+      modules.forEach((module) => {
+        const moduleData = progress[module];
+        const lastAccessed = moduleData.lastAccessedAt || "";
+
+        if (lastAccessed > mostRecentDate) {
+          mostRecentDate = lastAccessed;
+          mostRecent = module;
+        }
+      });
+
+      return mostRecent;
+    }
+
+    return recommendedModule;
   };
 
   const markModuleAccessed = (module: ModuleType) => {
@@ -797,7 +989,7 @@ export function LearningProgressProvider({
       ExerciseType,
       VocabularyLessonExercise | GrammarLessonExercise
     >,
-    metrics: PerformanceMetrics
+    metrics: PerformanceMetrics,
   ) => {
     setProgress((prev) => {
       if (
@@ -805,97 +997,78 @@ export function LearningProgressProvider({
         (exercise === "quiz" || exercise === "antonym")
       ) {
         const moduleProgress = { ...prev[module] } as VocabularyProgress;
-        const quizProgress = moduleProgress[exercise];
-
+        const quizProgress = { ...moduleProgress[exercise] };
         quizProgress.performanceHistory = [
           ...quizProgress.performanceHistory,
           metrics,
         ];
         quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
+        moduleProgress[exercise] = quizProgress;
+        return { ...prev, [module]: moduleProgress };
       } else if (
         module === "grammar" &&
         (exercise === "error-identification" || exercise === "fill-blanks")
       ) {
         const moduleProgress = { ...prev[module] } as GrammarProgress;
-        const quizProgress = moduleProgress[exercise];
-
+        const quizProgress = { ...moduleProgress[exercise] };
         quizProgress.performanceHistory = [
           ...quizProgress.performanceHistory,
           metrics,
         ];
         quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
+        moduleProgress[exercise] = quizProgress;
+        return { ...prev, [module]: moduleProgress };
       } else if (
         module === "sentence-construction" &&
-        (exercise === "complete-sentence" ||
-          exercise === "sentence-ordering" ||
-          exercise === "choose-sentence")
+        (exercise === "sentence-ordering" || exercise === "choose-sentence")
       ) {
         const moduleProgress = { ...prev[module] } as SentenceProgress;
-        const quizProgress = moduleProgress[exercise];
-
+        const quizProgress = { ...moduleProgress[exercise] };
         quizProgress.performanceHistory = [
           ...quizProgress.performanceHistory,
           metrics,
         ];
         quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
+        moduleProgress[exercise] = quizProgress;
+        return { ...prev, [module]: moduleProgress };
       } else if (
         module === "reading-comprehension" &&
         (exercise === "passage-questions" || exercise === "summary-exercise")
       ) {
         const moduleProgress = { ...prev[module] } as ReadingProgress;
-        const quizProgress = moduleProgress[exercise];
-
+        const quizProgress = { ...moduleProgress[exercise] };
         quizProgress.performanceHistory = [
           ...quizProgress.performanceHistory,
           metrics,
         ];
         quizProgress.lastDifficulty = metrics.difficulty;
-
-        return {
-          ...prev,
-          [module]: moduleProgress,
-        };
+        moduleProgress[exercise] = quizProgress;
+        return { ...prev, [module]: moduleProgress };
       }
-
       return prev;
     });
 
-    if (user && tokens) {
-      try {
-        await ProgressAPI.updateExerciseProgress(module, exercise, {
-          lastDifficulty: metrics.difficulty,
-          performanceMetrics: {
-            difficulty: metrics.difficulty,
-            score: metrics.score,
-            missedLowFreq: metrics.missedLowFreq,
-            similarChoiceErrors: metrics.similarChoiceErrors,
-            errorTags: [],
-          },
-        });
-      } catch (err) {
-        console.error("Failed to add performance metrics:", err);
-      }
-    }
+    // if (user && tokens) {
+    //   try {
+    //     await ProgressAPI.updateExerciseProgress(module, exercise, {
+    //       lastDifficulty: metrics.difficulty,
+    //       performanceMetrics: {
+    //         difficulty: metrics.difficulty,
+    //         score: metrics.score,
+    //         missedLowFreq: metrics.missedLowFreq,
+    //         similarChoiceErrors: metrics.similarChoiceErrors,
+    //         errorTags: [],
+    //       },
+    //     });
+    //   } catch (err) {
+    //     console.error("Failed to add performance metrics:", err);
+    //   }
+    // }
   };
 
   const getPerformanceHistory = (
     module: ModuleType,
-    exercise: ExerciseType
+    exercise: ExerciseType,
   ): PerformanceMetrics[] => {
     const exerciseProgress = getExerciseProgressTyped(module, exercise);
 
@@ -940,7 +1113,7 @@ export function useLearningProgress() {
   const context = useContext(LearningProgressContext);
   if (!context) {
     throw new Error(
-      "useLearningProgress must be used within LearningProgressProvider"
+      "useLearningProgress must be used within LearningProgressProvider",
     );
   }
   return context;

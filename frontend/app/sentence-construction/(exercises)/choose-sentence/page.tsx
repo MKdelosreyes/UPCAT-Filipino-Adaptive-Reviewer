@@ -1,19 +1,30 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import ChooseSentenceQuestion from "@/components/sentence-construction/choose-sentence-exercise/ChooseSentenceQuestion";
 import ChooseSentenceProgress from "@/components/sentence-construction/choose-sentence-exercise/ChooseSentenceProgress";
 import ChooseSentenceCompletionModal from "@/components/sentence-construction/choose-sentence-exercise/ChooseSentenceCompletionModal";
 import { useSentenceConstructionProgress } from "@/hooks/useSentenceConstructionProgress";
-import { useLearningProgress } from "@/contexts/LearningProgressContext";
+import {
+  useLearningProgress,
+  QuizProgress,
+} from "@/contexts/LearningProgressContext";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import type { SentenceConstructionExerciseItem } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { SRS_GRADES } from "@/utils/srs";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 interface ChooseSentenceAnswer {
   isCorrect: boolean;
@@ -22,6 +33,17 @@ interface ChooseSentenceAnswer {
   context: string;
   lemmaId: string;
 }
+
+type PersistedChooseSentenceSessionV1 = {
+  exercises: SentenceConstructionExerciseItem[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: ChooseSentenceAnswer[];
+  showCompletion: boolean;
+  currentDifficulty: "easy" | "medium" | "hard";
+};
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -33,20 +55,43 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function ChooseSentencePage() {
-  const { updateProgress } = useSentenceConstructionProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { updateProgress, getExerciseProgress } =
+    useSentenceConstructionProgress();
+  const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory(
+    "sentence-construction",
+    "choose-sentence",
+  );
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
+
+  const { user } = useAuth();
+  const { isLoading: authLoading } = useAuthGuard();
+
+  const exerciseProgress = getExerciseProgress("choose-sentence");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+
+  const [currentDifficulty] = useState(difficultyToServe);
 
   const {
-    dueExercises,
+    sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
   } = useSRSWithExercises({
     module: "sentence-construction",
-    exerciseType: "choose",
-    targetDifficulty: "easy",
-    limit: 10,
+    exerciseType: "choose-sentence",
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 20,
   });
+
+  const [exercises, setExercises] = useState<
+    SentenceConstructionExerciseItem[]
+  >([]);
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -57,24 +102,173 @@ export default function ChooseSentencePage() {
   >([]);
   const [showCompletion, setShowCompletion] = useState(false);
 
-  useEffect(() => {
-    if (dueExercises.length > 0) {
-      setAnswers(Array(dueExercises.length).fill(null));
-    }
-  }, [dueExercises.length]);
+  const [isFinishing, setIsFinishing] = useState(false);
+  const loadingQuote = useMotivationalQuote(authLoading || srsLoading, 3000);
 
-  // Compute choices early (unconditionally) so hooks order doesn't change
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(
+        user,
+        "far:quizSession:sentence-construction:choose-sentence",
+      );
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedChooseSentenceSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: exercises.length > 0,
+      snapshot: () => ({
+        exercises,
+        currentQuestion,
+        selectedAnswer,
+        showResult,
+        answers,
+        detailedAnswers,
+        showCompletion,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setExercises(payload.exercises);
+        setCurrentQuestion(payload.currentQuestion);
+        setSelectedAnswer(payload.selectedAnswer);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setShowCompletion(payload.showCompletion);
+      },
+      validate: (p: any): p is PersistedChooseSentenceSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+        if (!Array.isArray(p.exercises) || p.exercises.length === 0)
+          return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (
+          !(p.selectedAnswer === null || typeof p.selectedAnswer === "string")
+        )
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (
+          !Array.isArray(p.answers) ||
+          p.answers.length !== p.exercises.length
+        )
+          return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (typeof p.showCompletion !== "boolean") return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+        if (p.currentQuestion >= p.exercises.length) return false;
+
+        const e0 = p.exercises[0];
+        if (
+          !e0 ||
+          typeof e0 !== "object" ||
+          typeof e0.lemma_id !== "string" ||
+          typeof e0.chooseCorrectSentence !== "string" ||
+          typeof e0.chooseContext !== "string" ||
+          !Array.isArray((e0 as any).distractors)
+        ) {
+          return false;
+        }
+        return true;
+      },
+    });
+
+  // Seed once from SRS unless we restored
+  const hasSeededSessionRef = useRef(false);
+  useEffect(() => {
+    if (didRestore) return;
+    if (srsLoading) return;
+    if (hasSeededSessionRef.current) return;
+
+    const list = (sessionExercises ?? []) as SentenceConstructionExerciseItem[];
+    if (list.length === 0) return;
+
+    hasSeededSessionRef.current = true;
+
+    setExercises(list);
+    setAnswers(Array(list.length).fill(null));
+    setDetailedAnswers([]);
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setShowCompletion(false);
+  }, [didRestore, srsLoading, sessionExercises]);
+
+  // Compute current exercise + choices early (unconditionally) so hooks order doesn't change
+  const currentExercise = exercises[currentQuestion];
+  const isLastQuestion =
+    exercises.length > 0 && currentQuestion === exercises.length - 1;
+
   const choices = useMemo(() => {
-    if (dueExercises.length === 0) return [];
-    const currentExercise = dueExercises[currentQuestion] as SentenceConstructionExerciseItem;
+    if (!currentExercise) return [];
     const allChoices = [
       currentExercise.chooseCorrectSentence,
-      ...currentExercise.distractors,
+      ...(currentExercise.distractors || []),
     ];
     return shuffleArray(allChoices);
-  }, [dueExercises, currentQuestion]);
+  }, [
+    currentExercise?.lemma_id,
+    currentExercise?.chooseCorrectSentence,
+    currentExercise?.distractors,
+  ]);
 
-  if (srsLoading || dueExercises.length === 0) {
+  if (authLoading || srsLoading) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
+
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-700 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
+
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
+          </div>
+
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Preparing your exercise
+            </span>
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-10 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-200 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-400 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (exercises.length === 0) {
     return (
       <div className="h-screen bg-blue-50 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
@@ -96,29 +290,22 @@ export default function ChooseSentencePage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center">
-          {srsLoading ? (
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          ) : (
-            <div className="text-center">
-              <p className="text-lg text-blue-900 mb-2">
-                🎉 No exercises due right now!
-              </p>
-              <p className="text-sm text-blue-600">
-                Come back later for more practice.
-              </p>
-            </div>
-          )}
+          <div className="text-center">
+            <p className="text-lg text-blue-900 mb-2">
+              🎉 No items available right now!
+            </p>
+            <p className="text-sm text-blue-600">
+              Come back later for more practice.
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
-  const currentExercise = dueExercises[
-    currentQuestion
-  ] as SentenceConstructionExerciseItem;
-  const isLastQuestion = currentQuestion === dueExercises.length - 1;
-
   const handleSelectAnswer = async (answer: string) => {
+    if (!currentExercise) return;
+
     setSelectedAnswer(answer);
     setShowResult(true);
 
@@ -142,11 +329,11 @@ export default function ChooseSentencePage() {
 
     await reportLexicalItemPerformance({
       module: "sentence-construction",
-      exerciseType: "quiz",
+      exerciseType: "choose-sentence",
       lemmaId: currentExercise.lemma_id,
       correctAnswer,
       userAnswer: answer,
-      difficultyShown: "medium",
+      difficultyShown: currentDifficulty,
       score: isCorrect ? 100 : 0,
     });
 
@@ -155,8 +342,10 @@ export default function ChooseSentencePage() {
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -165,64 +354,61 @@ export default function ChooseSentencePage() {
   };
 
   const completeExercise = async () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const score = Math.round((correctCount / dueExercises.length) * 100);
+    if (isFinishing) return;
+    setIsFinishing(true);
 
-    let missedLowFreq = 0;
-    let similarChoiceErrors = 0;
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const score = Math.round((correctCount / exercises.length) * 100);
 
-    detailedAnswers.forEach((answer) => {
-      if (!answer.isCorrect) {
-        similarChoiceErrors++;
-      }
-    });
+      let missedLowFreq = 0;
+      let similarChoiceErrors = 0;
 
-    const history = getPerformanceHistory(
-      "sentence-construction",
-      "choose-sentence"
-    );
-    const currentDifficulty =
-      history.length > 0 ? history[history.length - 1].difficulty : "easy";
+      detailedAnswers.forEach((a) => {
+        if (!a.isCorrect) similarChoiceErrors++;
+      });
 
-    const metrics = {
-      difficulty: currentDifficulty,
-      score,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
+      setShowCompletion(true);
 
-    console.log("📊 Choose Sentence Session Completed - Metrics:", metrics);
+      const thisSession = {
+        difficulty: currentDifficulty,
+        score,
+        missedLowFreq,
+        similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
 
-    await addPerformanceMetrics(
-      "sentence-construction",
-      "choose-sentence",
-      metrics
-    );
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    const allHistory = [...history, metrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+      await updateExerciseProgress("sentence-construction", "choose-sentence", {
+        status: "in-progress",
+        score,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        performanceMetrics: {
+          difficulty: currentDifficulty,
+          score,
+          missedLowFreq,
+          similarChoiceErrors,
+          errorTags: evaluation.tags,
+        },
+      });
 
-    console.log(
-      "🎯 Next Choose Sentence Difficulty:",
-      evaluation.nextDifficulty,
-      "| Error Tags:",
-      evaluation.tags
-    );
-
-    await updateProgress("choose-sentence", {
-      status: "in-progress",
-      score,
-      completedAt: new Date().toISOString(),
-      attempts: (history.length || 0) + 1,
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
-
-    setShowCompletion(true);
+      await updateProgress("choose-sentence", {
+        status: "in-progress",
+        score,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        errorTags: evaluation.tags,
+      });
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const resetExercise = () => {
+    clearSession();
+    hasSeededSessionRef.current = false;
     window.location.reload();
   };
 
@@ -234,16 +420,13 @@ export default function ChooseSentencePage() {
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          <span className="hidden md:inline">Back</span>
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-blue-900">
+          <h1 className="text-base md:text-2xl font-bold text-blue-900">
             Choose the Best Sentence
           </h1>
-          <p className="text-xs text-blue-600 mt-1">
-            {dueExercises.length} exercises due for review
-          </p>
         </div>
 
         <button
@@ -258,7 +441,7 @@ export default function ChooseSentencePage() {
       <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
         <ChooseSentenceProgress
           currentQuestion={currentQuestion}
-          totalQuestions={dueExercises.length}
+          totalQuestions={exercises.length}
           answers={answers}
         />
 
@@ -271,7 +454,7 @@ export default function ChooseSentencePage() {
         >
           <ChooseSentenceQuestion
             questionNumber={currentQuestion + 1}
-            totalQuestions={dueExercises.length}
+            totalQuestions={exercises.length}
             context={currentExercise.chooseContext}
             choices={choices}
             correctAnswer={currentExercise.chooseCorrectSentence}
@@ -289,13 +472,24 @@ export default function ChooseSentencePage() {
             className="flex justify-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+              whileTap={{ scale: isFinishing ? 1 : 0.95 }}
               onClick={handleNext}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              disabled={isFinishing}
+              aria-busy={isFinishing}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isLastQuestion ? "Finish Exercise" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
+              {isFinishing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finishing...
+                </>
+              ) : (
+                <>
+                  {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
           </motion.div>
         )}
@@ -304,10 +498,10 @@ export default function ChooseSentencePage() {
       <ChooseSentenceCompletionModal
         isOpen={showCompletion}
         score={Math.round(
-          (answers.filter((a) => a === true).length / dueExercises.length) * 100
+          (answers.filter((a) => a === true).length / exercises.length) * 100,
         )}
         correctCount={answers.filter((a) => a === true).length}
-        totalQuestions={dueExercises.length}
+        totalQuestions={exercises.length}
         onClose={() => setShowCompletion(false)}
         onRetake={resetExercise}
       />

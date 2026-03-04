@@ -1,517 +1,208 @@
-// "use client";
+// // "use client";
 
-// import { useState, useEffect } from "react";
-// import { motion, AnimatePresence } from "framer-motion";
-// import { ArrowLeft, RotateCcw, ChevronRight, Lightbulb } from "lucide-react";
+// import { ArrowLeft } from "lucide-react";
 // import Link from "next/link";
-// import QuizQuestion from "@/components/vocabulary/closest-meaning-exercise/QuizQuestion";
-// import QuizProgress from "@/components/vocabulary/closest-meaning-exercise/QuizProgress";
-// import QuizCompletionModal from "@/components/vocabulary/closest-meaning-exercise/QuizCompletionModal";
+// import { useEffect, useMemo, useRef, useState } from "react";
+// import VocabularyCard from "@/components/VocabularyCard";
+// import ProgressStepper from "./_progress/ProgressStepper";
 // import { useVocabularyProgress } from "@/hooks/useVocabularyProgress";
-// import { useLearningProgress } from "@/contexts/LearningProgressContext";
-// import {
-//   getVocabularyExercises,
-//   getLexiconData,
-//   VocabularyExerciseItem,
-//   LexiconItem,
-// } from "@/lib/api/exercises";
-// import {
-//   isLowFrequencyWord,
-//   areSimilarWords,
-// } from "@/utils/PerformanceTracker";
-// import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
+// import { useAuthGuard } from "@/hooks/useAuthGuard";
 
-// interface QuizItem {
-//   id: string;
-//   lemma_id: string;
-//   sentence: string;
-//   underlinedWord: string;
-//   correctAnswer: string;
-//   options: string[];
-//   difficulty: string;
-// }
+// export default function VocabularyPage() {
+//   const { getVocabularyMastery } = useVocabularyProgress();
+//   const mastery = getVocabularyMastery();
+//   const { isLoading: authLoading } = useAuthGuard();
 
-// interface QuizAnswer {
-//   isCorrect: boolean;
-//   selectedAnswer: string;
-//   correctAnswer: string;
-//   word: string;
-// }
+//   const masteryColors = {
+//     beginner: "bg-gray-100 text-gray-700 border-gray-300",
+//     developing: "bg-yellow-100 text-yellow-700 border-yellow-300",
+//     proficient: "bg-yellow-100 text-yellow-700 border-yellow-300",
+//     advanced: "bg-orange-100 text-orange-700 border-orange-300",
+//     master: "bg-yellow-100 text-yellow-700 border-yellow-400",
+//   };
 
-// // Helper function to underline a word in a sentence (FIXED VERSION)
-// function underlineWordInSentence(
-//   sentence: string,
-//   wordToUnderline: string
-// ): string {
-//   // Escape special regex characters in the word
-//   const escapedWord = wordToUnderline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-//   // Create a case-insensitive regex that matches whole words
-//   // Uses positive lookbehind (?<=\s|^) for start of string or space
-//   // and positive lookahead (?=\s|$|[.,!?;:]) for end or punctuation
-//   const regex = new RegExp(
-//     `(?<=\\s|^)(${escapedWord})(?=\\s|$|[.,!?;:])`,
-//     "gi"
+//   const cards = useMemo(
+//     () => [
+//       {
+//         name: "Flashcards",
+//         description: "Learn vocabulary through interactive flashcards",
+//         imagePath: "/art/vocabulary-1.png",
+//         color: "bg-yellow-50",
+//         url: "/vocabulary/flashcards",
+//         exerciseType: "flashcards" as const,
+//       },
+//       {
+//         name: "What is its Closest Meaning",
+//         description: "Test your knowledge with word definitions",
+//         imagePath: "/art/vocabulary-2.png",
+//         color: "bg-yellow-50",
+//         url: "/vocabulary/what-is-its-closest-meaning",
+//         exerciseType: "quiz" as const,
+//       },
+//       {
+//         name: "Antonym Exercise",
+//         description: "Practice finding opposite meanings",
+//         imagePath: "/art/vocabulary-3.png",
+//         color: "bg-pink-50",
+//         url: "/vocabulary/antonym-of-the-word",
+//         exerciseType: "antonym" as const,
+//       },
+//     ],
+//     [],
 //   );
 
-//   // Replace all occurrences while preserving the original case
-//   return sentence.replace(regex, "<u>$1</u>");
-// }
+//   // Active card "focus" (based on which card is closest to the center of the scroller)
+//   const scrollerRef = useRef<HTMLDivElement | null>(null);
+//   const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
+//   const rafRef = useRef<number | null>(null);
+//   const [activeCard, setActiveCard] = useState(0);
 
-// // Generate quiz questions from AI service data
-// async function generateQuizQuestionsFromService(): Promise<QuizItem[]> {
-//   const [vocabExercises, lexiconData] = await Promise.all([
-//     getVocabularyExercises(),
-//     getLexiconData(),
-//   ]);
+//   const updateActiveCard = () => {
+//     const scroller = scrollerRef.current;
+//     if (!scroller) return;
 
-//   // Create a lookup map
-//   const lexiconMap = new Map(
-//     lexiconData.map((item: LexiconItem) => [item.lemma_id, item])
-//   );
+//     const center = scroller.scrollLeft + scroller.clientWidth / 2;
 
-//   console.log("📚 Vocab Exercises:", vocabExercises.length);
-//   console.log("📖 Lexicon Data:", lexiconData.length);
+//     let bestIndex = 0;
+//     let bestDist = Number.POSITIVE_INFINITY;
 
-//   // Combine and prepare quiz items
-//   const quizItems: QuizItem[] = vocabExercises
-//     .map((vocabItem: VocabularyExerciseItem) => {
-//       const lexiconEntry = lexiconMap.get(vocabItem.lemma_id);
-
-//       if (!lexiconEntry) {
-//         console.warn(`⚠️ No lexicon entry for: ${vocabItem.lemma_id}`);
-//         return null;
+//     cardRefs.current.forEach((el, i) => {
+//       if (!el) return;
+//       const elCenter = el.offsetLeft + el.offsetWidth / 2;
+//       const dist = Math.abs(center - elCenter);
+//       if (dist < bestDist) {
+//         bestDist = dist;
+//         bestIndex = i;
 //       }
+//     });
 
-//       // Choose an example sentence
-//       const sentence =
-//         vocabItem.sentence_example_1 || vocabItem.sentence_example_2;
-//       if (!sentence) {
-//         console.warn(`⚠️ No sentence for: ${vocabItem.lemma_id}`);
-//         return null;
-//       }
+//     setActiveCard(bestIndex);
+//   };
 
-//       // Randomly choose to underline either the lemma or a surface form
-//       const wordsToConsider = [
-//         lexiconEntry.lemma,
-//         ...(lexiconEntry.surface_forms || []),
-//       ];
-
-//       // Find which word actually appears in the sentence (case-insensitive)
-//       let underlinedWord = lexiconEntry.lemma;
-//       for (const word of wordsToConsider) {
-//         const lowerSentence = sentence.toLowerCase();
-//         const lowerWord = word.toLowerCase();
-
-//         // Check if the word appears as a whole word in the sentence
-//         const wordRegex = new RegExp(`\\b${lowerWord}\\b`, "i");
-//         if (wordRegex.test(lowerSentence)) {
-//           underlinedWord = word;
-//           break;
-//         }
-//       }
-
-//       // Generate options with variation (50% meaning-based, 50% synonym-based)
-//       const useDefinitions = Math.random() > 0.5;
-
-//       let correctAnswer: string;
-//       let distractors: string[] = [];
-
-//       if (useDefinitions) {
-//         // Use base definitions as options
-//         correctAnswer = lexiconEntry.base_definition;
-
-//         // Get other definitions as distractors
-//         const otherLexicons = lexiconData.filter(
-//           (lex: LexiconItem) => lex.lemma_id !== vocabItem.lemma_id
-//         );
-//         const shuffled = otherLexicons.sort(() => Math.random() - 0.5);
-//         distractors = shuffled
-//           .slice(0, 3)
-//           .map((lex: LexiconItem) => lex.base_definition);
-//       } else {
-//         // Use synonyms as options (if available)
-//         const synonyms = lexiconEntry.relations?.synonyms || [];
-
-//         if (synonyms.length > 0) {
-//           correctAnswer = synonyms[0]; // Use first synonym as correct answer
-
-//           // Get synonyms from other words as distractors
-//           const otherSynonyms: string[] = [];
-//           lexiconData.forEach((lex: LexiconItem) => {
-//             if (
-//               lex.lemma_id !== vocabItem.lemma_id &&
-//               lex.relations?.synonyms
-//             ) {
-//               otherSynonyms.push(...lex.relations.synonyms);
-//             }
-//           });
-
-//           const shuffledSynonyms = otherSynonyms.sort(
-//             () => Math.random() - 0.5
-//           );
-//           distractors = shuffledSynonyms.slice(0, 3);
-//         } else {
-//           // Fallback to definitions if no synonyms
-//           correctAnswer = lexiconEntry.base_definition;
-//           const otherLexicons = lexiconData.filter(
-//             (lex: LexiconItem) => lex.lemma_id !== vocabItem.lemma_id
-//           );
-//           const shuffled = otherLexicons.sort(() => Math.random() - 0.5);
-//           distractors = shuffled
-//             .slice(0, 3)
-//             .map((lex: LexiconItem) => lex.base_definition);
-//         }
-//       }
-
-//       // Ensure we have exactly 3 unique distractors
-//       distractors = Array.from(new Set(distractors)).slice(0, 3);
-//       while (distractors.length < 3) {
-//         const randomLex =
-//           lexiconData[Math.floor(Math.random() * lexiconData.length)];
-//         if (
-//           randomLex.lemma_id !== vocabItem.lemma_id &&
-//           !distractors.includes(randomLex.base_definition)
-//         ) {
-//           distractors.push(randomLex.base_definition);
-//         }
-//       }
-
-//       // Shuffle all options
-//       const allOptions = [correctAnswer, ...distractors];
-//       const shuffledOptions = allOptions.sort(() => Math.random() - 0.5);
-
-//       // Underline the word in the sentence
-//       const sentenceWithUnderline = underlineWordInSentence(
-//         sentence,
-//         underlinedWord
-//       );
-
-//       return {
-//         id: vocabItem.item_id,
-//         lemma_id: vocabItem.lemma_id,
-//         sentence: sentenceWithUnderline,
-//         underlinedWord,
-//         correctAnswer,
-//         options: shuffledOptions,
-//         difficulty: "medium", // You can add logic to determine difficulty
-//       };
-//     })
-//     .filter((item): item is QuizItem => item !== null);
-
-//   console.log("✅ Generated Quiz Items:", quizItems.length);
-
-//   // Shuffle and select 10 questions
-//   const shuffled = quizItems.sort(() => Math.random() - 0.5);
-//   return shuffled.slice(0, Math.min(10, shuffled.length));
-// }
-
-// export default function QuizPage() {
-//   const { updateProgress } = useVocabularyProgress();
-//   const { addPerformanceMetrics, getPerformanceHistory } =
-//     useLearningProgress();
-
-//   const [quizQuestions, setQuizQuestions] = useState<QuizItem[]>([]);
-//   const [currentQuestion, setCurrentQuestion] = useState(0);
-//   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-//   const [showResult, setShowResult] = useState(false);
-//   const [answers, setAnswers] = useState<(boolean | null)[]>([]);
-//   const [detailedAnswers, setDetailedAnswers] = useState<QuizAnswer[]>([]);
-//   const [showCompletion, setShowCompletion] = useState(false);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
+//   const onScrollCards = () => {
+//     if (rafRef.current) cancelAnimationFrame(rafRef.current);
+//     rafRef.current = requestAnimationFrame(updateActiveCard);
+//   };
 
 //   useEffect(() => {
-//     async function loadQuiz() {
-//       try {
-//         setIsLoading(true);
-//         const questions = await generateQuizQuestionsFromService();
-
-//         if (questions.length === 0) {
-//           throw new Error("No quiz questions available");
-//         }
-
-//         setQuizQuestions(questions);
-//         setAnswers(Array(questions.length).fill(null));
-//         setError(null);
-//       } catch (err) {
-//         console.error("Failed to load quiz:", err);
-//         setError(
-//           err instanceof Error
-//             ? err.message
-//             : "Failed to load quiz. Please try again."
-//         );
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     }
-
-//     loadQuiz();
+//     updateActiveCard();
+//     const onResize = () => updateActiveCard();
+//     window.addEventListener("resize", onResize);
+//     return () => {
+//       window.removeEventListener("resize", onResize);
+//       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+//     };
 //   }, []);
 
-//   // Show loading state
-//   if (isLoading) {
+//   if (authLoading) {
 //     return (
-//       <div className="h-screen bg-purple-50 flex flex-col">
-//         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
-//           <Link
-//             href="/vocabulary"
-//             className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm"
-//           >
-//             <ArrowLeft className="w-4 h-4" />
-//             Back
-//           </Link>
-
-//           <div className="text-center flex-1 px-4">
-//             <h1 className="text-xl md:text-2xl font-bold text-purple-900">
-//               Multiple Choice Quiz
-//             </h1>
-//           </div>
-
-//           <div className="w-20"></div>
-//         </div>
-
-//         <div className="flex-1 flex items-center justify-center">
-//           <div className="text-center">
-//             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-//             <p className="text-purple-600 font-semibold">Loading quiz...</p>
-//           </div>
-//         </div>
+//       <div className="min-h-screen bg-yellow-50 flex items-center justify-center px-4">
+//         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
 //       </div>
 //     );
 //   }
-
-//   // Show error state
-//   if (error || quizQuestions.length === 0) {
-//     return (
-//       <div className="h-screen bg-purple-50 flex flex-col">
-//         <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-purple-200">
-//           <Link
-//             href="/vocabulary"
-//             className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm"
-//           >
-//             <ArrowLeft className="w-4 h-4" />
-//             Back
-//           </Link>
-
-//           <div className="text-center flex-1 px-4">
-//             <h1 className="text-xl md:text-2xl font-bold text-purple-900">
-//               Multiple Choice Quiz
-//             </h1>
-//           </div>
-
-//           <div className="w-20"></div>
-//         </div>
-
-//         <div className="flex-1 flex items-center justify-center">
-//           <div className="text-center max-w-md px-4">
-//             <p className="text-red-600 font-semibold mb-4">
-//               {error || "No quiz questions available"}
-//             </p>
-//             <button
-//               onClick={() => window.location.reload()}
-//               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-//             >
-//               Retry
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   const currentQuiz = quizQuestions[currentQuestion];
-//   const isLastQuestion = currentQuestion === quizQuestions.length - 1;
-//   const showExplanation =
-//     showResult &&
-//     selectedAnswer &&
-//     selectedAnswer !== currentQuiz.correctAnswer;
-
-//   const handleSelectAnswer = (answer: string) => {
-//     setSelectedAnswer(answer);
-//     setShowResult(true);
-
-//     const isCorrect = answer === currentQuiz.correctAnswer;
-//     const newAnswers = [...answers];
-//     newAnswers[currentQuestion] = isCorrect;
-//     setAnswers(newAnswers);
-
-//     setDetailedAnswers([
-//       ...detailedAnswers,
-//       {
-//         isCorrect,
-//         selectedAnswer: answer,
-//         correctAnswer: currentQuiz.correctAnswer,
-//         word: currentQuiz.underlinedWord,
-//       },
-//     ]);
-//   };
-
-//   const handleNext = () => {
-//     if (isLastQuestion) {
-//       completeQuiz();
-//     } else {
-//       setCurrentQuestion((prev) => prev + 1);
-//       setSelectedAnswer(null);
-//       setShowResult(false);
-//     }
-//   };
-
-//   const completeQuiz = () => {
-//     const correctCount = answers.filter((a) => a === true).length;
-//     const score = Math.round((correctCount / quizQuestions.length) * 100);
-
-//     // Calculate performance metrics
-//     let missedLowFreq = 0;
-//     let similarChoiceErrors = 0;
-
-//     detailedAnswers.forEach((answer) => {
-//       if (!answer.isCorrect && isLowFrequencyWord(answer.word)) {
-//         missedLowFreq++;
-//       }
-//       if (!answer.isCorrect) {
-//         similarChoiceErrors++;
-//       }
-//     });
-
-//     const history = getPerformanceHistory("vocabulary", "quiz");
-//     const currentDifficulty =
-//       history.length > 0 ? history[history.length - 1].difficulty : "easy";
-
-//     const metrics = {
-//       difficulty: currentDifficulty,
-//       score,
-//       missedLowFreq,
-//       similarChoiceErrors,
-//       timestamp: new Date().toISOString(),
-//     };
-
-//     addPerformanceMetrics("vocabulary", "quiz", metrics);
-
-//     const allHistory = [...history, metrics];
-//     const evaluation = evaluateUserPerformance(allHistory);
-
-//     updateProgress("quiz", {
-//       status: "completed",
-//       score,
-//       completedAt: new Date().toISOString(),
-//       attempts: (history.length || 0) + 1,
-//       lastDifficulty: evaluation.nextDifficulty,
-//       errorTags: evaluation.tags,
-//     });
-
-//     setShowCompletion(true);
-//   };
-
-//   const resetQuiz = async () => {
-//     try {
-//       setIsLoading(true);
-//       const questions = await generateQuizQuestionsFromService();
-//       setQuizQuestions(questions);
-//       setCurrentQuestion(0);
-//       setSelectedAnswer(null);
-//       setShowResult(false);
-//       setAnswers(Array(questions.length).fill(null));
-//       setDetailedAnswers([]);
-//       setShowCompletion(false);
-//     } catch (err) {
-//       console.error("Failed to reload quiz:", err);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
 
 //   return (
-//     <div className="h-screen bg-blue-50 overflow-auto flex flex-col scrollbar-blue">
-//       {/* Header */}
-//       <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-blue-200">
-//         <Link
-//           href="/vocabulary"
-//           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
-//         >
-//           <ArrowLeft className="w-4 h-4" />
-//           Back
-//         </Link>
+//     <div className="w-full min-h-screen bg-gray-50 flex items-start justify-center px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+//       <div className="w-full max-w-7xl">
+//         {/* Top Bar */}
+//         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 sm:mb-6">
+//           <Link
+//             href="/dashboard"
+//             className="inline-flex w-fit items-center gap-2 text-yellow-600 hover:text-yellow-700 font-semibold text-sm transition-colors"
+//           >
+//             <ArrowLeft className="w-4 h-4" />
+//             Back to Dashboard
+//           </Link>
 
-//         <div className="text-center flex-1 px-4">
-//           <h1 className="text-xl md:text-2xl font-bold text-blue-900">
-//             Multiple Choice Quiz
-//           </h1>
+//           <div className="w-full md:w-auto flex flex-col items-center md:items-end gap-1.5">
+//             <div
+//               className={[
+//                 "w-full sm:w-auto",
+//                 "flex items-center justify-center md:justify-start gap-3",
+//                 "px-3 py-2 sm:px-4 rounded-2xl border-2 shadow-sm",
+//                 masteryColors[mastery.level],
+//               ].join(" ")}
+//             >
+//               <span className="text-lg sm:text-xl shrink-0">
+//                 {mastery.icon}
+//               </span>
+
+//               <div className="text-center md:text-left">
+//                 <p className="text-[11px] sm:text-xs font-medium opacity-75">
+//                   Vocabulary Mastery
+//                 </p>
+//                 <p className="text-sm sm:text-base font-bold capitalize">
+//                   {mastery.level}
+//                 </p>
+//               </div>
+//             </div>
+
+//             <p className="text-[11px] sm:text-xs text-gray-600 text-center md:text-right max-w-md leading-snug">
+//               {mastery.description} • Focus:{" "}
+//               <span className="font-semibold capitalize">
+//                 {mastery.difficulty}
+//               </span>
+//             </p>
+//           </div>
 //         </div>
 
-//         <button
-//           onClick={resetQuiz}
-//           className="flex items-center gap-2 text-gray-600 hover:text-gray-700 font-semibold text-sm"
-//         >
-//           <RotateCcw className="w-4 h-4" />
-//           <span className="hidden md:inline">Reset</span>
-//         </button>
-//       </div>
+//         {/* Header */}
+//         <div className="mb-5 sm:mb-8">
+//           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-yellow-600 mb-1 sm:mb-2 text-center">
+//             Vocabulary Activities
+//           </h1>
+//           <p className="text-sm sm:text-base text-center text-gray-600 mb-3 sm:mb-6">
+//             Build mastery through continuous practice
+//           </p>
 
-//       {/* Main Content */}
-//       <div className="flex-1 flex flex-col justify-start px-4 md:px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
-//         <QuizProgress
-//           currentQuestion={currentQuestion}
-//           totalQuestions={quizQuestions.length}
-//           answers={answers}
-//           wordId={currentQuiz.lemma_id}
-//         />
-
-//         {/* Question Component with Animation */}
-//         <motion.div
-//           key={currentQuestion}
-//           initial={{ opacity: 0, x: 50 }}
-//           animate={{ opacity: 1, x: 0 }}
-//           exit={{ opacity: 0, x: -50 }}
-//           transition={{ duration: 0.3 }}
-//         >
-//           <QuizQuestion
-//             questionNumber={currentQuestion + 1}
-//             totalQuestions={quizQuestions.length}
-//             sentence={currentQuiz.sentence}
-//             wordId={currentQuiz.lemma_id}
-//             options={currentQuiz.options}
-//             correctAnswer={currentQuiz.correctAnswer}
-//             selectedAnswer={selectedAnswer}
-//             onSelectAnswer={handleSelectAnswer}
-//             showResult={showResult}
-//           />
-//         </motion.div>
-
-//         {showResult ? (
-//           <motion.div
-//             initial={{ opacity: 0, y: 20 }}
-//             animate={{ opacity: 1, y: 0 }}
-//             className="flex justify-center"
-//           >
-//             <motion.button
-//               whileHover={{ scale: 1.05 }}
-//               whileTap={{ scale: 0.95 }}
-//               onClick={handleNext}
-//               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
-//             >
-//               {isLastQuestion ? "Finish Quiz" : "Next Question"}
-//               <ChevronRight className="w-5 h-5" />
-//             </motion.button>
-//           </motion.div>
-//         ) : (
-//           <div className="text-center text-xs text-blue-600">
-//             💡 Select the correct meaning for the underlined word
+//           <div className="w-full">
+//             <ProgressStepper />
 //           </div>
-//         )}
-//       </div>
+//         </div>
 
-//       <QuizCompletionModal
-//         isOpen={showCompletion}
-//         score={Math.round(
-//           (answers.filter((a) => a === true).length / quizQuestions.length) *
-//             100
-//         )}
-//         correctCount={answers.filter((a) => a === true).length}
-//         totalQuestions={quizQuestions.length}
-//         onClose={() => setShowCompletion(false)}
-//         onRetake={resetQuiz}
-//       />
+//         {/* Cards */}
+//         <div
+//           ref={scrollerRef}
+//           onScroll={onScrollCards}
+//           aria-label="Vocabulary activities"
+//           className="
+//             mt-3
+//             flex gap-3 overflow-x-auto px-2 py-2
+//             snap-x snap-mandatory scroll-px-2
+//             sm:mt-0 sm:px-0 sm:py-0
+//             sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-5 lg:gap-6
+//             sm:overflow-visible
+//             sm:auto-rows-fr
+//           "
+//         >
+//           {cards.map((c, i) => (
+//             <div
+//               key={c.url}
+//               ref={(el) => {
+//                 cardRefs.current[i] = el;
+//               }}
+//               className={[
+//                 "snap-center shrink-0 w-[78%] sm:w-auto",
+//                 "h-full",
+//                 "transition-transform duration-200 ease-out",
+//                 // Focus effect on mobile only
+//                 i === activeCard
+//                   ? "scale-100 opacity-100"
+//                   : "scale-[0.94] opacity-90",
+//                 "sm:scale-100 sm:opacity-100",
+//                 // Subtle focus ring/shadow on mobile
+//                 i === activeCard
+//                   ? "ring-2 ring-yellow-300 shadow-xl"
+//                   : "ring-0",
+//                 "sm:ring-0 sm:shadow-none",
+//               ].join(" ")}
+//             >
+//               <VocabularyCard {...c} />
+//             </div>
+//           ))}
+//         </div>
+//       </div>
 //     </div>
 //   );
 // }

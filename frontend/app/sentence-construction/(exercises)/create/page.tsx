@@ -142,28 +142,28 @@ export default function CompleteSentencePage() {
     });
 
     // Get current difficulty
-    const history = getPerformanceHistory(
-      "sentence-construction",
-      "complete-sentence"
-    );
-    const currentDifficulty =
-      history.length > 0 ? history[history.length - 1].difficulty : "easy";
+    // const history = getPerformanceHistory(
+    //   "sentence-construction",
+    //   "complete-sentence"
+    // );
+    // const currentDifficulty =
+    //   history.length > 0 ? history[history.length - 1].difficulty : "easy";
 
     // Create performance metrics
-    const metrics = {
-      difficulty: currentDifficulty,
-      score,
-      missedLowFreq,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
+    // const metrics = {
+    //   difficulty: currentDifficulty,
+    //   score,
+    //   missedLowFreq,
+    //   similarChoiceErrors,
+    //   timestamp: new Date().toISOString(),
+    // };
 
     // Add to performance history
     // addPerformanceMetrics("sentence-construction", "complete-sentence", metrics);
 
     // Evaluate and get next difficulty + tags
-    const allHistory = [...history, metrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+    // const allHistory = [...history, metrics];
+    // const evaluation = evaluateUserPerformance(allHistory);
 
     // Update progress with evaluation results
     // updateProgress("complete-sentence", {

@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, XCircle, ChevronLeft, ChevronRight, Lightbulb } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  ChevronLeft,
+  ChevronRight,
+  Lightbulb,
+} from "lucide-react";
 import { getExplanation, ExplainResponse } from "@/lib/api/ai-service";
 
 interface ComprehensionQuestionProps {
@@ -53,21 +59,22 @@ export default function ComprehensionQuestion({
 
       try {
         console.log("🔄 Fetching AI explanation for reading comprehension...");
-        
+
         // Try to get AI explanation with timeout (increased to 10 seconds)
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("AI timeout")), 10000)
+          setTimeout(() => reject(new Error("AI timeout")), 10000),
         );
 
         const requestData = {
           mode: "reading-comprehension" as const,
           word: question,
           correct: choices[correctAnswer],
-          selected: selectedAnswer !== null ? choices[selectedAnswer] : undefined,
+          selected:
+            selectedAnswer !== null ? choices[selectedAnswer] : undefined,
           sentence: passageTitle,
           explanation: fallbackExplanation,
         };
-        
+
         console.log("📤 Request data:", requestData);
 
         const aiPromise = getExplanation(requestData);
@@ -79,7 +86,7 @@ export default function ComprehensionQuestion({
         ]);
 
         console.log("📥 AI Response received:", aiResponse);
-        
+
         if (aiResponse && aiResponse.explanation) {
           setExplanation(aiResponse.explanation);
           setIsAIExplanation(true);
@@ -95,7 +102,8 @@ export default function ComprehensionQuestion({
           mode: "reading-comprehension",
           question,
           correct: choices[correctAnswer],
-          selected: selectedAnswer !== null ? choices[selectedAnswer] : undefined,
+          selected:
+            selectedAnswer !== null ? choices[selectedAnswer] : undefined,
           passageTitle,
         });
         console.log("⚠️ Using fallback explanation");
@@ -169,10 +177,10 @@ export default function ComprehensionQuestion({
                   shouldShowCorrect
                     ? "bg-green-50 border-green-500 text-green-900"
                     : shouldShowIncorrect
-                    ? "bg-amber-50 border-amber-500 text-amber-900"
-                    : isSelected
-                    ? "bg-purple-100 border-purple-500 text-purple-900"
-                    : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300"
+                      ? "bg-amber-50 border-amber-500 text-amber-900"
+                      : isSelected
+                        ? "bg-purple-100 border-purple-500 text-purple-900"
+                        : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300"
                 }
                 ${showResult ? "cursor-not-allowed" : "cursor-pointer"}
               `}
@@ -207,7 +215,9 @@ export default function ComprehensionQuestion({
           {isLoadingExplanation ? (
             <div className="flex items-center gap-2 py-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600"></div>
-              <p className="text-sm text-amber-700 italic">Generating explanation...</p>
+              <p className="text-sm text-amber-700 italic">
+                Generating explanation...
+              </p>
             </div>
           ) : (
             <div

@@ -65,7 +65,7 @@ def record_lexical_performance(request):
     is_near_miss = data.get("is_near_miss", False)
     is_confusable_error = data.get("is_confusable_error", False)
 
-    # 1) Update lexical difficulty models
+    # Update lexical difficulty models (item-level)
     update_lexical_difficulty_for_event(
         user=user,
         lemma_id=lemma_id,
@@ -73,59 +73,6 @@ def record_lexical_performance(request):
         is_near_miss=is_near_miss,
         is_confusable_error=is_confusable_error,
     )
-
-    # 2) (Optional but recommended) also update ExerciseProgress + PerformanceMetrics
-    #    so your existing progress screens continue to work.
-    module = data["module"]
-    exercise_type = data["exercise_type"]
-    score = data.get("score")
-    difficulty_shown = data.get("difficulty_shown")
-
-    try:
-        module_progress, _ = ModuleProgress.objects.get_or_create(
-            user=user,
-            module=module,
-            defaults={"completion_percentage": 0, "mastery_level": "beginner"},
-        )
-    except ModuleProgress.DoesNotExist:
-        module_progress = ModuleProgress.objects.create(
-            user=user,
-            module=module,
-            completion_percentage=0,
-            mastery_level="beginner",
-        )
-
-    exercise_progress, _ = ExerciseProgress.objects.get_or_create(
-        module_progress=module_progress,
-        exercise_type=exercise_type,
-    )
-
-    if not is_lesson_exercise(module, exercise_type):
-        exercise_progress.attempts += 1
-        if score is not None:
-            exercise_progress.last_score = score
-            if (
-                exercise_progress.best_score is None
-                or score > exercise_progress.best_score
-            ):
-                exercise_progress.best_score = score
-
-        if difficulty_shown is not None:
-            exercise_progress.last_difficulty = difficulty_shown
-
-        if score is not None and score >= 80:
-            exercise_progress.status = "completed"
-
-        exercise_progress.save()
-
-        PerformanceMetrics.objects.create(
-            exercise_progress=exercise_progress,
-            difficulty=difficulty_shown or "easy",
-            score=score or (100 if correct else 0),
-            missed_low_freq=0,
-            similar_choice_errors=1 if is_confusable_error else 0,
-            error_tags=[],
-        )
 
     return Response({"message": "Performance recorded"}, status=status.HTTP_201_CREATED)
 
@@ -310,18 +257,22 @@ def update_exercise_progress(request, module_name, exercise_type):
 
         if not is_lesson:
             # For quizzes: increment attempts and update scores
-            if 'score' in data:
-                exercise_progress.attempts += 1
-                exercise_progress.last_score = data['score']
+            has_new_metrics = 'performanceMetrics' in data
 
+            if has_new_metrics:
+                exercise_progress.attempts += 1
+
+                if not exercise_progress.first_attempt_at:
+                    exercise_progress.first_attempt_at = timezone.now()
+
+            if 'score' in data:
+                exercise_progress.last_score = data['score']
+                # Only update best_score if new score is higher
                 if exercise_progress.best_score is None or data['score'] > exercise_progress.best_score:
                     exercise_progress.best_score = data['score']
 
             if 'lastDifficulty' in data:
                 exercise_progress.last_difficulty = data['lastDifficulty']
-
-            if not exercise_progress.first_attempt_at and exercise_progress.attempts > 0:
-                exercise_progress.first_attempt_at = timezone.now()
         else:
             # For lessons: track time spent and items reviewed
             if 'timeSpent' in data:
@@ -361,20 +312,17 @@ def update_exercise_progress(request, module_name, exercise_type):
             module_name, ex.exercise_type)]
 
         if quiz_exercises:
-            # Calculate based on best scores and attempts
             total_score = 0
             total_weight = 0
 
             for ex in quiz_exercises:
                 if ex.best_score is not None:
-                    # Weight: exercises with more attempts have more weight
-                    weight = min(ex.attempts, 5)  # Cap at 5 attempts
+                    weight = min(ex.attempts, 5)
                     total_score += ex.best_score * weight
                     total_weight += weight
 
             if total_weight > 0:
                 avg_score = total_score / total_weight
-                # Completion = average performance across quizzes
                 module_progress.completion_percentage = min(
                     int(avg_score), 100)
             else:

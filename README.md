@@ -8,18 +8,18 @@ This full-stack application provides comprehensive Filipino language training ac
 
 - **Vocabulary Mastery** - Build and strengthen Filipino vocabulary through contextual learning
 - **Grammar Proficiency** - Master Filipino grammar rules through targeted exercises
-- **Reading Comprehension** - Develop reading skills through passage analysis and comprehension exercises
-- **Sentence Construction** - Develop sentence building and ordering skills
+- **Sentence Construction** - Develop sentence building, ordering, and completion skills
+- **Reading Comprehension** - Practice passage-based questions and improve summary writing with feedback
 
-The system adapts to each student's performance, automatically adjusting difficulty levels and providing personalized feedback and learning tips powered by Groq's Llama 3.1.
+The system adapts to each student's performance, automatically adjusting difficulty levels and providing personalized feedback and learning tips powered by the AI Service (FastAPI + RAG). See adaptive rules in [`evaluateUserPerformance`](frontend/rules/evaluateUserPerformance.ts) and AI endpoints in [`main`](ai-service/main.py).
 
 ## Core Features
 
 ### Adaptive Learning System
 
-- **Rule-Based Difficulty Adaptation**: Automatically adjusts exercise difficulty based on performance metrics
-- **Performance Tracking**: Monitors missed low-frequency words, similar choice errors, and overall accuracy
-- **Personalized Recommendations**: Suggests next steps based on student strengths and weaknesses
+- **Rule-Based Difficulty Adaptation**: Automatically adjusts exercise difficulty based on performance metrics (see [`evaluateUserPerformance`](frontend/rules/evaluateUserPerformance.ts))
+- **Performance Tracking**: Monitors missed low-frequency words, similar choice errors, accuracy, and difficulty progression
+- **Personalized Recommendations**: Generates next-step suggestions and study tips based on detected patterns
 
 ### Module-Based Learning
 
@@ -42,27 +42,34 @@ The system adapts to each student's performance, automatically adjusting difficu
 
 #### Sentence Construction Activities
 
-1. **Sentence Ordering** - Arrange words to form correct sentences
-2. **Choose Sentence** - Select the most appropriate sentence for context
+1. **Sentence Ordering** - Arrange shuffled parts to form a correct sentence
+2. **Fill Missing / Choose Correct Word** - Select the best word/phrase to complete a sentence
+3. **Complete Sentence Writing** - Compose a completion based on an incomplete phrase/context
+
+#### Reading Comprehension Activities
+
+1. **Passage Questions** - Answer multiple-choice questions based on a reading passage
+2. **Summary Writing + AI Feedback** - Submit a short summary and receive structured feedback (see `/summary/check` in [`main`](ai-service/main.py))
 
 ### AI-Powered Features
 
-- **Intelligent Explanations**: Context-aware explanations for incorrect answers using RAG (Retrieval-Augmented Generation)
-- **Interactive Chat Assistant**: Real-time conversational help during exercises
-- **Personalized Study Tips**: AI-generated tips based on performance patterns
-- **Word Redefinition**: Multiple perspective definitions for better comprehension
-- **Confusable Words Detection**: Identifies similar words that may cause confusion
+- **Intelligent Explanations**: Context-aware explanations for incorrect answers using RAG (see [`ai-service/rag/RAGOrchestrator.py`](ai-service/rag/RAGOrchestrator.py) and `/explain` in [`main`](ai-service/main.py))
+- **Personalized Study Tips**: Tips generated from performance metrics (see `/tips` in [`main`](ai-service/main.py))
+- **Word Redefinition**: Multi-perspective definitions (see `/redefine` in [`main`](ai-service/main.py))
+- **Confusable Words Detection**: Suggests similar/confusable words (see `/confusables` in [`main`](ai-service/main.py))
+- **Summary Checking**: Structured evaluation of user-written summaries (see [`handle_summary_check`](ai-service/handlers/summary_checker.py) and `/summary/check` in [`main`](ai-service/main.py))
+- **Interactive Chat Assistant**: Chat endpoint for guided help (see `/chat` in [`main`](ai-service/main.py))
 
 ### Progress Analytics
 
-- **Comprehensive Dashboard**: Visual overview of learning progress across all modules
-- **Skill Analysis**: Detailed breakdown of strengths and areas for improvement
-- **Performance Metrics**: Track scores, completion rates, and time spent
-- **Mastery Levels**: Dynamic leveling system (Beginner → Intermediate → Advanced → Expert)
+- **Comprehensive Dashboard**: Visual overview of learning progress across modules (e.g., [frontend/components/ProgressOverview.tsx](frontend/components/ProgressOverview.tsx))
+- **Skill Analysis**: Breakdown of strengths and common mistakes (e.g., [frontend/components/SkillAnalysis.tsx](frontend/components/SkillAnalysis.tsx))
+- **Performance Metrics**: Score history and mistake-pattern tracking (see Django model `PerformanceMetrics` in [backend/progress/migrations/0001_initial.py](backend/progress/migrations/0001_initial.py))
+- **Mastery Levels**: Dynamic leveling system driven by progress context (see [`LearningProgressContext`](frontend/contexts/LearningProgressContext.tsx))
 
 ### Learning Tools
 
-- **Review Deck**: Save words for later review
+- **Review Deck**: Save items for later review
 - **Spaced Repetition System (SRS)**: Optimized review scheduling for long-term retention
 - **Progress Stepper**: Visual progress indicator for each module
 
@@ -130,29 +137,19 @@ Before running the application, ensure you have the following installed:
 
 ```
 SP/
-├── README.md                         # Project overview and docs
 ├── frontend/                         # Next.js frontend application
-│   ├── app/                          # Next.js app router pages
-│   │   ├── (auth)/                   # Auth-protected routes
-│   │   ├── dashboard/                # Main dashboard
-│   │   ├── grammar/                  # Grammar module pages
-│   │   ├── profile/                  # User profile pages
-│   │   ├── reading-comprehension/    # Reading comprehension pages
-│   │   ├── sentence-construction/    # Sentence construction pages
-│   │   └── vocabulary/               # Vocabulary module pages
-│   ├── components/                   # Reusable React components
-│   │   ├── common/
-│   │   ├── grammar/
-│   │   ├── reading-comprehension/
-│   │   ├── sentence-construction/
-│   │   └── vocabulary/
-│   ├── contexts/                     # React context providers
-│   ├── data/                         # Static datasets (lexical, reading, etc.)
-│   ├── hooks/                        # Custom React hooks
+│   ├── app/                          # App Router pages (modules + exercises)
+│   │   ├── dashboard/                # Dashboard / analytics
+│   │   ├── vocabulary/               # Vocabulary module
+│   │   ├── grammar/                  # Grammar module
+│   │   ├── sentence-construction/    # Sentence Construction module
+│   │   └── reading-comprehension/    # Reading Comprehension module
+│   ├── components/                   # Reusable UI components
+│   ├── contexts/                     # Context providers (progress, auth, etc.)
+│   ├── hooks/                        # Custom hooks
 │   ├── lib/                          # API clients and utilities
-│   ├── public/                       # Static assets
-│   ├── rules/                        # Rule-based evaluation logic
-│   └── utils/                        # Helper functions
+│   ├── data/                         # Static datasets/constants used by UI
+│   └── rules/                        # Rule-based evaluation logic
 │
 ├── backend/                          # Django REST API
 │   ├── manage.py                     # Django management script

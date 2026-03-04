@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RotateCcw, ChevronRight } from "lucide-react";
+import { ArrowLeft, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import ErrorQuestion from "@/components/grammar/error-identification/ErrorQuestion";
 import ErrorProgress from "@/components/grammar/error-identification/ErrorProgress";
@@ -13,13 +13,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useSRSWithExercises } from "@/hooks/useSRS";
 import { SRS_GRADES } from "@/utils/srs";
-import {
-  getGrammarExercisesAdaptive,
-  GrammarExerciseItem,
-} from "@/lib/api/exercises";
+import { GrammarExerciseItem } from "@/lib/api/exercises";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import type { QuizProgress } from "@/contexts/LearningProgressContext";
+import {
+  makeUserScopedStorageKey,
+  usePersistedQuizSession,
+} from "@/hooks/usePersistedQuizSession";
+import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
 
 interface ErrorAnswer {
   isCorrect: boolean;
@@ -39,50 +42,100 @@ interface ProcessedErrorItem {
   explanation: string;
 }
 
+type PersistedErrorIdentificationSessionV1 = {
+  errorQuestions: ProcessedErrorItem[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  answers: (boolean | null)[];
+  detailedAnswers: ErrorAnswer[];
+  currentDifficulty: "easy" | "medium" | "hard";
+};
+
 // Helper function to extract phrases from sentence for distractor generation
 function extractPhrasesFromSentence(
   sentence: string,
-  correctAnswer: string
+  correctAnswer: string,
 ): string[] {
   const cleanSentence = sentence.replace(/<[^>]*>/g, "");
-  const words = cleanSentence.split(/\s+/).filter((w) => w.length > 0);
+  const words = cleanSentence
+    .split(/\s+/)
+    .map((w) => w.replace(/[.,;:!?'"()]/g, ""))
+    .filter((w) => w.length > 0);
+
   const phrases: string[] = [];
+  const correctLower = correctAnswer.toLowerCase().trim();
+  const correctWords = correctLower.split(/\s+/);
 
+  // Helper to check if phrase overlaps with correct answer
+  const overlapsWithCorrect = (phrase: string): boolean => {
+    const phraseLower = phrase.toLowerCase().trim();
+    const phraseWords = phraseLower.split(/\s+/);
+
+    // Check if ANY word from phrase exists in correct answer
+    return phraseWords.some((pw) => correctWords.includes(pw));
+  };
+
+  // Helper to check if two phrases share any words
+  const phrasesShareWords = (phrase1: string, phrase2: string): boolean => {
+    const words1 = phrase1.toLowerCase().split(/\s+/);
+    const words2 = phrase2.toLowerCase().split(/\s+/);
+
+    return words1.some((w) => words2.includes(w));
+  };
+
+  // Extract 1-word phrases (only if word length > 2)
   for (let i = 0; i < words.length; i++) {
-    const word1 = words[i].replace(/[.,;:!?'"()]/g, "");
-    if (word1.length > 2) {
-      phrases.push(word1);
-    }
-
-    if (i < words.length - 1) {
-      const word2 = words[i + 1].replace(/[.,;:!?'"()]/g, "");
-      phrases.push(`${word1} ${word2}`);
-    }
-
-    if (i < words.length - 2) {
-      const word2 = words[i + 1].replace(/[.,;:!?'"()]/g, "");
-      const word3 = words[i + 2].replace(/[.,;:!?'"()]/g, "");
-      phrases.push(`${word1} ${word2} ${word3}`);
+    const word = words[i];
+    if (word.length > 2 && !overlapsWithCorrect(word)) {
+      phrases.push(word);
     }
   }
 
-  const filtered = phrases.filter((phrase) => {
-    const lowerPhrase = phrase.toLowerCase();
-    const lowerCorrect = correctAnswer.toLowerCase();
+  // Extract 2-word phrases
+  for (let i = 0; i < words.length - 1; i++) {
+    const phrase = `${words[i]} ${words[i + 1]}`;
+    if (!overlapsWithCorrect(phrase)) {
+      phrases.push(phrase);
+    }
+  }
 
-    return (
-      lowerPhrase !== lowerCorrect &&
-      !lowerPhrase.includes(lowerCorrect) &&
-      !lowerCorrect.includes(lowerPhrase)
-    );
-  });
+  // Extract 3-word phrases
+  for (let i = 0; i < words.length - 2; i++) {
+    const phrase = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
+    if (!overlapsWithCorrect(phrase)) {
+      phrases.push(phrase);
+    }
+  }
 
-  return Array.from(new Set(filtered));
+  // Extract 4-word phrases (for longer sentences)
+  for (let i = 0; i < words.length - 3; i++) {
+    const phrase = `${words[i]} ${words[i + 1]} ${words[i + 2]} ${
+      words[i + 3]
+    }`;
+    if (!overlapsWithCorrect(phrase)) {
+      phrases.push(phrase);
+    }
+  }
+
+  // Remove duplicates (case-insensitive)
+  const uniquePhrases: string[] = [];
+  const seenLower = new Set<string>();
+
+  for (const phrase of phrases) {
+    const phraseLower = phrase.toLowerCase();
+    if (!seenLower.has(phraseLower)) {
+      uniquePhrases.push(phrase);
+      seenLower.add(phraseLower);
+    }
+  }
+
+  return uniquePhrases;
 }
 
 // Convert grammar items to error identification format
 function convertToErrorFormat(
-  items: GrammarExerciseItem[]
+  items: GrammarExerciseItem[],
 ): ProcessedErrorItem[] {
   return items.map((item) => {
     const correctAnswer = item.errorCorrectAnswer;
@@ -90,22 +143,65 @@ function convertToErrorFormat(
 
     const allPhrases = extractPhrasesFromSentence(
       item.error_sentence,
-      correctAnswer
+      correctAnswer,
     );
 
     let choices: string[];
 
     if (isNoError) {
+      // For "No Error" cases: pick 3 distinct, non-overlapping distractors
       const shuffledPhrases = allPhrases.sort(() => Math.random() - 0.5);
-      let distractors = shuffledPhrases.slice(0, 3);
+      const distractors: string[] = [];
 
+      // Helper to check word overlap
+      const phrasesShareWords = (phrase1: string, phrase2: string): boolean => {
+        const words1 = phrase1.toLowerCase().split(/\s+/);
+        const words2 = phrase2.toLowerCase().split(/\s+/);
+        return words1.some((w) => words2.includes(w));
+      };
+
+      // Select non-overlapping phrases (prioritize multi-word phrases)
+      // First pass: try to get multi-word phrases
+      for (const phrase of shuffledPhrases) {
+        if (distractors.length >= 3) break;
+
+        const wordCount = phrase.split(/\s+/).length;
+
+        // Skip if it overlaps with any selected distractor
+        const overlaps = distractors.some((existing) =>
+          phrasesShareWords(phrase, existing),
+        );
+
+        if (!overlaps && wordCount >= 2) {
+          distractors.push(phrase);
+        }
+      }
+
+      // Second pass: fill remaining slots with any non-overlapping phrases
+      if (distractors.length < 3) {
+        for (const phrase of shuffledPhrases) {
+          if (distractors.length >= 3) break;
+
+          const overlaps = distractors.some((existing) =>
+            phrasesShareWords(phrase, existing),
+          );
+
+          if (!overlaps && !distractors.includes(phrase)) {
+            distractors.push(phrase);
+          }
+        }
+      }
+
+      // Fallback options if not enough phrases
       const fallbackOptions = [
         "Hindi Malinaw",
         "Kulang ang Impormasyon",
         "Labis ang Salita",
+        "Mali ang Baybay",
+        "Kulang ang Bantas",
       ];
-      let fallbackIndex = 0;
 
+      let fallbackIndex = 0;
       while (distractors.length < 3 && fallbackIndex < fallbackOptions.length) {
         const fallback = fallbackOptions[fallbackIndex];
         if (!distractors.includes(fallback)) {
@@ -114,15 +210,60 @@ function convertToErrorFormat(
         fallbackIndex++;
       }
 
-      distractors = distractors.sort(() => Math.random() - 0.5);
-      choices = [...distractors, "Walang Mali"];
+      // Shuffle distractors and add "Walang Mali"
+      choices = [...distractors.sort(() => Math.random() - 0.5), "Walang Mali"];
     } else {
+      // For error cases: pick 2 distinct, non-overlapping distractors
       const shuffledPhrases = allPhrases.sort(() => Math.random() - 0.5);
-      let distractors = shuffledPhrases.slice(0, 2);
+      const distractors: string[] = [];
 
-      const fallbackOptions = ["Hindi Malinaw", "Kulang ang Impormasyon"];
+      // Helper to check word overlap
+      const phrasesShareWords = (phrase1: string, phrase2: string): boolean => {
+        const words1 = phrase1.toLowerCase().split(/\s+/);
+        const words2 = phrase2.toLowerCase().split(/\s+/);
+        return words1.some((w) => words2.includes(w));
+      };
+
+      // First pass: prioritize multi-word phrases
+      for (const phrase of shuffledPhrases) {
+        if (distractors.length >= 2) break;
+
+        const wordCount = phrase.split(/\s+/).length;
+
+        const overlaps = distractors.some((existing) =>
+          phrasesShareWords(phrase, existing),
+        );
+
+        if (!overlaps && wordCount >= 2) {
+          distractors.push(phrase);
+        }
+      }
+
+      // Second pass: fill remaining slots
+      if (distractors.length < 2) {
+        for (const phrase of shuffledPhrases) {
+          if (distractors.length >= 2) break;
+
+          const overlaps = distractors.some((existing) =>
+            phrasesShareWords(phrase, existing),
+          );
+
+          if (!overlaps && !distractors.includes(phrase)) {
+            distractors.push(phrase);
+          }
+        }
+      }
+
+      // Fallback options
+      const fallbackOptions = [
+        "Hindi Malinaw",
+        "Kulang ang Impormasyon",
+        "Mali ang Baybay",
+        "Kulang ang Bantas",
+        "Labis ang Salita",
+      ];
+
       let fallbackIndex = 0;
-
       while (distractors.length < 2 && fallbackIndex < fallbackOptions.length) {
         const fallback = fallbackOptions[fallbackIndex];
         if (!distractors.includes(fallback)) {
@@ -131,8 +272,9 @@ function convertToErrorFormat(
         fallbackIndex++;
       }
 
+      // Combine correct answer + distractors, then shuffle first 3 choices
       const firstThreeChoices = [correctAnswer, ...distractors].sort(
-        () => Math.random() - 0.5
+        () => Math.random() - 0.5,
       );
       choices = [...firstThreeChoices, "Walang Mali"];
     }
@@ -151,24 +293,38 @@ function convertToErrorFormat(
 
 export default function ErrorIdentificationPage() {
   const { updateProgress, getExerciseProgress } = useGrammarProgress();
-  const { addPerformanceMetrics, getPerformanceHistory } =
-    useLearningProgress();
+  const { getPerformanceHistory } = useLearningProgress();
+  const history = getPerformanceHistory("grammar", "error-identification");
+  const fallbackDifficulty =
+    history.length > 0 ? history[history.length - 1].difficulty : "easy";
+
   const { user } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
 
+  const exerciseProgress = getExerciseProgress("error-identification");
+  const difficultyToServe =
+    "lastDifficulty" in exerciseProgress
+      ? ((exerciseProgress as QuizProgress).lastDifficulty ??
+        fallbackDifficulty)
+      : fallbackDifficulty;
+  const [currentDifficulty] = useState(difficultyToServe);
+
   const {
     dueExercises,
+    newExercises,
+    sessionExercises,
     grade: gradeSRS,
     isLoading: srsLoading,
   } = useSRSWithExercises({
     module: "grammar",
-    exerciseType: "error_identification",
-    targetDifficulty: "easy",
-    limit: 15,
+    exerciseType: "error-identification",
+    targetDifficulty: difficultyToServe,
+    sessionSize: 10,
+    fetchLimit: 20,
   });
 
   const [errorQuestions, setErrorQuestions] = useState<ProcessedErrorItem[]>(
-    []
+    [],
   );
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -177,27 +333,100 @@ export default function ErrorIdentificationPage() {
   const [detailedAnswers, setDetailedAnswers] = useState<ErrorAnswer[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentDifficulty, setCurrentDifficulty] = useState<
-    "easy" | "medium" | "hard"
-  >("easy");
+
+  const [isFinishing, setIsFinishing] = useState(false);
+
+  const sessionStorageKey = authLoading
+    ? null
+    : makeUserScopedStorageKey(
+        user,
+        "far:quizSession:grammar:error-identification",
+      );
+
+  const { didRestore, clear: clearSession } =
+    usePersistedQuizSession<PersistedErrorIdentificationSessionV1>({
+      key: sessionStorageKey,
+      version: 1,
+      restoreWhen: !authLoading && !srsLoading,
+      persistWhen: !authLoading && !srsLoading,
+      isComplete: showCompletion,
+      clearOnComplete: true,
+      hasDataToPersist: errorQuestions.length > 0 && !error,
+      snapshot: () => ({
+        errorQuestions,
+        currentQuestion,
+        selectedAnswer,
+        showResult,
+        answers,
+        detailedAnswers,
+        currentDifficulty,
+      }),
+      restore: (payload) => {
+        setErrorQuestions(payload.errorQuestions);
+        setCurrentQuestion(payload.currentQuestion);
+        setSelectedAnswer(payload.selectedAnswer);
+        setShowResult(payload.showResult);
+        setAnswers(payload.answers);
+        setDetailedAnswers(payload.detailedAnswers);
+        setError(null);
+        setShowCompletion(false);
+      },
+
+      validate: (p: any): p is PersistedErrorIdentificationSessionV1 => {
+        if (!p || typeof p !== "object") return false;
+
+        if (!Array.isArray(p.errorQuestions) || p.errorQuestions.length === 0)
+          return false;
+        if (!Number.isInteger(p.currentQuestion) || p.currentQuestion < 0)
+          return false;
+        if (
+          !(p.selectedAnswer === null || typeof p.selectedAnswer === "string")
+        )
+          return false;
+        if (typeof p.showResult !== "boolean") return false;
+        if (!Array.isArray(p.answers)) return false;
+        if (!Array.isArray(p.detailedAnswers)) return false;
+        if (!["easy", "medium", "hard"].includes(p.currentDifficulty))
+          return false;
+
+        if (p.answers.length !== p.errorQuestions.length) return false;
+        if (p.currentQuestion >= p.errorQuestions.length) return false;
+
+        // light shape check for questions
+        const q0 = p.errorQuestions[0];
+
+        if (
+          !q0 ||
+          typeof q0 !== "object" ||
+          typeof q0.item_id !== "string" ||
+          typeof q0.lemma_id !== "string" ||
+          typeof q0.sentence !== "string" ||
+          typeof q0.question !== "string" ||
+          !Array.isArray(q0.choices) ||
+          typeof q0.correct_answer !== "string" ||
+          typeof q0.explanation !== "string"
+        ) {
+          return false;
+        }
+
+        return true;
+      },
+    });
+
+  const loadingQuote = useMotivationalQuote(authLoading || srsLoading, 3000);
 
   useEffect(() => {
     async function loadQuestions() {
-      if (srsLoading || dueExercises.length === 0) return;
+      // If we restored a session, do not override it.
+      if (didRestore) return;
+
+      if (isFinishing || showCompletion) return;
+
+      if (srsLoading || sessionExercises.length === 0) return;
 
       try {
-        const history = getPerformanceHistory(
-          "grammar",
-          "error-identification"
-        );
-        const targetDifficulty =
-          history.length > 0 ? history[history.length - 1].difficulty : "easy";
-
-        setCurrentDifficulty(targetDifficulty);
-
-        // Convert due exercises to error format
         const processedItems = convertToErrorFormat(
-          dueExercises as GrammarExerciseItem[]
+          sessionExercises as GrammarExerciseItem[],
         );
 
         if (processedItems.length === 0) {
@@ -207,6 +436,11 @@ export default function ErrorIdentificationPage() {
 
         setErrorQuestions(processedItems);
         setAnswers(Array(processedItems.length).fill(null));
+        setDetailedAnswers([]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
+        setShowCompletion(false);
         setError(null);
       } catch (err) {
         console.error("❌ Failed to load exercises:", err);
@@ -215,50 +449,62 @@ export default function ErrorIdentificationPage() {
     }
 
     loadQuestions();
-  }, [srsLoading, dueExercises]);
+  }, [
+    didRestore,
+    srsLoading,
+    sessionExercises,
+    difficultyToServe,
+    isFinishing,
+    showCompletion,
+  ]);
 
-  if (authLoading) {
+  if (authLoading || srsLoading || errorQuestions.length === 0) {
     return (
-      <div className="h-screen bg-green-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
-    );
-  }
+      <div className="h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl"></div>
 
-  if (srsLoading || errorQuestions.length === 0) {
-    return (
-      <div className="h-screen bg-green-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-green-200">
-          <Link
-            href="/grammar"
-            className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
+        <div className="text-center px-6 max-w-3xl w-full relative z-10">
+          {/* Quote with handwriting font */}
+          <div className="mb-8">
+            <p
+              className="text-3xl md:text-5xl font-bold text-yellow-700 leading-relaxed"
+              style={{
+                fontFamily: "'Caveat', 'Kalam', cursive",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {loadingQuote?.text ? `"${loadingQuote.text}"` : "Loading..."}
+            </p>
 
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-xl md:text-2xl font-bold text-green-900">
-              Error Identification
-            </h1>
+            {loadingQuote?.author && (
+              <p
+                className="mt-4 text-xl md:text-2xl text-yellow-700/80"
+                style={{ fontFamily: "'Caveat', 'Kalam', cursive" }}
+              >
+                — {loadingQuote.author}
+              </p>
+            )}
           </div>
 
-          <div className="w-20"></div>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center">
-          {srsLoading ? (
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-          ) : (
-            <div className="text-center">
-              <p className="text-lg text-green-900 mb-2">
-                🎉 No exercises due right now!
-              </p>
-              <p className="text-sm text-green-600">
-                Come back later for more practice.
-              </p>
-            </div>
-          )}
+          {/* Animated ellipses */}
+          <div className="flex items-center justify-center gap-2">
+            {/* <span className="text-sm font-semibold text-yellow-700 tracking-wide">
+              Preparing your exercise
+            </span> */}
+            <span className="flex gap-1">
+              <span className="animate-bounce animation-delay-10 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-200 text-yellow-600">
+                .
+              </span>
+              <span className="animate-bounce animation-delay-400 text-yellow-600">
+                .
+              </span>
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -305,19 +551,13 @@ export default function ErrorIdentificationPage() {
 
     const srsGrade = isCorrect ? SRS_GRADES.PERFECT : SRS_GRADES.HARD;
     await gradeSRS(currentError.lemma_id, srsGrade);
-
-    addPerformanceMetrics("grammar", "error-identification", {
-      score,
-      difficulty: currentDifficulty,
-      missedLowFreq: 0,
-      similarChoiceErrors: !isCorrect ? 1 : 0,
-      timestamp: new Date().toISOString(),
-    });
   };
 
   const handleNext = () => {
+    if (isFinishing) return;
+
     if (isLastQuestion) {
-      completeExercise();
+      void completeExercise();
     } else {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
@@ -325,51 +565,68 @@ export default function ErrorIdentificationPage() {
     }
   };
 
-  const completeExercise = () => {
-    const correctCount = answers.filter((a) => a === true).length;
-    const sessionScore = Math.round(
-      (correctCount / errorQuestions.length) * 100
-    );
+  const completeExercise = async () => {
+    if (isFinishing) return;
+    setIsFinishing(true);
 
-    let similarChoiceErrors = detailedAnswers.filter(
-      (a) => !a.isCorrect
-    ).length;
+    try {
+      const correctCount = answers.filter((a) => a === true).length;
+      const sessionScore = Math.round(
+        (correctCount / errorQuestions.length) * 100,
+      );
 
-    const finalMetrics = {
-      difficulty: currentDifficulty,
-      score: sessionScore,
-      missedLowFreq: 0,
-      similarChoiceErrors,
-      timestamp: new Date().toISOString(),
-    };
+      const similarChoiceErrors = detailedAnswers.filter(
+        (a) => !a.isCorrect,
+      ).length;
 
-    console.log("📊 Error ID Session Completed - Metrics:", finalMetrics);
+      setShowCompletion(true);
 
-    addPerformanceMetrics("grammar", "error-identification", finalMetrics);
+      const history = getPerformanceHistory("grammar", "error-identification");
+      const thisSession = {
+        difficulty: currentDifficulty,
+        score: sessionScore,
+        missedLowFreq: 0,
+        similarChoiceErrors,
+        timestamp: new Date().toISOString(),
+      };
 
-    const history = getPerformanceHistory("grammar", "error-identification");
-    const allHistory = [...history, finalMetrics];
-    const evaluation = evaluateUserPerformance(allHistory);
+      const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    console.log(
-      "🎯 Next Error ID Difficulty:",
-      evaluation.nextDifficulty,
-      "| Error Tags:",
-      evaluation.tags
-    );
+      console.log(
+        "🎯 Next Error ID Difficulty:",
+        evaluation.nextDifficulty,
+        "| Error Tags:",
+        evaluation.tags,
+      );
 
-    updateProgress("error-identification", {
-      status: "in-progress",
-      score: sessionScore,
-      completedAt: new Date().toISOString(),
-      lastDifficulty: evaluation.nextDifficulty,
-      errorTags: evaluation.tags,
-    });
+      await updateExerciseProgress("grammar", "error-identification", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        performanceMetrics: {
+          difficulty: currentDifficulty,
+          score: sessionScore,
+          missedLowFreq: 0,
+          similarChoiceErrors,
+          errorTags: evaluation.tags,
+        },
+      });
 
-    setShowCompletion(true);
+      updateProgress("error-identification", {
+        status: "in-progress",
+        score: sessionScore,
+        completedAt: new Date().toISOString(),
+        lastDifficulty: evaluation.nextDifficulty,
+        errorTags: evaluation.tags,
+      });
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const resetExercise = () => {
+    clearSession();
     window.location.reload();
   };
 
@@ -382,20 +639,20 @@ export default function ErrorIdentificationPage() {
           className="flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          <span className="hidden md:inline">Back</span>
         </Link>
 
         <div className="text-center flex-1 px-4">
-          <h1 className="text-xl md:text-2xl font-bold text-green-900">
+          <h1 className="text-base md:text-2xl font-bold text-green-900">
             Error Identification
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          {/* <p className="text-xs text-gray-500 mt-1">
             Difficulty:{" "}
             <span className="font-semibold capitalize">
               {currentDifficulty}
             </span>{" "}
             | {errorQuestions.length} exercises due
-          </p>
+          </p> */}
         </div>
 
         <button
@@ -443,19 +700,30 @@ export default function ErrorIdentificationPage() {
             className="flex justify-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isFinishing ? 1 : 1.05 }}
+              whileTap={{ scale: isFinishing ? 1 : 0.95 }}
               onClick={handleNext}
-              className="flex items-center mt-5 gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors"
+              disabled={isFinishing}
+              aria-busy={isFinishing}
+              className="flex items-center mt-5 gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-colors disabled:cursor-not-allowed"
             >
-              {isLastQuestion ? "Finish Exercise" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
+              {isFinishing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finishing...
+                </>
+              ) : (
+                <>
+                  {isLastQuestion ? "Finish Exercise" : "Next Question"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
           </motion.div>
         ) : (
           <div className="text-center text-xs text-green-600">
-            🔍 Identify the part of the sentence that contains a grammatical
-            error
+            {/* 🔍 Identify the part of the sentence that contains a grammatical
+            error */}
           </div>
         )}
       </div>
@@ -464,7 +732,7 @@ export default function ErrorIdentificationPage() {
         isOpen={showCompletion}
         score={Math.round(
           (answers.filter((a) => a === true).length / errorQuestions.length) *
-            100
+            100,
         )}
         correctCount={answers.filter((a) => a === true).length}
         totalQuestions={errorQuestions.length}

@@ -8,7 +8,7 @@ import { useEffect } from "react";
 
 interface CompletionModalProps {
   isOpen: boolean;
-  score: number; // Keep for backward compatibility, but rename semantically
+  score?: number;
   masteredCount: number;
   totalCards: number;
   onClose: () => void;
@@ -65,7 +65,7 @@ export default function FlashcardCompletionModal({
               {/* Title */}
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  Lesson Complete!
+                  Review Complete!
                 </h2>
                 <p className="text-gray-600">
                   You've reviewed all the vocabulary flashcards.
@@ -76,7 +76,7 @@ export default function FlashcardCompletionModal({
               <div className="space-y-3 bg-yellow-50 rounded-2xl p-6">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700 font-medium flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <BookOpen className="w-5 h-5 text-yellow-600" />
                     Words Reviewed
                   </span>
                   <span className="text-2xl font-bold text-yellow-600">
@@ -85,7 +85,7 @@ export default function FlashcardCompletionModal({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700 font-medium flex items-center gap-2">
-                    <Award className="w-5 h-5 text-yellow-600" />
+                    <CheckCircle className="w-5 h-5 text-green-600" />
                     Marked as Mastered
                   </span>
                   <span className="text-xl font-bold text-green-600">
@@ -94,7 +94,7 @@ export default function FlashcardCompletionModal({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700 font-medium flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-purple-600" />
+                    <Award className="w-5 h-5 text-purple-600" />
                     Completion Rate
                   </span>
                   <span className="text-xl font-bold text-purple-600">
@@ -107,12 +107,12 @@ export default function FlashcardCompletionModal({
               <div className="text-center p-4 bg-yellow-50 rounded-xl">
                 <p className="text-sm text-yellow-800 font-medium">
                   {completionRate >= 90
-                    ? "🌟 Excellent review! You're ready for the quiz!"
+                    ? "Excellent! You've mastered most words. Ready for the quiz!"
                     : completionRate >= 70
-                    ? "👍 Good progress! Keep reviewing to strengthen your memory."
+                    ? "Good job! Keep reviewing to strengthen your memory."
                     : completionRate >= 50
-                    ? "📚 Nice work! Review these words again to master them."
-                    : "💪 Keep going! Regular review helps build mastery."}
+                    ? "Nice work! Review more to build confidence."
+                    : "Keep going! Regular practice builds mastery."}
                 </p>
               </div>
 
