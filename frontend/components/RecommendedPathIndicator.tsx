@@ -296,22 +296,22 @@ export default function RecommendedPathIndicator({
 
   return (
     <div
-      className={`w-full bg-gradient-to-r ${bgGradient} rounded-xl p-3 sm:p-4 shadow-md ${borderClass}`}
+      className={`w-full bg-gradient-to-r ${bgGradient} rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 shadow-md ${borderClass}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-2 sm:mb-3">
+      <div className="flex items-center justify-between mb-1.5 sm:mb-2 md:mb-3">
         <h3
-          className={`text-sm font-bold ${headerTextClass} flex items-center gap-2`}
+          className={`text-xs sm:text-sm font-bold ${headerTextClass} flex items-center gap-1 sm:gap-2`}
         >
           Learning Path
         </h3>
       </div>
 
       {/* Horizontal Stepper */}
-      <div className="relative -mx-2 px-2 overflow-x-auto scrollbar-hide">
-        <div className="relative min-w-[420px] sm:min-w-0">
+      <div className="relative -mx-1.5 sm:-mx-2 px-1.5 sm:px-2 overflow-x-auto scrollbar-hide">
+        <div className="relative min-w-[360px] sm:min-w-0">
           {/* Progress Line */}
-          <div className="absolute top-5 sm:top-6 left-0 right-0 h-1 bg-gray-200 -z-10">
+          <div className="absolute top-4 sm:top-5 md:top-6 left-0 right-0 h-0.5 sm:h-1 bg-gray-200 -z-10">
             <div
               className="h-full bg-gradient-to-r from-green-500 to-blue-500 transition-all duration-500"
               style={{
@@ -326,7 +326,7 @@ export default function RecommendedPathIndicator({
         </div>
 
         {/* Module Steps */}
-        <div className="flex items-start justify-between gap-1.5 sm:gap-2">
+        <div className="flex items-start justify-between gap-1 sm:gap-1.5 md:gap-2">
           {steps.map((module, index) => {
             const status = getModuleStatus(module);
 
@@ -337,7 +337,7 @@ export default function RecommendedPathIndicator({
               >
                 {/* Module Circle */}
                 <div
-                  className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-base sm:text-lg font-bold transition-all duration-300 z-10 ${getModuleCircleColors(
+                  className={`relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm sm:text-base md:text-lg font-bold transition-all duration-300 z-10 ${getModuleCircleColors(
                     module,
                     status.isCompleted,
                     status.isRecommended,
@@ -345,26 +345,26 @@ export default function RecommendedPathIndicator({
                   )}`}
                 >
                   {status.isCompleted ? (
-                    <Check size={18} />
+                    <Check size={16} className="sm:w-[18px] sm:h-[18px] md:w-[18px] md:h-[18px]" />
                   ) : status.isRecommended ? (
-                    <Sparkles size={18} />
+                    <Sparkles size={16} className="sm:w-[18px] sm:h-[18px] md:w-[18px] md:h-[18px]" />
                   ) : status.completedCount === 0 ? (
-                    <Lock size={16} />
+                    <Lock size={14} className="sm:w-4 sm:h-4 md:w-4 md:h-4" />
                   ) : (
-                    <span className="text-base">{moduleIcons[module]}</span>
+                    <span className="text-xs sm:text-sm md:text-base">{moduleIcons[module]}</span>
                   )}
 
                   {status.isRecommended && !status.isCompleted && (
-                    <div className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 rounded-full w-5 h-5 flex items-center justify-center">
-                      <Sparkles size={12} />
+                    <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-yellow-400 text-yellow-900 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
+                      <Sparkles size={10} className="sm:w-3 sm:h-3" />
                     </div>
                   )}
                 </div>
 
                 {/* Module Name */}
-                <div className="mt-1.5 sm:mt-2 text-center">
+                <div className="mt-1 sm:mt-1.5 md:mt-2 text-center">
                   <p
-                    className={`text-[11px] sm:text-xs font-semibold leading-tight ${getModuleTextColors(
+                    className={`text-[10px] sm:text-[11px] md:text-xs font-semibold leading-tight ${getModuleTextColors(
                       module,
                       status.isCompleted,
                       status.isRecommended,
@@ -375,7 +375,7 @@ export default function RecommendedPathIndicator({
                   </p>
 
                   {/* Progress Counts (hide lessons on mobile to reduce clutter) */}
-                  <div className="flex items-center justify-center gap-2 mt-1 text-[9px] sm:text-[10px] text-gray-600">
+                  <div className="flex items-center justify-center gap-1 sm:gap-2 mt-0.5 sm:mt-1 text-[8px] sm:text-[9px] md:text-[10px] text-gray-600">
                     {status.totalLessons > 0 && (
                       <div
                         className={`hidden sm:flex items-center gap-0.5 ${
@@ -384,7 +384,7 @@ export default function RecommendedPathIndicator({
                             : ""
                         }`}
                       >
-                        <BookOpen size={10} />
+                        <BookOpen size={8} className="sm:w-2.5 sm:h-2.5" />
                         <span>
                           {status.completedLessons}/{status.totalLessons}
                         </span>
@@ -398,7 +398,7 @@ export default function RecommendedPathIndicator({
                           : ""
                       }`}
                     >
-                      <Trophy size={10} />
+                      <Trophy size={8} className="sm:w-2.5 sm:h-2.5" />
                       <span>
                         {status.completedQuizzes}/{status.totalQuizzes}
                       </span>
@@ -408,7 +408,7 @@ export default function RecommendedPathIndicator({
                   {/* Next Action Badge */}
                   {status.isRecommended && !status.isCompleted && (
                     <div
-                      className={`mt-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                      className={`mt-0.5 sm:mt-1 md:mt-1.5 text-[8px] sm:text-[9px] md:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full inline-flex items-center gap-0.5 sm:gap-1 ${
                         status.isNextLesson
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
@@ -416,12 +416,12 @@ export default function RecommendedPathIndicator({
                     >
                       {status.isNextLesson ? (
                         <>
-                          <BookOpen size={8} />
+                          <BookOpen size={7} className="sm:w-2 sm:h-2" />
                           <span>Study</span>
                         </>
                       ) : (
                         <>
-                          <Trophy size={8} />
+                          <Trophy size={7} className="sm:w-2 sm:h-2" />
                           <span>Quiz</span>
                         </>
                       )}
@@ -433,7 +433,7 @@ export default function RecommendedPathIndicator({
                     status.completedCount > 0 &&
                     !status.isRecommended &&
                     status.mastery.level !== "beginner" && (
-                      <div className="mt-1 hidden sm:inline-flex text-[9px] font-semibold px-1.5 py-0.5 rounded-full items-center gap-0.5 bg-blue-50 text-blue-700 border border-blue-200">
+                      <div className="mt-0.5 sm:mt-1 hidden sm:inline-flex text-[8px] sm:text-[9px] font-semibold px-1 sm:px-1.5 py-0.5 rounded-full items-center gap-0.5 bg-blue-50 text-blue-700 border border-blue-200">
                         <span className="capitalize">
                           {status.mastery.level}
                         </span>
@@ -444,8 +444,8 @@ export default function RecommendedPathIndicator({
                 {/* Arrow Between Steps */}
                 {index < steps.length - 1 && (
                   <ArrowRight
-                    size={14}
-                    className={`absolute -right-2 sm:-right-3 top-4 sm:top-5 ${
+                    size={12}
+                    className={`absolute -right-1.5 sm:-right-2 md:-right-3 top-3.5 sm:top-4 md:top-5 ${
                       status.isCompleted
                         ? "text-green-500"
                         : status.isRecommended
@@ -462,22 +462,22 @@ export default function RecommendedPathIndicator({
 
       {/* Compact Legend */}
       <div
-        className={`mt-3 pt-3 border-t ${smallBorderClass} flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-gray-600`}
+        className={`mt-1.5 sm:mt-2 md:mt-3 pt-1.5 sm:pt-2 md:pt-3 border-t ${smallBorderClass} flex flex-wrap gap-x-2 sm:gap-x-3 gap-y-0.5 sm:gap-y-1 text-[8px] sm:text-[9px] md:text-[10px] text-gray-600`}
       >
-        <div className="flex items-center gap-1">
-          <BookOpen size={10} className="text-green-600" />
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          <BookOpen size={8} className="sm:w-2.5 sm:h-2.5 text-green-600" />
           <span>Lessons</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Trophy size={10} className="text-yellow-600" />
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          <Trophy size={8} className="sm:w-2.5 sm:h-2.5 text-yellow-600" />
           <span>Quizzes</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Sparkles size={10} className="text-blue-600" />
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          <Sparkles size={8} className="sm:w-2.5 sm:h-2.5 text-blue-600" />
           <span>Next</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Check size={10} className="text-green-600" />
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          <Check size={8} className="sm:w-2.5 sm:h-2.5 text-green-600" />
           <span>Done</span>
         </div>
       </div>

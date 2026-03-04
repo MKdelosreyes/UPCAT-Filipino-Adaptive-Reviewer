@@ -10,7 +10,8 @@ import { ModuleType } from "@/contexts/LearningProgressContext";
 // Responsive card widths
 const CARD_WIDTH_DESKTOP = 352;
 const CARD_WIDTH_MOBILE = 280;
-const CARD_GAP = 32;
+const CARD_GAP_DESKTOP = 32;
+const CARD_GAP_MOBILE = 16;
 
 interface Card {
   title: string;
@@ -89,14 +90,16 @@ const CardCarousel = ({
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
+  // Responsive gap based on screen size
+  const cardGap = isMobile ? CARD_GAP_MOBILE : CARD_GAP_DESKTOP;
+
   // Get dynamic card width based on screen size
   const getCardWidth = useCallback(() => {
     if (isMobile) {
-      // On mobile, use 85% of screen width with a max of 320px
-      return Math.min(containerWidth * 0.85, 320);
+      return CARD_WIDTH_MOBILE;
     }
     return CARD_WIDTH_DESKTOP;
-  }, [isMobile, containerWidth]);
+  }, [isMobile]);
 
   const cardWidth = getCardWidth();
 
@@ -114,7 +117,7 @@ const CardCarousel = ({
     if (containerWidth === 0) return;
 
     const offset = containerWidth / 2 - cardWidth / 2;
-    const targetX = -currentIndex * (cardWidth + CARD_GAP) + offset;
+    const targetX = -currentIndex * (cardWidth + cardGap) + offset;
 
     const controls = animate(x, targetX, {
       type: "spring",
@@ -123,7 +126,7 @@ const CardCarousel = ({
     });
 
     return () => controls.stop();
-  }, [currentIndex, x, cardWidth, containerWidth]);
+  }, [currentIndex, x, cardWidth, containerWidth, cardGap]);
 
   // Notify parent about current index so parent can react (e.g. change border color)
   useEffect(() => {
@@ -166,13 +169,13 @@ const CardCarousel = ({
       {...swipeHandlers}
     >
       {/* Left Fade Shadow */}
-      <div className="absolute left-0 top-0 bottom-0 w-12 md:w-24 z-10 bg-gradient-to-r from-white via-white/50 to-transparent pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-12 md:w-24 z-10 bg-gradient-to-r from-white via-white/50 to-transparent pointer-events-none" />
 
       {/* Right Fade Shadow */}
-      <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 z-10 bg-gradient-to-l from-white via-white/50 to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-12 md:w-24 z-10 bg-gradient-to-l from-white via-white/50 to-transparent pointer-events-none" />
 
       {/* Left Navigation */}
-      <div className="absolute left-2 md:left-4 z-20">
+      <div className="absolute left-2 sm:left-3 md:left-4 z-20">
         {currentIndex === 0 ? (
           <div
             className={`${currentColors.text} text-xs md:text-sm font-medium opacity-50`}
@@ -190,7 +193,7 @@ const CardCarousel = ({
               e.stopPropagation();
               prevCard();
             }}
-            className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 ${currentColors.bg} text-white rounded-full ${currentColors.hover} active:${currentColors.active} transition-all duration-300 shadow-lg touch-manipulation`}
+            className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 ${currentColors.bg} text-white rounded-full ${currentColors.hover} active:${currentColors.active} transition-all duration-300 shadow-lg touch-manipulation`}
             aria-label="Previous card"
           >
             <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
@@ -199,12 +202,12 @@ const CardCarousel = ({
       </div>
 
       {/* Cards Container */}
-      <div className="w-full h-full flex items-center justify-center px-2 md:px-0">
+      <div className="w-full h-full flex items-center justify-center px-1 sm:px-2 md:px-0">
         <motion.div
           className="flex items-center"
           style={{
             x,
-            gap: CARD_GAP,
+            gap: cardGap,
           }}
         >
           {skill_cards.map((card, index) => {
@@ -254,7 +257,7 @@ const CardCarousel = ({
       </div>
 
       {/* Right Navigation */}
-      <div className="absolute right-2 md:right-4 z-20">
+      <div className="absolute right-2 sm:right-3 md:right-4 z-20">
         {currentIndex === skill_cards.length - 1 ? (
           <div
             className={`${currentColors.text} text-xs md:text-sm font-medium opacity-50`}
@@ -272,7 +275,7 @@ const CardCarousel = ({
               e.stopPropagation();
               nextCard();
             }}
-            className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 ${currentColors.bg} text-white rounded-full ${currentColors.hover} active:${currentColors.active} transition-all duration-300 shadow-lg touch-manipulation`}
+            className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 ${currentColors.bg} text-white rounded-full ${currentColors.hover} active:${currentColors.active} transition-all duration-300 shadow-lg touch-manipulation`}
             aria-label="Next card"
           >
             <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -281,7 +284,7 @@ const CardCarousel = ({
       </div>
 
       {/* Pagination Dots */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+      <div className="absolute bottom-3 sm:bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex gap-1.5 sm:gap-2">
         {skill_cards.map((_, index) => (
           <button
             key={index}
@@ -291,7 +294,7 @@ const CardCarousel = ({
             }}
             className={`w-2 h-2 rounded-full transition-all duration-300 touch-manipulation ${
               index === currentIndex
-                ? `${currentColors.dot} w-6`
+                ? `${currentColors.dot} w-5 sm:w-6`
                 : "bg-gray-300 hover:bg-gray-400"
             }`}
             aria-label={`Go to card ${index + 1}`}

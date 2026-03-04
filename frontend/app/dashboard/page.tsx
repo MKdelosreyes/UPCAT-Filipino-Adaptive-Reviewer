@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import CardCarousel from "@/components/CardCarousel";
+import ClassroomCard from "@/components/ClassroomCard";
 import { ModuleType } from "@/contexts/LearningProgressContext";
 import RecommendedPathIndicator from "@/components/RecommendedPathIndicator";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
@@ -166,7 +167,6 @@ export default function Dashboard() {
 
       <div className="relative min-h-screen mx-2 pt-18 md:pt-20 pb-2 flex flex-row justify-center items-center gap-2">
         {/* Left Side - Module Cards */}
-        {/* dynamic border color depends on active carousel card */}
         <div
           className={`${
             isPanelOpen ? "hidden lg:flex" : "flex"
@@ -190,7 +190,8 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
-          ) : (
+          ) : isDesktop ? (
+            // DESKTOP - CAROUSEL VIEW
             <>
               <div className="w-auto z-30 bg-white md:mx-3 md:mt-3 px-3 pt-3">
                 <RecommendedPathIndicator
@@ -202,10 +203,47 @@ export default function Dashboard() {
                 onIndexChange={setCarouselIndex}
               />
             </>
+          ) : (
+            // MOBILE - GRID VIEW
+            <div className="w-full h-full flex flex-col">
+              <div className="w-auto z-30 bg-white mx-3 mt-3 px-3 pt-3">
+                <RecommendedPathIndicator
+                  activeModule={cards[carouselIndex]?.moduleType}
+                />
+              </div>
+              <div className="flex-1 p-4 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-3 h-fit">
+                  {cards.map((card, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        delay: index * 0.1,
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 25,
+                      }}
+                    >
+                      <ClassroomCard
+                        title={card.title}
+                        skill={card.skill}
+                        imagePath={card.imagePath}
+                        description={card.description}
+                        color={card.color}
+                        url={card.url}
+                        moduleType={card.moduleType}
+                        isFocused={false}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Toggle Button for Mobile */}
+        {/* Toggle Button for Mobile - Only show on desktop with carousel */}
         <button
           onClick={() => setIsPanelOpen(!isPanelOpen)}
           className="lg:hidden fixed bottom-6 right-6 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all"

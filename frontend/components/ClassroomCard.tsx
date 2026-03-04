@@ -19,6 +19,7 @@ interface ClassroomCardProps {
   url: string;
   moduleType: ModuleType;
   isFocused?: boolean;
+  mobileMinimalView?: boolean;
 }
 
 const ClassroomCard = ({
@@ -30,6 +31,7 @@ const ClassroomCard = ({
   url,
   moduleType,
   isFocused = false,
+  mobileMinimalView = false,
 }: ClassroomCardProps) => {
   const { isModuleCompleted, getRecommendedModule, markModuleAccessed } =
     useLearningProgress();
@@ -40,6 +42,16 @@ const ClassroomCard = ({
   const isRecommended = getRecommendedModule() === moduleType;
   const mastery = getModuleMastery(moduleType);
 
+  // Emoji mapping for mobile
+  const getModuleEmoji = () => {
+    const emojiMap = {
+      vocabulary: "📚",
+      grammar: "✏️",
+      "sentence-construction": "🔗",
+      "reading-comprehension": "👁️",
+    };
+    return emojiMap[moduleType] || "📚";
+  };
   // Get colors based on module type
   const getModuleColors = () => {
     const colorMap = {
@@ -114,6 +126,7 @@ const ClassroomCard = ({
         description={description}
         color={color}
         moduleType={moduleType}
+        recommendationText={getRecommendationText()}
         className={`p-0 overflow-hidden relative justify-end w-full h-48 md:h-52 transition-all duration-300 ${
           isFocused
             ? `ring-2 md:ring-4 ${moduleColors.ring} ring-offset-2 md:ring-offset-4 ring-offset-white shadow-xl md:shadow-2xl ${moduleColors.shadow} scale-[1.02] md:scale-105`
@@ -121,7 +134,7 @@ const ClassroomCard = ({
         }`}
       >
         {/* Recommended Badge */}
-        {isRecommended && !completed && (
+        {isRecommended && !completed && !mobileMinimalView && (
           <div
             className={`absolute top-2 left-2 md:top-3 md:left-3 z-30 flex items-center gap-1 bg-gradient-to-r ${moduleColors.badge} text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold shadow-xl md:shadow-2xl animate-pulse border border-white md:border-2`}
           >
@@ -131,31 +144,49 @@ const ClassroomCard = ({
           </div>
         )}
 
-        {/* Image Background */}
-        <Image
-          src={imagePath}
-          alt={`${title} Artwork`}
-          fill
-          sizes="(max-width: 768px) 85vw, 352px"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          priority={isRecommended}
-        />
+        {/* Image Background - Hidden on mobile, show emoji instead */}
+        <div className="absolute inset-0 hidden md:block">
+          <Image
+            src={imagePath}
+            alt={`${title} Artwork`}
+            fill
+            sizes="(max-width: 768px) 85vw, 352px"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            priority={isRecommended}
+          />
+        </div>
+
+
+        {/* Gradient Overlay - Hidden on mobile since we use colored bg */}
         <div
-          className={`absolute inset-0 bg-gradient-to-t ${
-            isFocused
+          className={`absolute inset-0 hidden md:block bg-gradient-to-t ${
+            mobileMinimalView
+              ? "from-black/60 via-black/20 to-transparent"
+              : isFocused
               ? `${moduleColors.gradient} to-transparent`
               : "from-black/30 via-black/10 to-transparent"
           }`}
         />
 
-        {/* Recommendation/Mastery Text (Bottom) */}
-        <div className="relative z-10 p-2 md:p-0">
-          <p
-            className={`text-xs md:text-sm ${moduleColors.text} mt-1 md:mt-2 ${moduleColors.textHover} transition-colors font-medium`}
-          >
-            {getRecommendationText()}
-          </p>
-        </div>
+        {/* Mobile Minimal View - Title Only */}
+        {mobileMinimalView && (
+          <div className="relative z-10 p-3 h-full flex flex-col justify-end">
+            <h3 className="text-white font-bold text-lg md:text-xl">
+              {title}
+            </h3>
+          </div>
+        )}
+
+        {/* Recommendation/Mastery Text (Bottom) - Hidden in mobile minimal view and on mobile */}
+        {!mobileMinimalView && (
+          <div className="relative z-10 p-2 md:p-0 hidden md:block">
+            <p
+              className={`text-xs md:text-sm ${moduleColors.text} mt-1 md:mt-2 ${moduleColors.textHover} transition-colors font-medium`}
+            >
+              {getRecommendationText()}
+            </p>
+          </div>
+        )}
       </DashboardCard>
     </Link>
   );

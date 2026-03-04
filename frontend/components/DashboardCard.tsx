@@ -11,6 +11,7 @@ type DashboardCardProps = {
   color: string;
   href?: string;
   moduleType?: ModuleType;
+  recommendationText?: string;
 };
 
 const cardVariants: Variants = {
@@ -39,6 +40,7 @@ const DashboardCard = ({
   description,
   color,
   moduleType,
+  recommendationText,
 }: DashboardCardProps) => {
   // Get colors based on module type
   const getModuleColors = () => {
@@ -54,7 +56,19 @@ const DashboardCard = ({
     return colorMap[moduleType] || colorMap.vocabulary;
   };
 
+  // Get emoji based on module type
+  const getModuleEmoji = () => {
+    const emojiMap: Record<string, string> = {
+      vocabulary: '📚',
+      grammar: '✏️',
+      'sentence-construction': '📝',
+      'reading-comprehension': '📖',
+    };
+    return emojiMap[moduleType || 'vocabulary'] || '📚';
+  };
+
   const moduleColors = getModuleColors();
+  const emoji = getModuleEmoji();
 
   return (
     <div className="flex flex-col p-3 md:p-4 border border-gray-200 bg-white shadow-lg md:shadow-xl rounded-2xl md:rounded-3xl w-full">
@@ -63,7 +77,7 @@ const DashboardCard = ({
         animate="visible"
         variants={cardVariants}
         className={`
-        bg-white border-4 md:border-5 ${moduleColors.border} rounded-2xl md:rounded-3xl
+        hidden md:flex bg-white border-4 md:border-5 ${moduleColors.border} rounded-2xl md:rounded-3xl
         p-4 md:p-6 flex flex-col h-full
         transition-all duration-300
         ${moduleColors.hoverBg} ${moduleColors.borderHover} ${moduleColors.borderActive}
@@ -73,8 +87,24 @@ const DashboardCard = ({
         {children}
       </motion.div>
       <div className="flex flex-col gap-2 md:gap-3 p-1.5 md:p-2">
+        {/* Mobile: Show emoji */}
+        <motion.div className="md:hidden flex justify-center"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
+          <span className="text-4xl">{emoji}</span>
+        </motion.div>
+        {/* Mobile: Show recommendation text */}
+        {recommendationText && (
+          <div className="md:hidden">
+            <p className={`text-xs font-medium ${moduleColors.textColor}`}>
+              {recommendationText}
+            </p>
+          </div>
+        )}
         <div
-          className={`py-0.5 md:py-1 w-fit px-2 md:px-3 text-center text-xs font-semibold ${moduleColors.textColor} ${color} rounded-full md:rounded-4xl`}
+          className={`py-0.5 md:py-1 px-1.5 md:px-3 text-center text-[0.65rem] md:text-xs font-semibold ${moduleColors.textColor} ${color} rounded-full md:rounded-4xl`}
         >
           {skill}
         </div>
