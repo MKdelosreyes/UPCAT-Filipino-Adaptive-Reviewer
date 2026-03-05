@@ -43,13 +43,43 @@ const DashboardCard = ({
   // Get colors based on module type
   const getModuleColors = () => {
     if (!moduleType) {
-      return { border: 'border-blue-300', borderHover: 'hover:border-blue-500', borderActive: 'active:border-blue-600', hoverBg: 'hover:bg-blue-50', textColor: 'text-blue-600' };
+      return {
+        border: "border-blue-300",
+        borderHover: "hover:border-blue-500",
+        borderActive: "active:border-blue-600",
+        hoverBg: "hover:bg-blue-50",
+        textColor: "text-blue-600",
+      };
     }
     const colorMap = {
-      vocabulary: { border: 'border-yellow-300', borderHover: 'hover:border-yellow-500', borderActive: 'active:border-yellow-600', hoverBg: 'hover:bg-yellow-50', textColor: 'text-yellow-600' },
-      grammar: { border: 'border-green-300', borderHover: 'hover:border-green-500', borderActive: 'active:border-green-600', hoverBg: 'hover:bg-green-50', textColor: 'text-green-600' },
-      'sentence-construction': { border: 'border-blue-300', borderHover: 'hover:border-blue-500', borderActive: 'active:border-blue-600', hoverBg: 'hover:bg-blue-50', textColor: 'text-blue-600' },
-      'reading-comprehension': { border: 'border-purple-300', borderHover: 'hover:border-purple-500', borderActive: 'active:border-purple-600', hoverBg: 'hover:bg-purple-50', textColor: 'text-purple-600' },
+      vocabulary: {
+        border: "border-yellow-300",
+        borderHover: "hover:border-yellow-500",
+        borderActive: "active:border-yellow-600",
+        hoverBg: "hover:bg-yellow-50",
+        textColor: "text-yellow-600",
+      },
+      grammar: {
+        border: "border-green-300",
+        borderHover: "hover:border-green-500",
+        borderActive: "active:border-green-600",
+        hoverBg: "hover:bg-green-50",
+        textColor: "text-green-600",
+      },
+      "sentence-construction": {
+        border: "border-blue-300",
+        borderHover: "hover:border-blue-500",
+        borderActive: "active:border-blue-600",
+        hoverBg: "hover:bg-blue-50",
+        textColor: "text-blue-600",
+      },
+      "reading-comprehension": {
+        border: "border-purple-300",
+        borderHover: "hover:border-purple-500",
+        borderActive: "active:border-purple-600",
+        hoverBg: "hover:bg-purple-50",
+        textColor: "text-purple-600",
+      },
     };
     return colorMap[moduleType] || colorMap.vocabulary;
   };
@@ -57,7 +87,7 @@ const DashboardCard = ({
   const moduleColors = getModuleColors();
 
   return (
-    <div className="flex flex-col p-3 md:p-4 border border-gray-200 bg-white shadow-lg md:shadow-xl rounded-2xl md:rounded-3xl w-full">
+    <div className="flex flex-col p-3 md:p-4 border border-gray-200 bg-white shadow-lg max-sm:h-[250px] md:shadow-xl rounded-2xl md:rounded-3xl w-full">
       <motion.div
         initial="hidden"
         animate="visible"

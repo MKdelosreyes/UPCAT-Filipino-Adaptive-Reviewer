@@ -192,15 +192,18 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              <div className="w-auto z-30 bg-white md:mx-3 md:mt-3 px-3 pt-3">
+              <div className="w-auto z-30 bg-white md:mx-3 md:mt-3 px-3 pt-3 flex-shrink-0">
                 <RecommendedPathIndicator
                   activeModule={cards[carouselIndex]?.moduleType}
                 />
               </div>
-              <CardCarousel
-                skill_cards={cards}
-                onIndexChange={setCarouselIndex}
-              />
+              {/* Give carousel a minimum height on mobile */}
+              <div className="flex-1 min-h-[280px] sm:min-h-[520px] md:min-h-[400px]">
+                <CardCarousel
+                  skill_cards={cards}
+                  onIndexChange={setCarouselIndex}
+                />
+              </div>
             </>
           )}
         </div>
