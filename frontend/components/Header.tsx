@@ -10,24 +10,27 @@ import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [isLogoutLoading, setIsLogoutLoading] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
+    if (isLogoutLoading) return;
+    setIsLogoutLoading(true);
     await logout();
     router.push("/login");
     setMenuOpen(false);
+    setIsLogoutLoading(false);
   };
 
-  const handleProfile = () => {
+  const handleProfile = async () => {
+    if (isProfileLoading) return;
+    setIsProfileLoading(true);
     router.push("/profile");
     setMenuOpen(false);
+    setIsProfileLoading(false);
   };
-
-  // const handleSettings = () => {
-  //   router.push("/settings");
-  //   setMenuOpen(false);
-  // };
 
   return (
     <>
@@ -142,14 +145,18 @@ export default function Header() {
                 {/* Profile Option */}
                 <button
                   onClick={handleProfile}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors text-left group"
+                  disabled={isProfileLoading || isLogoutLoading}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors text-left group disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <div className="p-2 rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
                     <User className="w-4 h-4 text-blue-600" />
                   </div>
                   <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600">
-                    Profile
+                    {isProfileLoading ? "Opening..." : "Profile"}
                   </span>
+                  {isProfileLoading && (
+                    <span className="ml-auto h-4 w-4 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin" />
+                  )}
                 </button>
 
                 {/* Settings Option */}
@@ -171,14 +178,18 @@ export default function Header() {
                 {/* Logout Option */}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left group"
+                  disabled={isLogoutLoading || isProfileLoading}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left group disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <div className="p-2 rounded-lg bg-red-100 group-hover:bg-red-200 transition-colors">
                     <LogOut className="w-4 h-4 text-red-600" />
                   </div>
                   <span className="text-sm font-medium text-gray-700 group-hover:text-red-600">
-                    Logout
+                    {isLogoutLoading ? "Signing out..." : "Logout"}
                   </span>
+                  {isLogoutLoading && (
+                    <span className="ml-auto h-4 w-4 rounded-full border-2 border-red-200 border-t-red-600 animate-spin" />
+                  )}
                 </button>
               </div>
             </motion.div>

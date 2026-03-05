@@ -147,7 +147,7 @@ export default function ProfilePage() {
                 />
               )}
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveTab("settings")}
               className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm transition-all relative ${
                 activeTab === "settings"
@@ -164,253 +164,117 @@ export default function ProfilePage() {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
-            </button>
+            </button> */}
           </div>
 
           {/* Tab Content */}
           <div className="p-8">
             <AnimatePresence mode="wait">
-              {activeTab === "profile" ? (
-                <motion.div
-                  key="profile"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-6"
-                >
-                  {/* Profile Info Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* First Name */}
-                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <User className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            First Name
-                          </p>
-                          <p className="text-lg font-semibold text-gray-900">
-                            {user.first_name || "Not set"}
-                          </p>
-                        </div>
+              <motion.div
+                key="profile"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
+              >
+                {/* Profile Info Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* First Name */}
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <User className="w-5 h-5 text-blue-600" />
                       </div>
-                    </div>
-
-                    {/* Last Name */}
-                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-purple-100 rounded-lg">
-                          <User className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            Last Name
-                          </p>
-                          <p className="text-lg font-semibold text-gray-900">
-                            {user.last_name || "Not set"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Email */}
-                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <Mail className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-600 mb-1">Email</p>
-                          <p className="text-lg font-semibold text-gray-900 truncate">
-                            {user.email}
-                          </p>
-                          {user.email_confirmed && (
-                            <span className="inline-flex items-center gap-1 mt-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                              <Shield className="w-3 h-3" />
-                              Verified
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Member Since */}
-                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-yellow-100 rounded-lg">
-                          <Calendar className="w-5 h-5 text-yellow-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            Member Since
-                          </p>
-                          <p className="text-lg font-semibold text-gray-900">
-                            {joinedDate}
-                          </p>
-                        </div>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">First Name</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {user.first_name || "Not set"}
+                        </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Auth Provider Info */}
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
+                  {/* Last Name */}
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-white rounded-lg shadow-sm">
-                        <Shield className="w-5 h-5 text-blue-600" />
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <User className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Last Name</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {user.last_name || "Not set"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <Mail className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 mb-1">Email</p>
+                        <p className="text-lg font-semibold text-gray-900 truncate">
+                          {user.email}
+                        </p>
+                        {user.email_confirmed && (
+                          <span className="inline-flex items-center gap-1 mt-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            <Shield className="w-3 h-3" />
+                            Verified
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Member Since */}
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-yellow-100 rounded-lg">
+                        <Calendar className="w-5 h-5 text-yellow-600" />
                       </div>
                       <div>
                         <p className="text-sm text-gray-600 mb-1">
-                          Authentication Method
+                          Member Since
                         </p>
-                        <p className="text-lg font-semibold text-gray-900 capitalize">
-                          {provider === "google"
-                            ? "Google Sign-In"
-                            : "Email & Password"}
-                        </p>
-                        <p className="text-sm text-gray-600 mt-2">
-                          Your account is secured with{" "}
-                          {provider === "google"
-                            ? "Google OAuth 2.0"
-                            : "encrypted password authentication"}
-                          .
+                        <p className="text-lg font-semibold text-gray-900">
+                          {joinedDate}
                         </p>
                       </div>
                     </div>
                   </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="settings"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-6"
-                >
-                  {/* Account Settings */}
-                  <div className="space-y-4">
-                    {/* <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Account Settings
-                    </h3> */}
+                </div>
 
-                    {/* Email Notifications */}
-                    {/* <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            Email Notifications
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Receive updates about your learning progress
-                          </p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            defaultChecked
-                          />
-                          <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-                    </div> */}
-
-                    {/* Learning Reminders */}
-                    {/* <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            Learning Reminders
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Get reminders to continue your practice sessions
-                          </p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            defaultChecked
-                          />
-                          <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-                    </div> */}
-
-                    {/* AI Assistance */}
-                    {/* <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            AI Assistance
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Enable AI-powered explanations and study tips
-                          </p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            defaultChecked
-                          />
-                          <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-                    </div> */}
-                  </div>
-
-                  {/* Privacy & Security */}
-                  {/* <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Privacy & Security
-                    </h3>
-
-                    <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-6 border border-red-200">
-                      <div className="flex items-start gap-3">
-                        <Shield className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-900 mb-2">
-                            Data Privacy
-                          </p>
-                          <p className="text-sm text-gray-600 mb-4">
-                            Your learning progress and personal information are
-                            securely stored and never shared with third parties.
-                          </p>
-                          <button className="text-sm text-red-600 hover:text-red-700 font-semibold">
-                            View Privacy Policy →
-                          </button>
-                        </div>
-                      </div>
+                {/* Auth Provider Info */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                      <Shield className="w-5 h-5 text-blue-600" />
                     </div>
-                  </div> */}
-
-                  {/* Danger Zone */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 text-red-600">
-                      Danger Zone
-                    </h3>
-
-                    <div className="bg-red-50 rounded-2xl p-6 border-2 border-red-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            Delete Account
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Permanently delete your account and all data
-                          </p>
-                        </div>
-                        <button className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm">
-                          Delete Account
-                        </button>
-                      </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">
+                        Authentication Method
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900 capitalize">
+                        {provider === "google"
+                          ? "Google Sign-In"
+                          : "Email & Password"}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Your account is secured with{" "}
+                        {provider === "google"
+                          ? "Google OAuth 2.0"
+                          : "encrypted password authentication"}
+                        .
+                      </p>
                     </div>
                   </div>
-                </motion.div>
-              )}
+                </div>
+              </motion.div>
             </AnimatePresence>
           </div>
         </div>
