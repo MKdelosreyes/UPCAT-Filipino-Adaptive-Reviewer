@@ -83,7 +83,7 @@ export default function ReadingCard({
             )}
 
             {/* Image (fixed height) */}
-            <div className="relative h-40 w-full bg-white/50 shrink-0">
+            <div className="relative h-40 max-sm:h-38 w-full bg-white/50 shrink-0">
               <Image
                 src={imagePath || "/art/reading-icon.png"}
                 alt={name}
@@ -95,9 +95,11 @@ export default function ReadingCard({
 
             {/* Content (fills remaining height) */}
             <div className="p-5 bg-white/80 backdrop-blur-sm flex-1 flex flex-col">
-              <h3 className="text-xl font-bold text-purple-900 mb-2">{name}</h3>
+              <h3 className="text-xl max-sm:text-lg font-bold text-purple-900 mb-1">
+                {name}
+              </h3>
 
-              <p className="text-sm text-gray-700 mb-3 leading-snug min-h-[40px]">
+              <p className="text-sm max-sm:text-xs text-gray-700 mb-1 leading-snug min-h-[40px]">
                 {description}
               </p>
 

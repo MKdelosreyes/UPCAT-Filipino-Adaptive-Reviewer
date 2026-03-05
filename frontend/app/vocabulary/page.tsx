@@ -185,8 +185,8 @@ export default function VocabularyPage() {
                 cardRefs.current[i] = el;
               }}
               className={[
-                "snap-center shrink-0 w-[78%] sm:w-auto",
-                "h-full min-h-[300px] sm:min-h-0",
+                "snap-center shrink-0 min-w-[270px] w-[78%] sm:w-auto",
+                "h-full sm:h-[150px] min-h-[300px] sm:min-h-0",
                 "transition-transform duration-200 ease-out will-change-transform",
                 // Focus effect on mobile only
                 i === activeCard
