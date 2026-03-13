@@ -150,7 +150,7 @@ async def handle_summary_check(request: SummaryCheckRequest) -> SummaryCheckResp
 
         # Call Groq API
         completion = groq_client.chat.completions.create(
-            model="meta-llama/llama-4-maverick-17b-128e-instruct",
+            model="llama-3.3-70b-versatile",
             messages=messages,
             temperature=0.3,  # Lower temp for consistent evaluation
             max_tokens=600,

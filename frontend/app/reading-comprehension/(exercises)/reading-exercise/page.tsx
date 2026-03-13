@@ -18,6 +18,7 @@ import { evaluateUserPerformance } from "@/rules/evaluateUserPerformance";
 import { reportLexicalItemPerformance } from "@/utils/reportPerformance";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useMotivationalQuote } from "@/hooks/useMotivationalQuote";
+import { updateExerciseProgress } from "@/lib/api/progress";
 
 interface QuestionAnswer {
   isCorrect: boolean;
@@ -426,7 +427,7 @@ export default function ReadingExercisePage() {
     }
   };
 
-  const completeExercise = () => {
+  const completeExercise = async () => {
     // Combine all answers from all passages
     const currentPassageAnswers = answers.filter(
       (a): a is boolean => a !== null,
@@ -451,24 +452,37 @@ export default function ReadingExercisePage() {
       "reading-comprehension",
       "passage-questions",
     );
+    const thisSession = {
+      difficulty: currentDifficulty,
+      score: sessionScore,
+      missedLowFreq: 0,
+      similarChoiceErrors: 0,
+      timestamp: new Date().toISOString(),
+    };
     const allHistory = [...history, finalMetrics];
-    // const evaluation = evaluateUserPerformance(allHistory);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    // console.log(
-    //   "🎯 Next Reading Difficulty:",
-    //   evaluation.nextDifficulty,
-    //   "| Error Tags:",
-    //   evaluation.tags
-    // );
+    await updateExerciseProgress("reading-comprehension", "passage-questions", {
+      status: "in-progress",
+      score: sessionScore,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score: sessionScore,
+        missedLowFreq: 0,
+        similarChoiceErrors: 0,
+        errorTags: evaluation.tags,
+      },
+    });
 
-    // updateProgress("passage-questions", {
-    //   status: "in-progress",
-    //   score: sessionScore,
-    //   completedAt: new Date().toISOString(),
-    //   attempts: (history.length || 0) + 1,
-    //   lastDifficulty: evaluation.nextDifficulty,
-    //   errorTags: evaluation.tags,
-    // });
+    updateProgress("passage-questions", {
+      status: "in-progress",
+      score: sessionScore,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      errorTags: evaluation.tags,
+    });
 
     setShowCompletion(true);
   };

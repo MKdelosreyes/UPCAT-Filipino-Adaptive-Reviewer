@@ -10,6 +10,7 @@ import { useReadingProgress } from "@/hooks/useReadingProgress";
 import { useLearningProgress } from "@/contexts/LearningProgressContext";
 import type { QuizProgress } from "@/contexts/LearningProgressContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { updateExerciseProgress } from "@/lib/api/progress";
 import {
   getReadingComprehensionExercisesAdaptive,
   type ReadingPassage,
@@ -324,7 +325,7 @@ export default function SummaryExercisePage() {
     setShowingFeedback(false);
   };
 
-  const handleFinishExercise = () => {
+  const handleFinishExercise = async () => {
     // All passages complete - calculate quality metrics
     const qualityLevels = feedbacks
       .filter((f) => f !== null)
@@ -349,6 +350,8 @@ export default function SummaryExercisePage() {
       timestamp: new Date().toISOString(),
     };
 
+    let missedLowFreq = 0;
+    let similarChoiceErrors = 0;
     console.log("📊 Summary Session Completed - Metrics:", finalMetrics);
 
     // addPerformanceMetrics("reading-comprehension", "summary-exercise", finalMetrics);
@@ -357,24 +360,37 @@ export default function SummaryExercisePage() {
       "reading-comprehension",
       "summary-exercise",
     );
+    const thisSession = {
+      difficulty: currentDifficulty,
+      score: avgScore,
+      missedLowFreq,
+      similarChoiceErrors,
+      timestamp: new Date().toISOString(),
+    };
     const allHistory = [...history, finalMetrics];
-    // const evaluation = evaluateUserPerformance(allHistory);
+    const evaluation = evaluateUserPerformance([...history, thisSession]);
 
-    // console.log(
-    //   "🎯 Next Summary Difficulty:",
-    //   evaluation.nextDifficulty,
-    //   "| Error Tags:",
-    //   evaluation.tags
-    // );
+    await updateExerciseProgress("reading-comprehension", "summary-exercise", {
+      status: "in-progress",
+      score: avgScore,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      performanceMetrics: {
+        difficulty: currentDifficulty,
+        score: avgScore,
+        missedLowFreq,
+        similarChoiceErrors,
+        errorTags: evaluation.tags,
+      },
+    });
 
-    // updateProgress("summary-exercise", {
-    //   status: "in-progress",
-    //   score: avgScore,
-    //   completedAt: new Date().toISOString(),
-    //   attempts: (history.length || 0) + 1,
-    //   lastDifficulty: evaluation.nextDifficulty,
-    //   errorTags: evaluation.tags,
-    // });
+    updateProgress("summary-exercise", {
+      status: "in-progress",
+      score: avgScore,
+      completedAt: new Date().toISOString(),
+      lastDifficulty: evaluation.nextDifficulty,
+      errorTags: evaluation.tags,
+    });
 
     // Show completion modal
     setShowCompletion(true);

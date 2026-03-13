@@ -588,7 +588,7 @@ async def handle_explain(request: ExplainRequest, return_chunks: bool = False) -
         for attempt in range(max_retries):
             try:
                 completion = get_groq_client().chat.completions.create(
-                    model="meta-llama/llama-4-maverick-17b-128e-instruct",
+                    model="llama-3.3-70b-versatile",
                     messages=messages,
                     temperature=0.2,
                     max_tokens=300,

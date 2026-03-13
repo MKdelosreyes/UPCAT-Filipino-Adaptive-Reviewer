@@ -81,8 +81,8 @@ class ExerciseProgress(models.Model):
         ('choose-sentence', 'Choose the Sentence'),
 
         # Reading Comprehension
-        ('reading-passages', 'Reading Passages'),
-        ('summarization', 'Summarization'),
+        ('passage-questions', 'Reading Passages'),
+        ('summary-exercise', 'Summarization'),
     ]
 
     LESSON_EXERCISES = ['flashcards', 'lesson-cards']
