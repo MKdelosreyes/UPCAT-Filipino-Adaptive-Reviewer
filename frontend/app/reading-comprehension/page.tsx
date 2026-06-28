@@ -149,7 +149,7 @@ export default function ReadingComprehensionPage() {
           aria-label="Reading comprehension activities"
           className="
             mt-4
-            -mx-4 px-6 py-3
+                "h-full min-h-[300px]",
             flex gap-4 overflow-x-auto
             snap-x snap-mandatory scroll-px-4
             sm:mt-0 sm:mx-0 sm:px-0 sm:py-0

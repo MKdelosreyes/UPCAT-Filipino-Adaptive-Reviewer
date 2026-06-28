@@ -186,7 +186,7 @@ export default function VocabularyPage() {
               }}
               className={[
                 "snap-center shrink-0 min-w-[270px] w-[78%] sm:w-auto",
-                "h-full sm:h-[150px] min-h-[300px] sm:min-h-0",
+                "h-full min-h-[300px]",
                 "transition-transform duration-200 ease-out will-change-transform",
                 // Focus effect on mobile only
                 i === activeCard
