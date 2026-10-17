@@ -54,9 +54,9 @@ The system adapts to each student's performance, automatically adjusting difficu
 - **Summary Checking**: Structured evaluation of user-written summaries (see [`handle_summary_check`](ai-service/handlers/summary_checker.py) and `/summary/check` in [`main`](ai-service/main.py))
 - **Interactive Chat Assistant**: Chat endpoint for guided help (see `/chat` in [`main`](ai-service/main.py))
 
-![Feature Overview](docs/screenshots/UPCAT ss-1.png)
+![Feature Overview](docs/screenshots/upcat-ss-1)
 
-![Feature Overview](docs/screenshots/UPCAT ss-2.png)
+![Feature Overview](docs/screenshots/upcat-ss-1)
 
 ### Progress Analytics
 
