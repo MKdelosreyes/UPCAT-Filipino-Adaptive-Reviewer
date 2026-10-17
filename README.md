@@ -56,7 +56,7 @@ The system adapts to each student's performance, automatically adjusting difficu
 
 ![Feature Overview](docs/screenshots/upcat-ss-1)
 
-![Feature Overview](docs/screenshots/upcat-ss-1)
+![Feature Overview](docs/screenshots/upcat-ss-2)
 
 ### Progress Analytics
 
